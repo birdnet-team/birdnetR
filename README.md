@@ -1,5 +1,5 @@
 # BirdNET-R
-This is a wrapper for the `birdnet` Python package for automated bird sound ID.
+This is a wrapper for the `birdnet` Python package for automated bird sound ID available [here](https://github.com/birdnet-team/birdnet)
 
 ## License
 
@@ -75,29 +75,59 @@ print(paste("Predicted:", top_prediction$prediction))
 print(paste("Confidence:", top_prediction$confidence))
 ```
 
-## Dev setup
+## Developer Guide
 
-Setup dev environment:
+### Cloning the Repository
 
+To contribute to the development of BirdNET-R, you can clone the repository from GitHub:
+
+```sh
+git clone https://github.com/birdnet-team/BirdNET-R.git
+cd BirdNET-R
 ```
-install.packages("reticulate")
 
+### Setting Up the Development Environment
+
+**Install R Package Dependencies**
+
+Ensure you have all the necessary R package dependencies:
+
+```r
+install.packages(c("devtools", "roxygen2", "testthat", "reticulate"))
+```
+
+**Setting Up the Python Environment**
+
+Set up a Python virtual environment and install the `birdnet` Python package:
+
+```r
 library(reticulate)
 reticulate::virtualenv_create("r-reticulate")
 reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
 reticulate::use_virtualenv("r-reticulate", required = TRUE)
 ```
 
-Create the docs:
+**Generating Documentation**
 
-```
-usethis::use_roxygen_md()
+To generate the documentation, use the roxygen2 package:
+
+```r
 devtools::document()
 ```
 
-Run some tests:
+**Running Tests**
 
+To run the tests, use the testthat package:
+
+```r
+devtools::test()
 ```
+
+**Building and checking the Package**
+
+To build and check the package, use the devtools package:
+
+```r
 devtools::build()
 devtools::check()
 ```
