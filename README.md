@@ -46,7 +46,7 @@ reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
 reticulate::use_virtualenv("r-reticulate", required = TRUE)
 ```
 
-Here's a simple example of how to use the YourPackage to predict bird species from an audio file:
+Here's a simple example of how to use this package to predict bird species from an audio file:
 
 ```r
 # Load the package
