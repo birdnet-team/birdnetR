@@ -56,7 +56,7 @@ Here's a simple example of how to use this package to predict bird species from 
 
 ```r
 # Load the package
-library(BirdNET)
+library(birdnet)
 
 # Initialize the BirdNET model
 model <- init_model()
