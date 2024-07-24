@@ -27,7 +27,21 @@ First, install the `reticulate` package if you haven't already:
 install.packages("reticulate")
 ```
 
-Then, create and configure a Python virtual environment:
+For now, you have to install the package from GitHub. 
+
+To install the package directly from GitHub, you need to have the devtools package installed. If you don't have devtools installed, you can install it using:
+
+```r
+install.packages("devtools")
+```
+
+Then, you can install BirdNET-R from GitHub:
+
+```r
+devtools::install_github("birdnet-team/BirdNET-R")
+```
+
+After that, create and configure a Python virtual environment:
 
 ```r
 library(reticulate)
@@ -42,7 +56,7 @@ Here's a simple example of how to use this package to predict bird species from 
 
 ```r
 # Load the package
-library(birdnet)
+library(BirdNET)
 
 # Initialize the BirdNET model
 model <- init_model()
