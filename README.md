@@ -1,35 +1,11 @@
 # BirdNET-R
-This will include diffrent analytics functions and packages for using BirdNET in R as standalone.
+This is a wrapper for the `birdnet` Python package for automated bird sound ID.
 
-## Dev setup
+## License
 
-run in R console:
+This package is licensed under the MIT License. See the LICENSE file for details.
 
-```
-install.packages("reticulate")
-
-library(reticulate)
-reticulate::virtualenv_create("r-reticulate")
-reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
-reticulate::use_virtualenv("r-reticulate", required = TRUE)
-```
-
-
-run for docs:
-
-```
-usethis::use_roxygen_md()
-devtools::document()
-```
-
-run tests
-
-```
-devtools::build()
-devtools::check()
-```
-
-## Example use
+## Setup
 
 First, install the `reticulate` package if you haven't already:
 
@@ -45,6 +21,8 @@ reticulate::virtualenv_create("r-reticulate")
 reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
 reticulate::use_virtualenv("r-reticulate", required = TRUE)
 ```
+
+## Example use
 
 Here's a simple example of how to use this package to predict bird species from an audio file:
 
@@ -69,7 +47,29 @@ print(paste("Predicted:", top_prediction$prediction))
 print(paste("Confidence:", top_prediction$confidence))
 ```
 
-## License
+## Dev setup
 
-This package is licensed under the MIT License. See the LICENSE file for details.
+run in R console:
 
+```
+install.packages("reticulate")
+
+library(reticulate)
+reticulate::virtualenv_create("r-reticulate")
+reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
+reticulate::use_virtualenv("r-reticulate", required = TRUE)
+```
+
+run for docs:
+
+```
+usethis::use_roxygen_md()
+devtools::document()
+```
+
+run tests
+
+```
+devtools::build()
+devtools::check()
+```
