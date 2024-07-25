@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Stefan Kahl
 Maintainer: Stefan Kahl <stefan.kahl@cornell.edu>
 Description: This packages is a wrapper for the BirdNET Python package.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
