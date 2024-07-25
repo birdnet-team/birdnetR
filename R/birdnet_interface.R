@@ -1,8 +1,16 @@
-library(reticulate)
+# Import the necessary Python modules layzily
+py_birdnet <- NULL
+py_pathlib <- NULL
 
-# Import the necessary Python modules
-py_birdnet <- import("birdnet.models")
-py_pathlib <- import("pathlib")
+.onLoad <- function(libname, pkgname, ...) {
+  configure_environment(pkgname)
+  use_virtualenv("r-birdnet", required = FALSE)
+
+  # use superassignment to update global reference to the python packages
+  py_birdnet <<- import("birdnet.models", delay_load = TRUE)
+  py_pathlib <<- import("pathlib", delay_load = TRUE)
+}
+
 
 #' Initialize the BirdNET Model
 #'
