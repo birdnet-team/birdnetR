@@ -41,7 +41,7 @@ devtools::install_github("birdnet-team/BirdNET-R")
 
 Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
 ```r
-library(birdnet)
+library(birdnetR)
 install_birdnet()
 
 ```
@@ -56,7 +56,7 @@ Here's a simple example of how to use this package to predict bird species from 
 
 ```r
 # Load the package
-library(birdnet)
+library(birdnetR)
 
 # Initialize the BirdNET model
 model <- init_model()
@@ -134,7 +134,7 @@ devtools::check()
 ```
 
 > [!NOTE]
-> Tests and checks will only pass if the package and birdnet are installed correctly.
+> Tests and checks will only pass if the package and `birdnet` are installed correctly.
 
 ## Funding
 

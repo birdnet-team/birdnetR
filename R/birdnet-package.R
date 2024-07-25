@@ -6,7 +6,7 @@
 #'
 #' @docType package
 #' @keywords internal
-#' @name birdnet
+#' @name birdnetR
 #' @aliases birdnetR
 "_PACKAGE"
 

@@ -2,13 +2,21 @@
 py_birdnet <- NULL
 py_pathlib <- NULL
 
+
+#' Initialize BirdNET-R Package
+#'
+#' This function is executed when the BirdNET-R package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available. The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
+#'
+#' @param libname The name of the library currently being loaded.
+#' @param pkgname The name of the package currently being loaded.
+#' @param ... Additional arguments passed to the function.
 .onLoad <- function(libname, pkgname, ...) {
-  configure_environment(pkgname)
-  use_virtualenv("r-birdnet", required = FALSE)
+  reticulate::configure_environment(pkgname)
+  reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
   # use superassignment to update global reference to the python packages
-  py_birdnet <<- import("birdnet.models", delay_load = TRUE)
-  py_pathlib <<- import("pathlib", delay_load = TRUE)
+  py_birdnet <<- reticulate::import("birdnet.models", delay_load = TRUE)
+  py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
 }
 
 
@@ -31,7 +39,7 @@ init_model <- function() {
 #' @param audio_path The path to the audio file.
 #' @return A list of predictions.
 #' @export
-predict_species <- function(model, audio_path = system.file("extdata", "soundscape.wav", package = "birdnet")) {
+predict_species <- function(model, audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR")) {
   path <- py_pathlib$Path(audio_path)
   predictions <- model$predict_species_within_audio_file(path)
   return(predictions)
