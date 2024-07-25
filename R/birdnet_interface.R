@@ -1,28 +1,14 @@
-library(reticulate)
-
+# Import the necessary Python modules layzily
 py_birdnet <- NULL
 py_pathlib <- NULL
 
-# Import the necessary Python modules
 .onLoad <- function(libname, pkgname, ...) {
-  reticulate::configure_environment(pkgname)
-  reticulate::use_virtualenv("r-birdnet", required = FALSE)
+  configure_environment(pkgname)
+  use_virtualenv("r-birdnet", required = FALSE)
 
   # use superassignment to update global reference to the python packages
-  py_birdnet <<- reticulate::import("birdnet.models", delay_load = TRUE)
-  py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
-}
-
-#' Install BirdNET
-#'
-#' This function installs the python package `birdnet` from PyPi into a virtual environment.
-#'
-#' @param ... Further arguments passed to reticulate::py_install()
-#' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
-#'
-#' @export
-install_birdnet <- function(..., envname = "r-birdnet") {
-  reticulate::py_install("birdnet==0.1.0", python_version = "3.11", envname = envname, ...)
+  py_birdnet <<- import("birdnet.models", delay_load = TRUE)
+  py_pathlib <<- import("pathlib", delay_load = TRUE)
 }
 
 
