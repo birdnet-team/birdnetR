@@ -1,6 +1,6 @@
 Package: birdnet
 Type: Package
-Title: Identifying bird species by their sounds.
+Title: Identifying bird species by their sounds
 Version: 0.1.0
 Author: Stefan Kahl
 Maintainer: Stefan Kahl <stefan.kahl@cornell.edu>
