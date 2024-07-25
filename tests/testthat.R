@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(birdnet)
+library(birdnetR)
 
-test_check("birdnet")
+test_check("birdnetR")

@@ -6,7 +6,7 @@
 \usage{
 predict_species(
   model,
-  audio_path = system.file("extdata", "soundscape.wav", package = "birdnet")
+  audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR")
 )
 }
 \arguments{

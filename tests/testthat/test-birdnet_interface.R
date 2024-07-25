@@ -1,5 +1,5 @@
 library(testthat)
-library(birdnet)
+library(birdnetR)
 
 test_that("init_model works", {
   model <- init_model()
@@ -14,7 +14,7 @@ test_that("predict_species works", {
 
 test_that("get_top_prediction works", {
   model <- init_model()
-  audio_path <- system.file("extdata", "soundscape.wav", package = "birdnet")
+  audio_path <- system.file("extdata", "soundscape.wav", package = "birdnetR")
   predictions <- predict_species(model, audio_path)
   print(predictions)  # Debugging: Print predictions
 

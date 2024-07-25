@@ -1,9 +1,10 @@
-Package: birdnet
+Package: birdnetR
 Type: Package
 Title: Identifying bird species by their sounds
 Version: 0.1.0
-Author: Stefan Kahl
-Maintainer: Stefan Kahl <stefan.kahl@cornell.edu>
+Authors@R: c(
+  person("Stefan", "Kahl", email = "stefan.kahl@cornell.edu", role = c("aut", "cre")),
+  person("BirdNET", "Team", role = c("aut")))
 Description: This packages is a wrapper for the BirdNET Python package.
 License: MIT + file LICENSE
 Encoding: UTF-8
