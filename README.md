@@ -1,11 +1,9 @@
 # BirdNET-R
 This is a wrapper for the `birdnet` Python package for automated bird sound ID available [here](https://github.com/birdnet-team/birdnet)
 
-## License
-
-This package is licensed under the MIT License. See the LICENSE file for details.
-
 ## Citation
+
+Feel free to use BirdNET-R for your acoustic analyses and research. If you do, please cite as:
 
 ```bibtex
 @article{kahl2021birdnet,
@@ -77,6 +75,13 @@ print(paste("Predicted:", top_prediction$prediction))
 print(paste("Confidence:", top_prediction$confidence))
 ```
 
+## License
+
+- **Source Code**: The source code for this project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+- **Models**: The models used in this project are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
+
 ## Developer Guide
 
 ### Cloning the Repository
@@ -128,7 +133,7 @@ devtools::build()
 devtools::check()
 ```
 
-> ![NOTE]
+> [!NOTE]
 > Tests and checks will only pass if the package and birdnet are installed correctly.
 
 ## Funding
