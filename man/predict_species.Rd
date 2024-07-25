@@ -4,7 +4,10 @@
 \alias{predict_species}
 \title{Predict Species Within an Audio File}
 \usage{
-predict_species(model, audio_path)
+predict_species(
+  model,
+  audio_path = system.file("extdata", "soundscape.wav", package = "birdnet")
+)
 }
 \arguments{
 \item{model}{An instance of the BirdNET model.}
