@@ -41,14 +41,16 @@ Then, you can install BirdNET-R from GitHub:
 devtools::install_github("birdnet-team/BirdNET-R")
 ```
 
-After that, create and configure a Python virtual environment:
-
+Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
 ```r
-library(reticulate)
-reticulate::virtualenv_create("r-reticulate")
-reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
-reticulate::use_virtualenv("r-reticulate", required = TRUE)
+library(birdnet)
+install_birdnet()
+
 ```
+
+> [!NOTE]
+> If you don't have a compatible version of Python installed, use reticulate::use_python_version(version = '<version>') to install a compatible version.
+
 
 ## Example use
 
@@ -98,14 +100,8 @@ install.packages(c("devtools", "roxygen2", "testthat", "reticulate"))
 
 **Setting Up the Python Environment**
 
-Set up a Python virtual environment and install the `birdnet` Python package:
+Set up a Python virtual environment and install the `birdnet` Python package as described above.
 
-```r
-library(reticulate)
-reticulate::virtualenv_create("r-reticulate")
-reticulate::virtualenv_install("r-reticulate", packages = "birdnet")
-reticulate::use_virtualenv("r-reticulate", required = TRUE)
-```
 
 **Generating Documentation**
 
@@ -131,6 +127,9 @@ To build and check the package, use the devtools package:
 devtools::build()
 devtools::check()
 ```
+
+> ![NOTE]
+> Tests and checks will only pass if the package and birdnet are installed correctly.
 
 ## Funding
 
