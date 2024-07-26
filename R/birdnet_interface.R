@@ -38,12 +38,15 @@ init_model <- function() {
 #'
 #' @param model An instance of the BirdNET model.
 #' @param audio_path The path to the audio file.
-#' @return A list of predictions.
+#' @param keep_empty A logical flag indicating whether to include empty elements (empty time intervals) as rows in the output
+#'   data frame. If `TRUE`, empty elements are filled with `NA`. If `FALSE`, empty elements are excluded.
+#' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
+#'   Each row represents a single prediction.
 #' @export
-predict_species <- function(model, audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR")) {
+predict_species <- function(model, audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR"), keep_empty = TRUE) {
   path <- py_pathlib$Path(audio_path)
   predictions <- model$predict_species_within_audio_file(path)
-  return(predictions)
+  predictions_to_df(predictions, keep_empty = keep_empty)
 }
 
 #' Get Top Prediction within a Time Interval
