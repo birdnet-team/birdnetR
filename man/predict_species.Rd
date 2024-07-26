@@ -6,16 +6,21 @@
 \usage{
 predict_species(
   model,
-  audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR")
+  audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR"),
+  keep_empty = TRUE
 )
 }
 \arguments{
 \item{model}{An instance of the BirdNET model.}
 
 \item{audio_path}{The path to the audio file.}
+
+\item{keep_empty}{A logical flag indicating whether to include empty elements (empty time intervals) as rows in the output
+data frame. If \code{TRUE}, empty elements are filled with \code{NA}. If \code{FALSE}, empty elements are excluded.}
 }
 \value{
-A list of predictions.
+A data frame with columns: \code{start}, \code{end}, \code{scientific_name}, \code{common_name}, and \code{confidence}.
+Each row represents a single prediction.
 }
 \description{
 This function predicts species within an audio file using the BirdNET model.

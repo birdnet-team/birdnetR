@@ -13,7 +13,7 @@
 #' @param filter A list containing 'start' and 'end' values to filter the data before calculation.
 #'               If `NULL`, the function processes all time intervals.
 #' @return A data frame containing the rows with the highest confidence per group or for the specified interval.
-#' @examples
+#' @examplesIf interactive()
 #' # Example data
 #' data <- data.frame(
 #'   start = c(0, 0, 1, 1, 2, 2),
@@ -43,9 +43,9 @@
 #' get_top_prediction(data, filter = list(start = 1, end = 2))
 #'
 #' # The same thing can be done using dplyr
-#' data |>
-#'   group_by(start, end) |>
-#'   slice_max(order_by = confidence)
+#' # data |>
+#' #    dplyr::group_by(start, end) |>
+#' #    dplyr::slice_max(order_by = confidence)
 #'
 #' @export
 get_top_prediction <- function(data, filter = NULL) {
