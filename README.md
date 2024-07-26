@@ -74,12 +74,9 @@ audio_path <- "path/to/your/soundscape.wav"
 # Predict species within the audio file
 predictions <- predict_species(model, audio_path)
 
-# Get the most probable prediction within the time interval 0s-3s
-top_prediction <- get_top_prediction(predictions, 0.0, 3.0)
+# Get most probable prediction within each time interval
+get_top_prediction(predictions)
 
-# Print the top prediction and its confidence
-print(paste("Predicted:", top_prediction$prediction))
-print(paste("Confidence:", top_prediction$confidence))
 ```
 
 ## Developer Guide
