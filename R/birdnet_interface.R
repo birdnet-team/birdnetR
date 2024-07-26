@@ -10,6 +10,7 @@ py_pathlib <- NULL
 #' @param libname The name of the library currently being loaded.
 #' @param pkgname The name of the package currently being loaded.
 #' @param ... Additional arguments passed to the function.
+#' @noRd
 .onLoad <- function(libname, pkgname, ...) {
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
