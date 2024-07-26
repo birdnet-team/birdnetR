@@ -14,7 +14,6 @@
 #'   Each row represents a single prediction.
 #' @noRd
 predictions_to_df <- function(predictions, keep_empty = FALSE) {
-
   # Validate input types
   if (!is.list(predictions)) {
     stop("The 'predictions' argument must be a list.")
@@ -56,7 +55,6 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
 #' predictions_list_element_to_df(x)
 #' @noRd
 predictions_list_element_to_df <- function(x) {
-
   # Ensure the element has expected structure
   if (!is.list(x) || length(x) == 0 || !is.character(names(x))) {
     stop("Each element in the 'predictions' list should be a named list.")
@@ -65,8 +63,7 @@ predictions_list_element_to_df <- function(x) {
   # Extract and parse the time interval from the element's name
   time_interval_str <- names(x)
   time_interval_vec <- as.numeric(unlist(strsplit(
-    gsub("[()]", "", time_interval_str),
-    ","
+    gsub("[()]", "", time_interval_str), ","
   )))
 
   # Ensure the time interval is correctly parsed
