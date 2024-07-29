@@ -48,7 +48,7 @@ init_model <- function() {
 #'   Each row represents a single prediction.
 #' @export
 predict_species <- function(model, audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR"), keep_empty = TRUE) {
-  path <- py_pathlib$Path(audio_path)
+  path <- py_pathlib$Path(normalizePath(audio_path))
   predictions <- model$predict_species_within_audio_file(path)
   predictions_to_df(predictions, keep_empty = keep_empty)
 }
