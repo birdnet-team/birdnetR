@@ -16,8 +16,7 @@ predict_species(
   sigmoid_sensitivity = 1,
   filter_species = NULL,
   file_splitting_duration_s = 600,
-  keep_empty = TRUE,
-  ...
+  keep_empty = TRUE
 )
 }
 \arguments{
@@ -42,8 +41,6 @@ predict_species(
 \item{file_splitting_duration_s}{numeric. Duration in seconds for splitting the audio file into smaller segments for processing.}
 
 \item{keep_empty}{logical. Whether to include empty intervals in the output.}
-
-\item{...}{Additional arguments passed to the prediction function.}
 }
 \value{
 A data frame with columns: \code{start}, \code{end}, \code{scientific_name}, \code{common_name}, and \code{confidence}.
@@ -51,4 +48,14 @@ Each row represents a single prediction.
 }
 \description{
 This function predicts species within an audio file using the BirdNET model.
+}
+\details{
+Applying a sigmoid activation function, (\code{apply_sigmoid=True}) scales the unbound class output of the linear classifier ("logit score") to the range \code{0-1}.
+This confidence score is a unitless, numeric expression of BirdNET’s “confidence” in its prediction (but not the probability of species presence).
+Sigmoid sensitivity < 1 leads to more higher and lower scoring predictions and a value > 1 leads to more intermediate-scoring predictions.
+
+For more information on BirdNET confidence scores, the sigmoid activation function and a suggested workflow on how to convert confidence scores to probabilities, see Wood & Kahl, 2024
+}
+\references{
+Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 }

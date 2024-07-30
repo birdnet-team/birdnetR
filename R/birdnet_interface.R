@@ -40,7 +40,6 @@ py_pathlib <- NULL
 init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
-
     stopifnot(is.integer(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
@@ -53,6 +52,15 @@ init_model <-
 #' Predict Species Within an Audio File
 #'
 #' This function predicts species within an audio file using the BirdNET model.
+#'
+#' @details
+#' Applying a sigmoid activation function, (`apply_sigmoid=True`) scales the unbound class output of the linear classifier ("logit score") to the range `0-1`.
+#' This confidence score is a unitless, numeric expression of BirdNET’s “confidence” in its prediction (but not the probability of species presence).
+#' Sigmoid sensitivity < 1 leads to more higher and lower scoring predictions and a value > 1 leads to more intermediate-scoring predictions.
+#'
+#' For more information on BirdNET confidence scores, the sigmoid activation function and a suggested workflow on how to convert confidence scores to probabilities, see Wood & Kahl, 2024
+#'
+#' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
 #' @param model BirdNETModel. An instance of the BirdNET model returned by [`init_model()`].
 #' @param audio_file character. The path to the audio file.
@@ -79,8 +87,7 @@ predict_species <- function(model,
                             sigmoid_sensitivity = 1,
                             filter_species = NULL,
                             file_splitting_duration_s = 600,
-                            keep_empty = TRUE,
-                            ...) {
+                            keep_empty = TRUE) {
   # Check argument types
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
   stopifnot(is.character(audio_file))
