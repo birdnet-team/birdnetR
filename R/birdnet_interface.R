@@ -20,7 +20,8 @@ py_pathlib <- NULL
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
   # use superassignment to update global reference to the python packages
-  py_birdnet <<- reticulate::import("birdnet.models", delay_load = TRUE)
+  py_birdnet <<-
+    reticulate::import("birdnet.models", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
 }
 
@@ -36,28 +37,80 @@ py_pathlib <- NULL
 #'
 #' @return An instance of the BirdNET model.
 #' @export
-init_model <- function(tflite_num_threads = NULL, language = "en_us") {
-  # Value Errors (e.g. unsupported language) are handled by the python package
+init_model <-
+  function(tflite_num_threads = NULL,
+           language = "en_us") {
+    # Value Errors (e.g. unsupported language) are handled by the python package
 
-  tflite_num_threads <- if (!is.null(tflite_num_threads)) as.integer(tflite_num_threads)
+    tflite_num_threads <-
+      if (!is.null(tflite_num_threads)) {
+        as.integer(tflite_num_threads)
+      }
 
-  model <- py_birdnet$ModelV2M4(tflite_num_threads = tflite_num_threads, language = language)
-  return(model)
-}
+    model <-
+      py_birdnet$ModelV2M4(tflite_num_threads = tflite_num_threads, language = language)
+    return(model)
+  }
+
 
 #' Predict Species Within an Audio File
 #'
 #' This function predicts species within an audio file using the BirdNET model.
 #'
-#' @param model An instance of the BirdNET model.
-#' @param audio_path The path to the audio file.
-#' @param keep_empty A logical flag indicating whether to include empty elements (empty time intervals) as rows in the output
-#'   data frame. If `TRUE`, empty elements are filled with `NA`. If `FALSE`, empty elements are excluded.
+#' @param model BirdNETModel. An instance of the BirdNET model returned by [`init_model()`].
+#' @param audio_file character. The path to the audio file.
+#' @param min_confidence numeric. Minimum confidence threshold for predictions.
+#' @param batch_size integer. Number of audio samples to process in a batch.
+#' @param use_bandpass logical. Whether to apply a bandpass filter.
+#' @param bandpass_fmin,bandpass_fmax numeric. Minimum/Maximumfrequency for the bandpass filter (in Hz). Ignored if `use_bandpass` is False.
+#' @param apply_sigmoid logical. Whether to apply a sigmoid function to the model output.
+#' @param sigmoid_sensitivity numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if `apply_sigmoid` is False.
+#' @param filter_species character or NULL. A set of species to filter the predictions. If NULL, no filtering is applied.
+#' @param file_splitting_duration_s numeric. Duration in seconds for splitting the audio file into smaller segments for processing.
+#' @param keep_empty logical. Whether to include empty intervals in the output.
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
 #'   Each row represents a single prediction.
 #' @export
-predict_species <- function(model, audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR"), keep_empty = TRUE) {
-  path <- py_pathlib$Path(normalizePath(audio_path))
-  predictions <- model$predict_species_within_audio_file(path)
+predict_species <- function(model,
+                            audio_file = system.file("extdata", "soundscape.wav", package = "birdnetR"),
+                            min_confidence = 0.1,
+                            batch_size = 1L,
+                            use_bandpass = TRUE,
+                            bandpass_fmin = 0L,
+                            bandpass_fmax = 15000L,
+                            apply_sigmoid = TRUE,
+                            sigmoid_sensitivity = 1,
+                            filter_species = NULL,
+                            file_splitting_duration_s = 600,
+                            keep_empty = TRUE,
+                            ...) {
+  # Check argument types
+  stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
+  stopifnot(is.character(audio_file))
+  stopifnot(is.numeric(min_confidence))
+  stopifnot(is.integer(batch_size))
+  stopifnot(is.logical(use_bandpass))
+  stopifnot(is.integer(bandpass_fmin))
+  stopifnot(is.integer(bandpass_fmax))
+  stopifnot(is.logical(apply_sigmoid))
+  stopifnot(is.numeric(sigmoid_sensitivity))
+  stopifnot(is.null(filter_species) || is.character(filter_species))
+  stopifnot(is.numeric(file_splitting_duration_s))
+  stopifnot(is.logical(keep_empty))
+
+  # Main function logic
+  audio_file <- py_pathlib$Path(normalizePath(audio_file))
+  predictions <- model$predict_species_within_audio_file(
+    audio_file,
+    min_confidence = min_confidence,
+    batch_size = batch_size,
+    use_bandpass = use_bandpass,
+    bandpass_fmin = bandpass_fmin,
+    bandpass_fmax = bandpass_fmax,
+    apply_sigmoid = apply_sigmoid,
+    sigmoid_sensitivity = sigmoid_sensitivity,
+    filter_species = filter_species,
+    file_splitting_duration_s = file_splitting_duration_s
+  )
   predictions_to_df(predictions, keep_empty = keep_empty)
 }

@@ -6,17 +6,44 @@
 \usage{
 predict_species(
   model,
-  audio_path = system.file("extdata", "soundscape.wav", package = "birdnetR"),
-  keep_empty = TRUE
+  audio_file = system.file("extdata", "soundscape.wav", package = "birdnetR"),
+  min_confidence = 0.1,
+  batch_size = 1L,
+  use_bandpass = TRUE,
+  bandpass_fmin = 0L,
+  bandpass_fmax = 15000L,
+  apply_sigmoid = TRUE,
+  sigmoid_sensitivity = 1,
+  filter_species = NULL,
+  file_splitting_duration_s = 600,
+  keep_empty = TRUE,
+  ...
 )
 }
 \arguments{
-\item{model}{An instance of the BirdNET model.}
+\item{model}{BirdNETModel. An instance of the BirdNET model returned by \code{\link[=init_model]{init_model()}}.}
 
-\item{audio_path}{The path to the audio file.}
+\item{audio_file}{character. The path to the audio file.}
 
-\item{keep_empty}{A logical flag indicating whether to include empty elements (empty time intervals) as rows in the output
-data frame. If \code{TRUE}, empty elements are filled with \code{NA}. If \code{FALSE}, empty elements are excluded.}
+\item{min_confidence}{numeric. Minimum confidence threshold for predictions.}
+
+\item{batch_size}{integer. Number of audio samples to process in a batch.}
+
+\item{use_bandpass}{logical. Whether to apply a bandpass filter.}
+
+\item{bandpass_fmin, bandpass_fmax}{numeric. Minimum/Maximumfrequency for the bandpass filter (in Hz). Ignored if \code{use_bandpass} is False.}
+
+\item{apply_sigmoid}{logical. Whether to apply a sigmoid function to the model output.}
+
+\item{sigmoid_sensitivity}{numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if \code{apply_sigmoid} is False.}
+
+\item{filter_species}{character or NULL. A set of species to filter the predictions. If NULL, no filtering is applied.}
+
+\item{file_splitting_duration_s}{numeric. Duration in seconds for splitting the audio file into smaller segments for processing.}
+
+\item{keep_empty}{logical. Whether to include empty intervals in the output.}
+
+\item{...}{Additional arguments passed to the prediction function.}
 }
 \value{
 A data frame with columns: \code{start}, \code{end}, \code{scientific_name}, \code{common_name}, and \code{confidence}.
