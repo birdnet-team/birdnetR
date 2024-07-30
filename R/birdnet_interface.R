@@ -40,7 +40,7 @@ py_pathlib <- NULL
 init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
-    stopifnot(is.integer(tflite_num_threads))
+    stopifnot(is.integer(tflite_num_threads) | is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
     model <-
