@@ -29,10 +29,19 @@ py_pathlib <- NULL
 #'
 #' This function initializes the BirdNET model (v2.4).
 #'
+#' @param tflite_num_threads The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
+#'  Will be coerced to an integer if possible.
+#' @param language  The language to use for the model's text processing. Must be one of the following available languages:
+#' "en_us", "en_uk", "sv", "da", "hu", "th", "pt", "fr", "cs", "af", "uk", "it", "ja", "sl", "pl", "ko", "es", "de", "tr", "ru", "no", "sk", "ar", "fi", "ro", "nl", "zh".
+#'
 #' @return An instance of the BirdNET model.
 #' @export
-init_model <- function() {
-  model <- py_birdnet$ModelV2M4()
+init_model <- function(tflite_num_threads = NULL, language = "en_us") {
+  # Value Errors (e.g. unsupported language) are handled by the python package
+
+  tflite_num_threads <- if (!is.null(tflite_num_threads)) as.integer(tflite_num_threads)
+
+  model <- py_birdnet$ModelV2M4(tflite_num_threads = tflite_num_threads, language = language)
   return(model)
 }
 

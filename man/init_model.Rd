@@ -4,7 +4,14 @@
 \alias{init_model}
 \title{Initialize the BirdNET Model}
 \usage{
-init_model()
+init_model(tflite_num_threads = NULL, language = "en_us")
+}
+\arguments{
+\item{tflite_num_threads}{The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
+Will be coerced to an integer if possible.}
+
+\item{language}{The language to use for the model's text processing. Must be one of the following available languages:
+"en_us", "en_uk", "sv", "da", "hu", "th", "pt", "fr", "cs", "af", "uk", "it", "ja", "sl", "pl", "ko", "es", "de", "tr", "ru", "no", "sk", "ar", "fi", "ro", "nl", "zh".}
 }
 \value{
 An instance of the BirdNET model.
