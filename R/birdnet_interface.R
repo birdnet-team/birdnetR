@@ -112,7 +112,7 @@ predict_species <- function(model,
                             filter_species = NULL,
                             file_splitting_duration_s = 600,
                             keep_empty = TRUE) {
-  # Check argument types
+  # Check argument types. This ist mostly in order to return better error messages
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
   stopifnot(is.character(audio_file))
   stopifnot(is.numeric(min_confidence))
@@ -154,4 +154,48 @@ predict_species <- function(model,
     file_splitting_duration_s = file_splitting_duration_s
   )
   predictions_to_df(predictions, keep_empty = keep_empty)
+}
+
+#' Predict species for a given location and time
+#'
+#' Uses the BirdNET Species Range Model to estimate the presence of bird species at a specified location and time of year.
+#'
+#' @details
+#' The BirdNET Species Range Model leverages eBird checklist frequency data to estimate the probability of bird species occurrences based on latitude, longitude, and time of year.
+#' It integrates actual observations and expert-curated data, making it adaptable to regions with varying levels of data availability.
+#' The model employs circular embeddings and a classifier to predict species presence and migration patterns, achieving higher accuracy in data-rich regions and lower accuracy in underrepresented areas like parts of Africa and Asia.
+#' For more details, you can view the full discussion here:
+#' https://github.com/kahst/BirdNET-Analyzer/discussions/234
+#'
+#' @param model BirdNETModel. An instance of the BirdNET model returned by [`init_model()`].
+#' @param latitude numeric. The latitude of the location for species prediction. Must be in the interval \[-90.0, 90.0\].
+#' @param longitude numeric. The longitude of the location for species prediction. Must be in the interval \[-180.0, 180.0\].
+#' @param week integer. The week of the year for which to predict species. Must be in the interval \[1, 48\] if specified. If NULL, predictions are not limited to a specific week.
+#' @param min_confidence numeric. Minimum confidence threshold for predictions to be considered valid. Must be in the interval \[0, 1.0).
+#'
+#' @return A data frame with columns: `label`, `confidence`. Each row represents a predicted species, with the `confidence` indicating the likelihood of the species being present at the specified location and time.
+#' @export
+#'
+#' @examples
+#' # Predict species in Chemnitz, Germany, that are present all year round
+#' model <- init_model(language = "de")
+#' predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
+predict_species_at_location_and_time <- function(model,
+                                                 latitude,
+                                                 longitude,
+                                                 week = NULL,
+                                                 min_confidence = 0.03) {
+
+  stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
+
+  predictions <- model$predict_species_at_location_and_time(latitude,
+    longitude,
+    week = week,
+    min_confidence = min_confidence
+  )
+  data.frame(
+    label = names(predictions),
+    confidence = unlist(predictions),
+    row.names = NULL
+  )
 }
