@@ -139,7 +139,7 @@ predict_species <- function(model,
   }
 
   # Main function logic
-  audio_file <- py_pathlib$Path(normalizePath(audio_file))
+  audio_file <- py_pathlib$Path(audio_file)$expanduser()$resolve(TRUE)
 
   predictions <- model$predict_species_within_audio_file(
     audio_file,
