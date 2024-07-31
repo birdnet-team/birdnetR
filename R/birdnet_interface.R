@@ -3,8 +3,10 @@
 
 
 # Import the necessary Python modules layzily
-py_birdnet <- NULL
+py_birdnet_models <- NULL
+py_birdnet_utils <- NULL
 py_pathlib <- NULL
+py_builtins <- NULL
 
 
 #' Initialize BirdNET-R Package
@@ -20,9 +22,13 @@ py_pathlib <- NULL
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
   # use superassignment to update global reference to the python packages
-  py_birdnet <<-
+  py_birdnet_models <<-
     reticulate::import("birdnet.models", delay_load = TRUE)
+  py_birdnet_utils <<-
+    reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
+  # Import Python built-in functions and types
+  py_builtins <<- import_builtins(delay_load = TRUE)
 }
 
 
@@ -40,14 +46,31 @@ py_pathlib <- NULL
 init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
-    stopifnot(is.integer(tflite_num_threads) | is.null(tflite_num_threads))
+    stopifnot(is.integer(tflite_num_threads) |
+      is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
     model <-
-      py_birdnet$ModelV2M4(tflite_num_threads = tflite_num_threads, language = language)
+      py_birdnet_models$ModelV2M4(tflite_num_threads = tflite_num_threads, language = language)
     return(model)
   }
 
+#' Read species labels from a file
+#'
+#' This is a convenience function to read species labels from a file.
+#'
+#' @param species_file Path to species file.
+#'
+#' @return A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
+#' @export
+#'
+#' @examples
+#' get_species_from_file(system.file("extdata", "species_list.txt", package = "birdnetR"))
+get_species_from_file <- function(species_file) {
+  species_file_path <- py_pathlib$Path(normalizePath(species_file))
+  py_species_list <- py_birdnet_utils$get_species_from_file(species_file_path)
+  py_species_list$items
+}
 
 #' Predict Species Within an Audio File
 #'
@@ -67,14 +90,15 @@ init_model <-
 #' @param min_confidence numeric. Minimum confidence threshold for predictions.
 #' @param batch_size integer. Number of audio samples to process in a batch.
 #' @param use_bandpass logical. Whether to apply a bandpass filter.
-#' @param bandpass_fmin,bandpass_fmax numeric. Minimum/Maximumfrequency for the bandpass filter (in Hz). Ignored if `use_bandpass` is False.
+#' @param bandpass_fmin,bandpass_fmax numeric. Minimum/Maximum frequency for the bandpass filter (in Hz). Ignored if `use_bandpass` is False.
 #' @param apply_sigmoid logical. Whether to apply a sigmoid function to the model output.
 #' @param sigmoid_sensitivity numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if `apply_sigmoid` is False.
-#' @param filter_species character or NULL. A set of species to filter the predictions. If NULL, no filtering is applied.
+#' @param filter_species NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL, no filtering is applied. See [`get_species_from_file()`] for more details.
 #' @param file_splitting_duration_s numeric. Duration in seconds for splitting the audio file into smaller segments for processing.
 #' @param keep_empty logical. Whether to include empty intervals in the output.
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
 #'   Each row represents a single prediction.
+#' @seealso [`init_model()`] [`get_species_from_file()`]
 #' @export
 predict_species <- function(model,
                             audio_file = system.file("extdata", "soundscape.wav", package = "birdnetR"),
@@ -98,12 +122,25 @@ predict_species <- function(model,
   stopifnot(is.integer(bandpass_fmax))
   stopifnot(is.logical(apply_sigmoid))
   stopifnot(is.numeric(sigmoid_sensitivity))
-  stopifnot(is.null(filter_species) || is.character(filter_species))
   stopifnot(is.numeric(file_splitting_duration_s))
   stopifnot(is.logical(keep_empty))
+  if (!is.null(filter_species)) {
+    stopifnot(
+      "`filter_species` must be NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string." =
+        is_valid_species_list(filter_species)
+    )
+
+    # if not NULL, convert filter_species to a python set
+    # Wrap single character strings in a list if necessary, otherwise `set` splits the string into individual characters
+    if (is.character(filter_species) && length(filter_species) == 1) {
+      filter_species <- list(filter_species)
+    }
+    filter_species <- py_builtins$set(filter_species)
+  }
 
   # Main function logic
   audio_file <- py_pathlib$Path(normalizePath(audio_file))
+
   predictions <- model$predict_species_within_audio_file(
     audio_file,
     min_confidence = min_confidence,
