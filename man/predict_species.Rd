@@ -30,13 +30,13 @@ predict_species(
 
 \item{use_bandpass}{logical. Whether to apply a bandpass filter.}
 
-\item{bandpass_fmin, bandpass_fmax}{numeric. Minimum/Maximumfrequency for the bandpass filter (in Hz). Ignored if \code{use_bandpass} is False.}
+\item{bandpass_fmin, bandpass_fmax}{numeric. Minimum/Maximum frequency for the bandpass filter (in Hz). Ignored if \code{use_bandpass} is False.}
 
 \item{apply_sigmoid}{logical. Whether to apply a sigmoid function to the model output.}
 
 \item{sigmoid_sensitivity}{numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if \code{apply_sigmoid} is False.}
 
-\item{filter_species}{character or NULL. A set of species to filter the predictions. If NULL, no filtering is applied.}
+\item{filter_species}{NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL, no filtering is applied. See \code{\link[=get_species_from_file]{get_species_from_file()}} for more details.}
 
 \item{file_splitting_duration_s}{numeric. Duration in seconds for splitting the audio file into smaller segments for processing.}
 
@@ -58,4 +58,7 @@ For more information on BirdNET confidence scores, the sigmoid activation functi
 }
 \references{
 Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
+}
+\seealso{
+\code{\link[=init_model]{init_model()}} \code{\link[=get_species_from_file]{get_species_from_file()}}
 }

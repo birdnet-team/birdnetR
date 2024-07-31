@@ -12,6 +12,21 @@ test_that("predict_species works", {
   expect_true(!is.null(predictions))
 })
 
+test_that("prediction with a custom species list works", {
+  model <- init_model()
+
+  # single species
+  custom_species_list <- c("Cyanocitta cristata_Blue Jay")
+  predictions <- predict_species(model, filter_species = custom_species_list, keep_empty = FALSE)
+  expect_true(nrow(predictions) == 4)
+
+  # multiple species
+  custom_species_list <- c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
+  predictions <- predict_species(model, filter_species = custom_species_list, keep_empty = FALSE)
+  expect_true(nrow(predictions) == 4)
+})
+
+
 test_that("get_top_prediction works", {
   model <- init_model()
   audio_path <- system.file("extdata", "soundscape.wav", package = "birdnetR")
