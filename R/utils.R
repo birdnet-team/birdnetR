@@ -50,9 +50,6 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
 #'   with one or more elements where the names represent labels "scientificName_commonName" and
 #'   the values are confidence scores.
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
-#' @examples
-#' # Assuming `x` is a predefined element from the predictions list
-#' predictions_list_element_to_df(x)
 #' @keywords internal
 predictions_list_element_to_df <- function(x) {
   # Ensure the element has expected structure
