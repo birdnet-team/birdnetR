@@ -1,5 +1,5 @@
-#' This file contains helper functions used to process and manage data returned
-#' from other functions. These functions are exported and available for user access.
+# This file contains helper functions used to process and manage data returned
+# from other functions. These functions are exported and available for user access.
 
 
 
@@ -36,6 +36,8 @@
 #'   ),
 #'   confidence = c(0.1, 0.2, 0.5, 0.3, 0.7, 0.8)
 #' )
+#' data
+#'
 #' # Get top prediction for each time interval
 #' get_top_prediction(data)
 #'
