@@ -32,6 +32,23 @@ py_builtins <- NULL
 }
 
 
+
+#' Get Available Languages for BirdNET Model
+#'
+#' Retrieve the available languages supported by the BirdNET model.
+#'
+#' @return A sorted character vector containing the available language codes.
+#' @examples
+#'   available_languages()
+#' @export
+available_languages <- function() {
+  if (is.null(py_birdnet_models)) {
+    stop("The birdnet.models module has not been loaded. Ensure the Python environment is configured correctly.")
+  }
+  sort(py_builtins$list(py_birdnet_models$model_v2m4$AVAILABLE_LANGUAGES))
+}
+
+
 #' Initialize the BirdNET Model
 #'
 #' This function initializes the BirdNET model (v2.4).
@@ -39,7 +56,7 @@ py_builtins <- NULL
 #' @param tflite_num_threads integer. The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
 #'  Will be coerced to an integer if possible.
 #' @param language  The language to use for the model's text processing. Must be one of the following available languages:
-#' "en_us", "en_uk", "sv", "da", "hu", "th", "pt", "fr", "cs", "af", "uk", "it", "ja", "sl", "pl", "ko", "es", "de", "tr", "ru", "no", "sk", "ar", "fi", "ro", "nl", "zh".
+#' `r available_languages()`
 #'
 #' @return An instance of the BirdNET model.
 #' @export
