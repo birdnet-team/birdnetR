@@ -1,8 +1,8 @@
 ---
-title: "Get started with BirdNET-R"
+title: "Get started with birdnetR"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Get started with BirdNET-R}
+  %\VignetteIndexEntry{Get started with birdnetR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 library(birdnetR)
 ```
 
-The BirdNET-R package provides a comprehensive interface for utilizing the BirdNET Python package within R. This guide will walk you through the basic steps of setting up the package, initializing models, and using various functions to analyze audio files for (bird) species identification.
+The birdnetR package provides a comprehensive interface for utilizing the BirdNET Python package within R. This guide will walk you through the basic steps of setting up the package, initializing models, and using various functions to analyze audio files for (bird) species identification.
 
 
 ##  Installation
@@ -41,7 +41,7 @@ install.packages("devtools")
 Then, you can install `birdnetR` from GitHub:
 
 ```{r install_birdnetR, eval=FALSE}
-devtools::install_github("birdnet-team/BirdNET-R")
+devtools::install_github("birdnet-team/birdnetR")
 ```
 
 Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.

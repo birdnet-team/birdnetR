@@ -1,0 +1,23 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/birdnetr.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/available_languages.html</loc></url>
+<url><loc>/reference/birdnetR.html</loc></url>
+<url><loc>/reference/get_labels_path.html</loc></url>
+<url><loc>/reference/get_species_from_file.html</loc></url>
+<url><loc>/reference/get_top_prediction.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/init_model.html</loc></url>
+<url><loc>/reference/install_birdnet.html</loc></url>
+<url><loc>/reference/is_valid_species_list.html</loc></url>
+<url><loc>/reference/predict_species.html</loc></url>
+<url><loc>/reference/predict_species_at_location_and_time.html</loc></url>
+<url><loc>/reference/predictions_list_element_to_df.html</loc></url>
+<url><loc>/reference/predictions_to_df.html</loc></url>
+</urlset>
+

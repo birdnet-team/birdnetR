@@ -1,9 +1,9 @@
-# BirdNET-R
+# birdnetR
 This is a wrapper for the `birdnet` Python package for automated bird sound ID available [here](https://github.com/birdnet-team/birdnet)
 
 ## Citation
 
-Feel free to use BirdNET-R for your acoustic analyses and research. If you do, please cite as:
+Feel free to use birdnetR for your acoustic analyses and research. If you do, please cite as:
 
 ```bibtex
 @article{kahl2021birdnet,
@@ -40,10 +40,10 @@ To install the package directly from GitHub, you need to have the devtools packa
 install.packages("devtools")
 ```
 
-Then, you can install BirdNET-R from GitHub:
+Then, you can install birdnetR from GitHub:
 
 ```r
-devtools::install_github("birdnet-team/BirdNET-R")
+devtools::install_github("birdnet-team/birdnetR")
 ```
 
 Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
@@ -83,11 +83,11 @@ get_top_prediction(predictions)
 
 ### Cloning the Repository
 
-To contribute to the development of BirdNET-R, you can clone the repository from GitHub:
+To contribute to the development of birdnetR, you can clone the repository from GitHub:
 
 ```sh
-git clone https://github.com/birdnet-team/BirdNET-R.git
-cd BirdNET-R
+git clone https://github.com/birdnet-team/birdnetR.git
+cd birdnetR
 ```
 
 ### Setting Up the Development Environment

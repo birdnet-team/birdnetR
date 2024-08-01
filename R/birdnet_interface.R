@@ -9,9 +9,9 @@ py_pathlib <- NULL
 py_builtins <- NULL
 
 
-#' Initialize BirdNET-R Package
+#' Initialize birdnetR Package
 #'
-#' This function is executed when the BirdNET-R package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available. The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
+#' This function is executed when the birdnetR package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available. The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
 #'
 #' @param libname The name of the library currently being loaded.
 #' @param pkgname The name of the package currently being loaded.
