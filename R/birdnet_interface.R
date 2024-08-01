@@ -67,7 +67,7 @@ init_model <-
 #' @examples
 #' get_species_from_file(system.file("extdata", "species_list.txt", package = "birdnetR"))
 get_species_from_file <- function(species_file) {
-  species_file_path <- py_pathlib$Path(normalizePath(species_file))
+  species_file_path <- py_pathlib$Path(species_file)$expanduser()$resolve(TRUE)
   py_species_list <- py_birdnet_utils$get_species_from_file(species_file_path)
   py_species_list$items
 }
