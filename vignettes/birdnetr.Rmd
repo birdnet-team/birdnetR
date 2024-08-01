@@ -1,0 +1,163 @@
+---
+title: "Get started with BirdNET-R"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with BirdNET-R}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(birdnetR)
+```
+
+The BirdNET-R package provides a comprehensive interface for utilizing the BirdNET Python package within R. This guide will walk you through the basic steps of setting up the package, initializing models, and using various functions to analyze audio files for (bird) species identification.
+
+
+##  Installation
+
+
+First, install the `reticulate` package if you haven't already:
+
+```{r install_reticulate, eval=FALSE}
+install.packages("reticulate")
+```
+
+For now, you have to install the package from GitHub. 
+
+To install the package directly from GitHub, you need to have the devtools package installed. If you don't have devtools installed, you can install it using:
+
+```{r install_devtools, eval=FALSE}
+install.packages("devtools")
+```
+
+Then, you can install `birdnetR` from GitHub:
+
+```{r install_birdnetR, eval=FALSE}
+devtools::install_github("birdnet-team/BirdNET-R")
+```
+
+Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
+```{r load_and_install_birdnet, eval=FALSE}
+library(birdnetR)
+install_birdnet()
+
+```
+
+> [!NOTE]
+> If you don't have a compatible version of Python installed, use reticulate::use_python_version(version = '<version>') to install a compatible version.
+
+
+## Usage
+
+### Identify species in an audio file
+Using BirdNET, you can identify bird species within an audio file. The function returns predictions for every 3-second snippet in the file that exceed the specified `min_confidence` threshold. Each row in the resulting data frame represents a single prediction for a specific 3-second interval.
+
+```{r species_in_audio}
+# Load the package
+library(birdnetR)
+
+# Initialize the BirdNET model
+model <- init_model()
+
+# Path to the exemplary audio file (replace with your own file path)
+audio_path <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+
+# Predict species within the audio file
+predictions <- predict_species(model, audio_path, min_confidence = 0.3, keep_empty = TRUE)
+
+predictions
+```
+
+If there are multiple predictions above the confidence threshold within the same time interval, you will see multiple rows for that interval. To filter and keep only the most probable prediction per interval, you can use the convenience function provided in the package.
+
+```{r top_predictions}
+top_predictions <- get_top_prediction(predictions)
+top_predictions
+```
+
+
+### Using a custom species list
+You may not always need to identify all 6,000+ species available in the model. To focus on species relevant to your project, you can use a custom species list containing only the necessary class labels.
+
+Class labels follow a specific format, consisting of the scientific name and the common name, separated by an underscore, like this:
+```{r class_label_example, eval=FALSE}
+"Accipiter cooperii_Cooper's Hawk"
+"Agelaius phoeniceus_Red-winged Blackbird"
+```
+
+
+To create a custom species list, ensure each class label is on a separate line in a `.txt` file. You can refer to the example included in this package or check out the full list of species that BirdNET was trained on.
+
+```{r label_file_paths, eval=FALSE}
+# Path to the label file including all BirdNET classes
+# use this file as a template to create your custom species list but don't change it. 
+get_labels_path(language = "en_us")
+
+# Path to the example custom species list with a reduced number of class
+system.file("extdata", "species_list.txt", package = "birdnetR")
+
+```
+
+```{r use_custom_species_list}
+# read in your custom species list
+species_list_file <- system.file("extdata", "species_list.txt", package = "birdnetR")
+custom_species_list <- get_species_from_file(species_list_file)
+
+# Predict using the provided class labels only
+predict_species(model, audio_path, filter_species = custom_species_list, min_confidence = 0.3, keep_empty = FALSE)
+
+
+# It is the same to supply a vector of class labels
+predict_species(model, audio_path, filter_species = c("Cyanocitta cristata_Blue Jay", "Junco hyemalis_Dark-eyed Junco"), min_confidence = 0.3, keep_empty = FALSE)
+
+```
+
+
+### Predict species occurence with the Meta Model
+BirdNET includes a Meta Model that can predict the occurrence of bird species at a specific location and time of the year. This function returns a data frame containing class labels and their corresponding confidence values, which indicate the likelihood of species presence. These labels can be used to create a custom species list for further analysis.
+
+
+```{r use_meta_model}
+# predict species occurrence in Ithaca, NY
+predicted_species <- predict_species_at_location_and_time(model, latitude = 42.5, longitude = -76.45, week = 4)
+predicted_species
+
+# Predict using the predicted class labels only
+predict_species(model, audio_path, filter_species = predicted_species$label, min_confidence = 0.3, keep_empty = FALSE)
+
+
+```
+
+For more detailed information, refer to the help file: `?predict_species_at_location_and_time`.
+
+
+### Translating Common Species Names
+
+The birdnetR package allows you to translate common bird species names into several different languages. To check which languages are supported, you can use the following command:
+```{r languages}
+available_languages()
+
+```
+
+To output the common names in your preferred language, initialize the model with the language parameter set to your desired language code:
+```{r}
+model <- init_model(language = "fr")
+```
+
+If you want to view the class labels in a specific language, you can retrieve and inspect them using these commands:
+
+```{r labels_language}
+
+labels_path_lang <- get_labels_path(language = "fr")
+labels_lang <- get_species_from_file(labels_path_lang) 
+head(labels_lang)
+```
+ 
