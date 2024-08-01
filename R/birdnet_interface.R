@@ -72,6 +72,31 @@ init_model <-
     return(model)
   }
 
+
+#' Get Path to BirdNET Labels File for a Specified Language
+#'
+#' This function retrieves the file path to the BirdNET labels file on your system corresponding to a specified language.
+#' This file contains all class labels supported by the BirdNET model.
+#'
+#' @param language A character string specifying the language code for which the labels path is requested.
+#'                 The language must be one of the available languages supported by the BirdNET model.
+#' @return A character string representing the file path to the labels file for the specified language.
+#' @examples
+#'   get_labels_path("en_us")
+#' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
+#' @seealso [available_languages()]
+#' @export
+get_labels_path <- function(language) {
+  if (!(language %in% available_languages()))  {
+    stop(paste("`language` must be one of", paste(available_languages(), collapse = ", ")))
+  }
+
+  birdnet_app_data <- py_birdnet_utils$get_birdnet_app_data_folder()
+  downloader <- py_birdnet_models$model_v2m4$Downloader(birdnet_app_data)
+  as.character(downloader$get_language_path(language))
+}
+
+
 #' Read species labels from a file
 #'
 #' This is a convenience function to read species labels from a file.
@@ -80,9 +105,16 @@ init_model <-
 #'
 #' @return A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
 #' @export
-#'
+#' @seealso [available_languages()] [get_labels_path()]
 #' @examples
+#' # Read a custom species file
 #' get_species_from_file(system.file("extdata", "species_list.txt", package = "birdnetR"))
+#'
+#' # To access all class labels that are supported in your language,
+#' # you can read in the respective label file
+#' labels_path <- get_labels_path("fr")
+#' species_list <- get_species_from_file(labels_path)
+#' head(species_list)
 get_species_from_file <- function(species_file) {
   species_file_path <- py_pathlib$Path(species_file)$expanduser()$resolve(TRUE)
   py_species_list <- py_birdnet_utils$get_species_from_file(species_file_path)
