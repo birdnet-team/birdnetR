@@ -16,5 +16,15 @@ A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macro
 This is a convenience function to read species labels from a file.
 }
 \examples{
+# Read a custom species file
 get_species_from_file(system.file("extdata", "species_list.txt", package = "birdnetR"))
+
+# To access all class labels that are supported in your language,
+# you can read in the respective label file
+labels_path <- get_labels_path("fr")
+species_list <- get_species_from_file(labels_path)
+head(species_list)
+}
+\seealso{
+\code{\link[=available_languages]{available_languages()}} \code{\link[=get_labels_path]{get_labels_path()}}
 }
