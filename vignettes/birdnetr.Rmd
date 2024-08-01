@@ -121,7 +121,7 @@ predict_species(model, audio_path, filter_species = c("Cyanocitta cristata_Blue 
 ```
 
 
-### Predict species occurence with the Meta Model
+### Predict species occurence with the meta model
 BirdNET includes a Meta Model that can predict the occurrence of bird species at a specific location and time of the year. This function returns a data frame containing class labels and their corresponding confidence values, which indicate the likelihood of species presence. These labels can be used to create a custom species list for further analysis.
 
 
@@ -139,7 +139,7 @@ predict_species(model, audio_path, filter_species = predicted_species$label, min
 For more detailed information, refer to the help file: `?predict_species_at_location_and_time`.
 
 
-### Translating Common Species Names
+### Translating common species names
 
 The birdnetR package allows you to translate common bird species names into several different languages. To check which languages are supported, you can use the following command:
 ```{r languages}
