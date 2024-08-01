@@ -8,6 +8,13 @@
 \description{
 \code{birdnetR} is a wrapper around the python package \code{birdnet}.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://birdnet-team.github.io/birdnetR/}
+}
+
+}
 \author{
 \strong{Maintainer}: Stefan Kahl \email{stefan.kahl@cornell.edu}
 
