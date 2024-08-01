@@ -55,9 +55,9 @@ available_languages <- function() {
 #'
 #' @param tflite_num_threads integer. The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
 #'  Will be coerced to an integer if possible.
-#' @param language  The language to use for the model's text processing. Must be one of the following available languages:
-#' `r available_languages()`
-#'
+#' @param language  A character string specifying the language code to use for the model's text processing. The language must be one of the available languages supported by the BirdNET model.
+#' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
+#' @seealso [available_languages()]
 #' @return An instance of the BirdNET model.
 #' @export
 init_model <-
