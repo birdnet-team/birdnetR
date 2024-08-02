@@ -1,4 +1,4 @@
-# birdnetR <img src="logo.png" align="right" height="138"/></a>
+# birdnetR <a href="https://birdnet-team.github.io/birdnetR/"><img src="man/figures/logo.png" align="right" height="139" alt="birdnetR website" /></a>
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
