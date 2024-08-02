@@ -66,10 +66,6 @@ install_birdnet()
 
 ```
 
-> [!NOTE]
-> If you don't have a compatible version of Python installed, use reticulate::use_python_version(version = '<version>') to install a compatible version.
-
-
 ## Example use
 
 Here's a simple example of how to use this package to predict bird species from an audio file:
@@ -142,9 +138,6 @@ To build and check the package, use the devtools package:
 devtools::build()
 devtools::check()
 ```
-
-> [!NOTE]
-> Tests and checks will only pass if the package and `birdnet` are installed correctly.
 
 ## Funding
 

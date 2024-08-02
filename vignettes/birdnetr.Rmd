@@ -52,8 +52,11 @@ install_birdnet()
 
 ```
 
-> [!NOTE]
-> If you don't have a compatible version of Python installed, use reticulate::use_python_version(version = '<version>') to install a compatible version.
+
+<div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
+<strong>Incompatible Python Version</strong><br>
+If you do not have a compatible Python version installed, you can use <code>reticulate::use_python_version(version = &lt;version&gt;)</code>.
+</div>
 
 
 ## Usage
@@ -113,7 +116,6 @@ custom_species_list <- get_species_from_file(species_list_file)
 
 # Predict using the provided class labels only
 predict_species(model, audio_path, filter_species = custom_species_list, min_confidence = 0.3, keep_empty = FALSE)
-
 
 # It is the same to supply a vector of class labels
 predict_species(model, audio_path, filter_species = c("Cyanocitta cristata_Blue Jay", "Junco hyemalis_Dark-eyed Junco"), min_confidence = 0.3, keep_empty = FALSE)
