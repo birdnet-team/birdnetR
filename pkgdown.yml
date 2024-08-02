@@ -3,7 +3,7 @@ pkgdown: 2.1.0
 pkgdown_sha: ~
 articles:
   birdnetr: birdnetr.html
-last_built: 2024-08-02T07:22Z
+last_built: 2024-08-02T07:46Z
 urls:
   reference: https://birdnet-team.github.io/birdnetR/reference
   article: https://birdnet-team.github.io/birdnetR/articles
