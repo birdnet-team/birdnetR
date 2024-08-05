@@ -25,7 +25,7 @@ install_birdnet <- function(
   # Let the system automatically discover if the correct python version is installed
   # if not the user will be prompted with options to install a correct version
   reticulate::py_install(
-    "birdnet==0.1.0",
+    "birdnet==0.1.1",
     envname = envname,
     ...
   )
