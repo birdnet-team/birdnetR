@@ -138,12 +138,12 @@ get_species_from_file <- function(species_file) {
 #' @param audio_file character. The path to the audio file.
 #' @param min_confidence numeric. Minimum confidence threshold for predictions.
 #' @param batch_size integer. Number of audio samples to process in a batch.
+#' @param chunk_overlap_s numeric. Overlapping of chunks in seconds. Must be in the interval \[0.0, 3.0\).
 #' @param use_bandpass logical. Whether to apply a bandpass filter.
 #' @param bandpass_fmin,bandpass_fmax numeric. Minimum/Maximum frequency for the bandpass filter (in Hz). Ignored if `use_bandpass` is False.
 #' @param apply_sigmoid logical. Whether to apply a sigmoid function to the model output.
 #' @param sigmoid_sensitivity numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if `apply_sigmoid` is False.
 #' @param filter_species NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL, no filtering is applied. See [`get_species_from_file()`] for more details.
-#' @param file_splitting_duration_s numeric. Duration in seconds for splitting the audio file into smaller segments for processing.
 #' @param keep_empty logical. Whether to include empty intervals in the output.
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
 #'   Each row represents a single prediction.
@@ -153,15 +153,15 @@ predict_species <- function(model,
                             audio_file = system.file("extdata", "soundscape.wav", package = "birdnetR"),
                             min_confidence = 0.1,
                             batch_size = 1L,
+                            chunk_overlap_s = 0,
                             use_bandpass = TRUE,
                             bandpass_fmin = 0L,
                             bandpass_fmax = 15000L,
                             apply_sigmoid = TRUE,
                             sigmoid_sensitivity = 1,
                             filter_species = NULL,
-                            file_splitting_duration_s = 600,
                             keep_empty = TRUE) {
-  # Check argument types. This ist mostly in order to return better error messages
+  # Check argument types. Done mostly in order to return better error messages
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
   stopifnot(is.character(audio_file))
   stopifnot(is.numeric(min_confidence))
@@ -171,7 +171,6 @@ predict_species <- function(model,
   stopifnot(is.integer(bandpass_fmax))
   stopifnot(is.logical(apply_sigmoid))
   stopifnot(is.numeric(sigmoid_sensitivity))
-  stopifnot(is.numeric(file_splitting_duration_s))
   stopifnot(is.logical(keep_empty))
   if (!is.null(filter_species)) {
     stopifnot(
@@ -194,13 +193,13 @@ predict_species <- function(model,
     audio_file,
     min_confidence = min_confidence,
     batch_size = batch_size,
+    chunk_overlap_s = chunk_overlap_s,
     use_bandpass = use_bandpass,
     bandpass_fmin = bandpass_fmin,
     bandpass_fmax = bandpass_fmax,
     apply_sigmoid = apply_sigmoid,
     sigmoid_sensitivity = sigmoid_sensitivity,
-    filter_species = filter_species,
-    file_splitting_duration_s = file_splitting_duration_s
+    filter_species = filter_species
   )
   predictions_to_df(predictions, keep_empty = keep_empty)
 }

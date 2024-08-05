@@ -73,22 +73,6 @@ test_that("predict_species respects minimum confidence threshold", {
   expect_true(max(predictions$confidence, na.rm = TRUE) >= 0.5)
 })
 
-test_that("predict_species handles file splitting duration correctly", {
-
-  skip("known bug upstream")
-
-  model <- init_model()
-
-  # Default file splitting duration
-  predictions <- predict_species(model, file_splitting_duration_s = 600)
-  expect_true(!is.null(predictions))
-  expect_true(nrow(predictions) > 0)
-
-  # splitting duration shorter than example file
-  predictions <- predict_species(model, file_splitting_duration_s = 30)
-  expect_true(!is.null(predictions))
-  expect_true(nrow(predictions) > 0)
-})
 
 test_that("predict_species keeps empty intervals when specified", {
   model <- init_model()
