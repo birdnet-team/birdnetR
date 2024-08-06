@@ -1,7 +1,5 @@
 # Place functions in this file that are directly related to implementing the functionality of the `birdnet` Python package.
 
-
-
 # Import the necessary Python modules layzily
 py_birdnet_models <- NULL
 py_birdnet_utils <- NULL
@@ -11,7 +9,8 @@ py_builtins <- NULL
 
 #' Initialize birdnetR Package
 #'
-#' This function is executed when the birdnetR package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available. The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
+#' This function is executed when the birdnetR package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available.
+#' The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
 #'
 #' @param libname The name of the library currently being loaded.
 #' @param pkgname The name of the package currently being loaded.
@@ -20,6 +19,31 @@ py_builtins <- NULL
 .onLoad <- function(libname, pkgname, ...) {
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
+
+  # check if birdnet is installed and off to install it
+  if (!reticulate::py_module_available("birdnet")) {
+    writeLines("`birdnet` is not available. Use `install_birdnet()`.")
+  }
+
+  # Check if the correct version of the package is installed
+
+
+
+  # birdnet_installed <- tryCatch({
+  #   birdnet <- reticulate::import("birdnet", delay_load = TRUE)
+  #   installed_version <- birdnet$`__version__`
+  #   if (installed_version != .required_birdnet_version()) {
+  #     message(sprintf("BirdNET version %s is installed. Installing version %s...", installed_version, .required_birdnet_version()))
+  #     install_birdnet()
+  #   } else {
+  #     message(sprintf("BirdNET version %s is correctly installed.", installed_version))
+  #   }
+  # }, error = function(e) {
+  #   message("BirdNET not found. Installing...")
+  #   install_birdnet()
+  # })
+
+
 
   # use superassignment to update global reference to the python packages
   py_birdnet_models <<-
@@ -30,7 +54,6 @@ py_builtins <- NULL
   # Import Python built-in functions and types
   py_builtins <<- import_builtins(delay_load = TRUE)
 }
-
 
 
 #' Get Available Languages for BirdNET Model
