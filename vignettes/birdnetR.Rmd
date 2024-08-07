@@ -58,6 +58,35 @@ install_birdnet()
 If you do not have a compatible Python version installed, you can use <code>reticulate::use_python_version(version = &lt;version&gt;)</code>.
 </div>
 
+### Custom virtual environment
+By default, a virtual environment named `r-birdnet` will be used. If you don't need any customization, you can ignore this section, and everything should work out-of-the-box.
+
+If you need to use a custom name for the virtual environment, you can specify it using the `envname` argument:
+
+```{r}
+library(birdnetR)
+install_birdnet(envname = "custom")
+```
+
+The next time you start a new R session, tell `reticulate` to use this environment after loading your libraries:
+```{r}
+library(birdnetR)
+reticulate::use_virtualenv("custom")
+```
+
+By default, `reticulate` will install to and use a folder `.virtualenvs` in your home directory. You can also specify paths to your virtual environments, which is useful if you want to install `birdnetR` into an existing virtual environment:
+
+```{r}
+library(birdnetR)
+path_venv <- "/path/to/existing/venv"
+install_birdnet(envname = path_venv)
+reticulate::use_virtualenv(path_venv)
+
+```
+
+
+If you prefer to store your virtual environment in the project folder, `reticulate` will automatically discover it, and there is no need to call `use_virtualenv()`.
+
 
 ## Usage
 
