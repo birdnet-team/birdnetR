@@ -9,13 +9,13 @@ predict_species(
   audio_file = system.file("extdata", "soundscape.wav", package = "birdnetR"),
   min_confidence = 0.1,
   batch_size = 1L,
+  chunk_overlap_s = 0,
   use_bandpass = TRUE,
   bandpass_fmin = 0L,
   bandpass_fmax = 15000L,
   apply_sigmoid = TRUE,
   sigmoid_sensitivity = 1,
   filter_species = NULL,
-  file_splitting_duration_s = 600,
   keep_empty = TRUE
 )
 }
@@ -28,6 +28,8 @@ predict_species(
 
 \item{batch_size}{integer. Number of audio samples to process in a batch.}
 
+\item{chunk_overlap_s}{numeric. Overlapping of chunks in seconds. Must be in the interval [0.0, 3.0\).}
+
 \item{use_bandpass}{logical. Whether to apply a bandpass filter.}
 
 \item{bandpass_fmin, bandpass_fmax}{numeric. Minimum/Maximum frequency for the bandpass filter (in Hz). Ignored if \code{use_bandpass} is False.}
@@ -37,8 +39,6 @@ predict_species(
 \item{sigmoid_sensitivity}{numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if \code{apply_sigmoid} is False.}
 
 \item{filter_species}{NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL, no filtering is applied. See \code{\link[=get_species_from_file]{get_species_from_file()}} for more details.}
-
-\item{file_splitting_duration_s}{numeric. Duration in seconds for splitting the audio file into smaller segments for processing.}
 
 \item{keep_empty}{logical. Whether to include empty intervals in the output.}
 }

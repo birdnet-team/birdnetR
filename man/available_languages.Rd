@@ -13,5 +13,5 @@ A sorted character vector containing the available language codes.
 Retrieve the available languages supported by the BirdNET model.
 }
 \examples{
-  available_languages()
+available_languages()
 }
