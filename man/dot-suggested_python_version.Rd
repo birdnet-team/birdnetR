@@ -13,7 +13,4 @@ A string representing the suggested Python version.
 This internal function returns the suggested version of Python to be used with the BirdNET package.
 Update this function with the new suggested version when necessary.
 }
-\examples{
-.suggested_python_version()
-}
 \keyword{internal}

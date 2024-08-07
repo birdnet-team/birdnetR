@@ -13,7 +13,4 @@ A string representing the required BirdNET version.
 This internal function returns the required version of the BirdNET Python package.
 Update this function with the new required version when the package is updated.
 }
-\examples{
-.required_birdnet_version()
-}
 \keyword{internal}
