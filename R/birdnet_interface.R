@@ -250,7 +250,7 @@ predict_species <- function(model,
 #' @return A data frame with columns: `label`, `confidence`. Each row represents a predicted species, with the `confidence` indicating the likelihood of the species being present at the specified location and time.
 #' @export
 #'
-#' @examples
+#' @examplesIf interactive()
 #' # Predict species in Chemnitz, Germany, that are present all year round
 #' model <- init_model(language = "de")
 #' predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
