@@ -58,5 +58,3 @@ install_birdnet <- function(
     ...
   )
 }
-#TODO check for version in virtualenv. In which functions?
-
