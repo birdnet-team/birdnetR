@@ -73,6 +73,17 @@ test_that("predict_species respects minimum confidence threshold", {
   expect_true(max(predictions$confidence, na.rm = TRUE) >= 0.5)
 })
 
+test_that("predict_species applies overlap", {
+  model <- init_model()
+
+  # Lower threshold
+  predictions <- predict_species(model, chunk_overlap_s = 1)
+  expect_true(!is.null(predictions))
+  expect_true(nrow(predictions) > 0)
+
+  expect_equal(sort(unique(predictions$start))[1:4], c(0, 2, 4, 6))
+})
+
 
 test_that("predict_species keeps empty intervals when specified", {
   model <- init_model()
