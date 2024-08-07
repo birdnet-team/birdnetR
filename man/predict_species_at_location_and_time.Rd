@@ -37,7 +37,9 @@ For more details, you can view the full discussion here:
 https://github.com/kahst/BirdNET-Analyzer/discussions/234
 }
 \examples{
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Predict species in Chemnitz, Germany, that are present all year round
 model <- init_model(language = "de")
 predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
+\dontshow{\}) # examplesIf}
 }

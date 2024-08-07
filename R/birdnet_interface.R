@@ -1,33 +1,53 @@
 # Place functions in this file that are directly related to implementing the functionality of the `birdnet` Python package.
 
-
-
-# Import the necessary Python modules layzily
+# Import the necessary Python modules layzily in .onLoad
 py_birdnet_models <- NULL
 py_birdnet_utils <- NULL
 py_pathlib <- NULL
 py_builtins <- NULL
 
 
+#' Check the Installed BirdNET Version
+#'
+#' This internal function checks if the installed version of the BirdNET Python package matches the required version.
+#' If the versions do not match, an error is raised with instructions to update the package.
+#'
+#' @keywords internal
+#' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
+.check_birdnet_version <- function() {
+  available_py_pkgs <- reticulate::py_list_packages()
+  installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet")$version
+
+  if (installed_birdnet_version != .required_birdnet_version()) {
+    warning(
+      sprintf(
+        "BirdNET version %s is installed, but %s is required. To update, use `install_birdnet()`.",
+        installed_birdnet_version,
+        .required_birdnet_version()
+      )
+    )
+  }
+}
+
+
+
 #' Initialize birdnetR Package
 #'
-#' This function is executed when the birdnetR package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available. The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
+#' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
 #'
-#' @param libname The name of the library currently being loaded.
-#' @param pkgname The name of the package currently being loaded.
-#' @param ... Additional arguments passed to the function.
+#' @param libname Name of the library being loaded.
+#' @param pkgname Name of the package being loaded.
+#' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
-  # use superassignment to update global reference to the python packages
-  py_birdnet_models <<-
-    reticulate::import("birdnet.models", delay_load = TRUE)
-  py_birdnet_utils <<-
-    reticulate::import("birdnet.utils", delay_load = TRUE)
+  # Use superassignment to update global reference to the Python packages
+  py_birdnet_models <<- reticulate::import("birdnet.models",
+                                           delay_load = list(before_load = .check_birdnet_version()))
+  py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
-  # Import Python built-in functions and types
   py_builtins <<- import_builtins(delay_load = TRUE)
 }
 
@@ -39,11 +59,13 @@ py_builtins <- NULL
 #'
 #' @return A sorted character vector containing the available language codes.
 #' @examples
-#'   available_languages()
+#' available_languages()
 #' @export
 available_languages <- function() {
   if (is.null(py_birdnet_models)) {
-    stop("The birdnet.models module has not been loaded. Ensure the Python environment is configured correctly.")
+    stop(
+      "The birdnet.models module has not been loaded. Ensure the Python environment is configured correctly."
+    )
   }
   sort(py_builtins$list(py_birdnet_models$model_v2m4$AVAILABLE_LANGUAGES))
 }
@@ -64,7 +86,7 @@ init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
     stopifnot(is.integer(tflite_num_threads) |
-      is.null(tflite_num_threads))
+                is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
     model <-
@@ -82,13 +104,16 @@ init_model <-
 #'                 The language must be one of the available languages supported by the BirdNET model.
 #' @return A character string representing the file path to the labels file for the specified language.
 #' @examples
-#'   get_labels_path("en_us")
+#' get_labels_path("en_us")
 #' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
 #' @seealso [available_languages()]
 #' @export
 get_labels_path <- function(language) {
-  if (!(language %in% available_languages()))  {
-    stop(paste("`language` must be one of", paste(available_languages(), collapse = ", ")))
+  if (!(language %in% available_languages())) {
+    stop(paste(
+      "`language` must be one of",
+      paste(available_languages(), collapse = ", ")
+    ))
   }
 
   birdnet_app_data <- py_birdnet_utils$get_birdnet_app_data_folder()
@@ -138,12 +163,12 @@ get_species_from_file <- function(species_file) {
 #' @param audio_file character. The path to the audio file.
 #' @param min_confidence numeric. Minimum confidence threshold for predictions.
 #' @param batch_size integer. Number of audio samples to process in a batch.
+#' @param chunk_overlap_s numeric. Overlapping of chunks in seconds. Must be in the interval \[0.0, 3.0\).
 #' @param use_bandpass logical. Whether to apply a bandpass filter.
 #' @param bandpass_fmin,bandpass_fmax numeric. Minimum/Maximum frequency for the bandpass filter (in Hz). Ignored if `use_bandpass` is False.
 #' @param apply_sigmoid logical. Whether to apply a sigmoid function to the model output.
 #' @param sigmoid_sensitivity numeric. Sensitivity parameter for the sigmoid function. Must be in the interval 0.5 - 1.5. Ignored if `apply_sigmoid` is False.
 #' @param filter_species NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL, no filtering is applied. See [`get_species_from_file()`] for more details.
-#' @param file_splitting_duration_s numeric. Duration in seconds for splitting the audio file into smaller segments for processing.
 #' @param keep_empty logical. Whether to include empty intervals in the output.
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
 #'   Each row represents a single prediction.
@@ -153,15 +178,15 @@ predict_species <- function(model,
                             audio_file = system.file("extdata", "soundscape.wav", package = "birdnetR"),
                             min_confidence = 0.1,
                             batch_size = 1L,
+                            chunk_overlap_s = 0,
                             use_bandpass = TRUE,
                             bandpass_fmin = 0L,
                             bandpass_fmax = 15000L,
                             apply_sigmoid = TRUE,
                             sigmoid_sensitivity = 1,
                             filter_species = NULL,
-                            file_splitting_duration_s = 600,
                             keep_empty = TRUE) {
-  # Check argument types. This ist mostly in order to return better error messages
+  # Check argument types. Done mostly in order to return better error messages
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
   stopifnot(is.character(audio_file))
   stopifnot(is.numeric(min_confidence))
@@ -171,7 +196,6 @@ predict_species <- function(model,
   stopifnot(is.integer(bandpass_fmax))
   stopifnot(is.logical(apply_sigmoid))
   stopifnot(is.numeric(sigmoid_sensitivity))
-  stopifnot(is.numeric(file_splitting_duration_s))
   stopifnot(is.logical(keep_empty))
   if (!is.null(filter_species)) {
     stopifnot(
@@ -181,7 +205,8 @@ predict_species <- function(model,
 
     # if not NULL, convert filter_species to a python set
     # Wrap single character strings in a list if necessary, otherwise `set` splits the string into individual characters
-    if (is.character(filter_species) && length(filter_species) == 1) {
+    if (is.character(filter_species) &&
+        length(filter_species) == 1) {
       filter_species <- list(filter_species)
     }
     filter_species <- py_builtins$set(filter_species)
@@ -194,13 +219,13 @@ predict_species <- function(model,
     audio_file,
     min_confidence = min_confidence,
     batch_size = batch_size,
+    chunk_overlap_s = chunk_overlap_s,
     use_bandpass = use_bandpass,
     bandpass_fmin = bandpass_fmin,
     bandpass_fmax = bandpass_fmax,
     apply_sigmoid = apply_sigmoid,
     sigmoid_sensitivity = sigmoid_sensitivity,
-    filter_species = filter_species,
-    file_splitting_duration_s = file_splitting_duration_s
+    filter_species = filter_species
   )
   predictions_to_df(predictions, keep_empty = keep_empty)
 }
@@ -225,7 +250,7 @@ predict_species <- function(model,
 #' @return A data frame with columns: `label`, `confidence`. Each row represents a predicted species, with the `confidence` indicating the likelihood of the species being present at the specified location and time.
 #' @export
 #'
-#' @examples
+#' @examplesIf interactive()
 #' # Predict species in Chemnitz, Germany, that are present all year round
 #' model <- init_model(language = "de")
 #' predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
@@ -234,14 +259,12 @@ predict_species_at_location_and_time <- function(model,
                                                  longitude,
                                                  week = NULL,
                                                  min_confidence = 0.03) {
-
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
 
   predictions <- model$predict_species_at_location_and_time(latitude,
-    longitude,
-    week = week,
-    min_confidence = min_confidence
-  )
+                                                            longitude,
+                                                            week = week,
+                                                            min_confidence = min_confidence)
   data.frame(
     label = names(predictions),
     confidence = unlist(predictions),

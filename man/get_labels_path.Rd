@@ -21,7 +21,7 @@ This file contains all class labels supported by the BirdNET model.
 The \code{language} parameter must be one of the available languages returned by \code{available_languages()}.
 }
 \examples{
-  get_labels_path("en_us")
+get_labels_path("en_us")
 }
 \seealso{
 \code{\link[=available_languages]{available_languages()}}
