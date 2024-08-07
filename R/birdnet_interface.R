@@ -1,48 +1,58 @@
 # Place functions in this file that are directly related to implementing the functionality of the `birdnet` Python package.
 
-# Import the necessary Python modules layzily
+# Import the necessary Python modules layzily in .onLoad
 py_birdnet_models <- NULL
 py_birdnet_utils <- NULL
 py_pathlib <- NULL
 py_builtins <- NULL
 
 
+#' Check the Installed BirdNET Version
+#'
+#' This internal function checks if the installed version of the BirdNET Python package matches the required version.
+#' If the versions do not match, an error is raised with instructions to update the package.
+#'
+#' @keywords internal
+#' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
+#' @examples
+#' .check_birdnet_version()
+.check_birdnet_version <- function() {
+  available_py_pkgs <- reticulate::py_list_packages()
+  installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet")$version
+
+  if (installed_birdnet_version != .required_birdnet_version()) {
+    stop(
+      sprintf(
+        "BirdNET version %s is installed, but %s is required. To update, use `install_birdnet()`.",
+        installed_birdnet_version,
+        .required_birdnet_version()
+      )
+    )
+  }
+}
+
+
+
 #' Initialize birdnetR Package
 #'
-#' This function is executed when the birdnetR package is loaded. It sets up the Python environment using the `reticulate` package, ensuring that the necessary Python dependencies are available.
-#' The function configures the Python virtual environment named `r-birdnet` and imports the required Python modules, including `birdnet.models` and `pathlib`.
+#' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
 #'
-#' @param libname The name of the library currently being loaded.
-#' @param pkgname The name of the package currently being loaded.
-#' @param ... Additional arguments passed to the function.
+#' @param libname Name of the library being loaded.
+#' @param pkgname Name of the package being loaded.
+#' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
-  # use superassignment to update global reference to the python packages
-  py_birdnet_models <<-
-    reticulate::import("birdnet.models", delay_load = list(
-      # Check if the correct version of the package is installed
-      before_load = function() {
-        available_py_pkgs <- reticulate::py_list_packages()
-        installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet", select = version)
-        if (installed_birdnet_version != .required_birdnet_version()) {
-          stop(
-            sprintf(
-              "BirdNET version %s is installed, but %s is required. Please use `install_birdnet()`",
-              installed_birdnet_version,
-              .required_birdnet_version()
-            )
-          )
-        }
-      }
-    ))
-  py_birdnet_utils <<-
-    reticulate::import("birdnet.utils", delay_load = TRUE)
+  # Use superassignment to update global reference to the Python packages
+  py_birdnet_models <<- reticulate::import("birdnet.models",
+                                           delay_load = list(before_load = .check_birdnet_version))
+  py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- import_builtins(delay_load = TRUE)
 }
+
 
 
 #' Get Available Languages for BirdNET Model
@@ -78,7 +88,7 @@ init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
     stopifnot(is.integer(tflite_num_threads) |
-      is.null(tflite_num_threads))
+                is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
     model <-
@@ -198,7 +208,7 @@ predict_species <- function(model,
     # if not NULL, convert filter_species to a python set
     # Wrap single character strings in a list if necessary, otherwise `set` splits the string into individual characters
     if (is.character(filter_species) &&
-      length(filter_species) == 1) {
+        length(filter_species) == 1) {
       filter_species <- list(filter_species)
     }
     filter_species <- py_builtins$set(filter_species)
@@ -254,10 +264,9 @@ predict_species_at_location_and_time <- function(model,
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
 
   predictions <- model$predict_species_at_location_and_time(latitude,
-    longitude,
-    week = week,
-    min_confidence = min_confidence
-  )
+                                                            longitude,
+                                                            week = week,
+                                                            min_confidence = min_confidence)
   data.frame(
     label = names(predictions),
     confidence = unlist(predictions),
