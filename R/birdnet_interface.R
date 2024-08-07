@@ -14,8 +14,6 @@ py_builtins <- NULL
 #'
 #' @keywords internal
 #' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
-#' @examples
-#' .check_birdnet_version()
 .check_birdnet_version <- function() {
   available_py_pkgs <- reticulate::py_list_packages()
   installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet")$version

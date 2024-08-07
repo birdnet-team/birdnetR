@@ -5,9 +5,6 @@
 #'
 #' @return A string representing the required BirdNET version.
 #' @keywords internal
-#'
-#' @examples
-#' .required_birdnet_version()
 .required_birdnet_version <- function() {
   "0.1.1"
 }
@@ -19,9 +16,6 @@
 #'
 #' @return A string representing the suggested Python version.
 #' @keywords internal
-#'
-#' @examples
-#' .suggested_python_version()
 .suggested_python_version <- function() {
   "3.11"
 }
@@ -34,7 +28,6 @@
 #' @param ... Further arguments passed to `reticulate::py_install()`
 #' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @param new_env If `TRUE`, any existing Python virtual environment specified by `envname` is deleted first.
-#'
 #'
 #' @export
 install_birdnet <- function(
