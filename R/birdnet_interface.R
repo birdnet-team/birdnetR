@@ -15,8 +15,21 @@ py_builtins <- NULL
 #' @keywords internal
 #' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
 .check_birdnet_version <- function() {
-  available_py_pkgs <- reticulate::py_list_packages()
-  installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet")$version
+  installed_birdnet_version <- tryCatch(
+    {
+      available_py_pkgs <- reticulate::py_list_packages()
+      subset(available_py_pkgs, package == "birdnet")$version
+    },
+    error = function(e) {
+      # warning("Error in checking BirdNET version: ", conditionMessage(e))
+      NULL
+    }
+  )
+
+  if (is.null(installed_birdnet_version)) {
+    message("BirdNET or Python environment not available. To install, use `install_birdnet()`.")
+    return()
+  }
 
   if (installed_birdnet_version != .required_birdnet_version()) {
     warning(
@@ -28,6 +41,7 @@ py_builtins <- NULL
     )
   }
 }
+
 
 
 
@@ -45,7 +59,8 @@ py_builtins <- NULL
 
   # Use superassignment to update global reference to the Python packages
   py_birdnet_models <<- reticulate::import("birdnet.models",
-                                           delay_load = list(before_load = .check_birdnet_version()))
+    delay_load = list(before_load = .check_birdnet_version())
+  )
   py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- import_builtins(delay_load = TRUE)
@@ -86,7 +101,7 @@ init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
     stopifnot(is.integer(tflite_num_threads) |
-                is.null(tflite_num_threads))
+      is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
     model <-
@@ -206,7 +221,7 @@ predict_species <- function(model,
     # if not NULL, convert filter_species to a python set
     # Wrap single character strings in a list if necessary, otherwise `set` splits the string into individual characters
     if (is.character(filter_species) &&
-        length(filter_species) == 1) {
+      length(filter_species) == 1) {
       filter_species <- list(filter_species)
     }
     filter_species <- py_builtins$set(filter_species)
@@ -262,9 +277,10 @@ predict_species_at_location_and_time <- function(model,
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
 
   predictions <- model$predict_species_at_location_and_time(latitude,
-                                                            longitude,
-                                                            week = week,
-                                                            min_confidence = min_confidence)
+    longitude,
+    week = week,
+    min_confidence = min_confidence
+  )
   data.frame(
     label = names(predictions),
     confidence = unlist(predictions),
