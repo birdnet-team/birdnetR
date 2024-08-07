@@ -20,38 +20,27 @@ py_builtins <- NULL
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
-  # check if birdnet is installed and off to install it
-  if (!reticulate::py_module_available("birdnet")) {
-    writeLines("`birdnet` is not available. Use `install_birdnet()`.")
-  }
-
-  # Check if the correct version of the package is installed
-
-
-
-  # birdnet_installed <- tryCatch({
-  #   birdnet <- reticulate::import("birdnet", delay_load = TRUE)
-  #   installed_version <- birdnet$`__version__`
-  #   if (installed_version != .required_birdnet_version()) {
-  #     message(sprintf("BirdNET version %s is installed. Installing version %s...", installed_version, .required_birdnet_version()))
-  #     install_birdnet()
-  #   } else {
-  #     message(sprintf("BirdNET version %s is correctly installed.", installed_version))
-  #   }
-  # }, error = function(e) {
-  #   message("BirdNET not found. Installing...")
-  #   install_birdnet()
-  # })
-
-
-
   # use superassignment to update global reference to the python packages
   py_birdnet_models <<-
-    reticulate::import("birdnet.models", delay_load = TRUE)
+    reticulate::import("birdnet.models", delay_load = list(
+      # Check if the correct version of the package is installed
+      before_load = function() {
+        available_py_pkgs <- reticulate::py_list_packages()
+        installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet", select = version)
+        if (installed_birdnet_version != .required_birdnet_version()) {
+          stop(
+            sprintf(
+              "BirdNET version %s is installed, but %s is required. Please use `install_birdnet()`",
+              installed_birdnet_version,
+              .required_birdnet_version()
+            )
+          )
+        }
+      }
+    ))
   py_birdnet_utils <<-
     reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
-  # Import Python built-in functions and types
   py_builtins <<- import_builtins(delay_load = TRUE)
 }
 
@@ -62,11 +51,13 @@ py_builtins <- NULL
 #'
 #' @return A sorted character vector containing the available language codes.
 #' @examples
-#'   available_languages()
+#' available_languages()
 #' @export
 available_languages <- function() {
   if (is.null(py_birdnet_models)) {
-    stop("The birdnet.models module has not been loaded. Ensure the Python environment is configured correctly.")
+    stop(
+      "The birdnet.models module has not been loaded. Ensure the Python environment is configured correctly."
+    )
   }
   sort(py_builtins$list(py_birdnet_models$model_v2m4$AVAILABLE_LANGUAGES))
 }
@@ -105,13 +96,16 @@ init_model <-
 #'                 The language must be one of the available languages supported by the BirdNET model.
 #' @return A character string representing the file path to the labels file for the specified language.
 #' @examples
-#'   get_labels_path("en_us")
+#' get_labels_path("en_us")
 #' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
 #' @seealso [available_languages()]
 #' @export
 get_labels_path <- function(language) {
-  if (!(language %in% available_languages()))  {
-    stop(paste("`language` must be one of", paste(available_languages(), collapse = ", ")))
+  if (!(language %in% available_languages())) {
+    stop(paste(
+      "`language` must be one of",
+      paste(available_languages(), collapse = ", ")
+    ))
   }
 
   birdnet_app_data <- py_birdnet_utils$get_birdnet_app_data_folder()
@@ -203,7 +197,8 @@ predict_species <- function(model,
 
     # if not NULL, convert filter_species to a python set
     # Wrap single character strings in a list if necessary, otherwise `set` splits the string into individual characters
-    if (is.character(filter_species) && length(filter_species) == 1) {
+    if (is.character(filter_species) &&
+      length(filter_species) == 1) {
       filter_species <- list(filter_species)
     }
     filter_species <- py_builtins$set(filter_species)
@@ -256,7 +251,6 @@ predict_species_at_location_and_time <- function(model,
                                                  longitude,
                                                  week = NULL,
                                                  min_confidence = 0.03) {
-
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
 
   predictions <- model$predict_species_at_location_and_time(latitude,
