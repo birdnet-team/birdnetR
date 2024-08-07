@@ -21,7 +21,7 @@ py_builtins <- NULL
   installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet")$version
 
   if (installed_birdnet_version != .required_birdnet_version()) {
-    stop(
+    warning(
       sprintf(
         "BirdNET version %s is installed, but %s is required. To update, use `install_birdnet()`.",
         installed_birdnet_version,
@@ -47,7 +47,7 @@ py_builtins <- NULL
 
   # Use superassignment to update global reference to the Python packages
   py_birdnet_models <<- reticulate::import("birdnet.models",
-                                           delay_load = list(before_load = .check_birdnet_version))
+                                           delay_load = list(before_load = .check_birdnet_version()))
   py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- import_builtins(delay_load = TRUE)
