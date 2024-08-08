@@ -9,25 +9,31 @@ py_builtins <- NULL
 
 #' Check the Installed BirdNET Version
 #'
-#' This internal function checks if the installed version of the BirdNET Python package matches the required version.
-#' If the versions do not match, an error is raised with instructions to update the package.
+#' This internal function checks if BirdNET Python is installed and if the version matches the required version.
+#' If it is not available or if the versions do not match, issue a warning with instructions to update the package.
 #'
 #' @keywords internal
 #' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
 .check_birdnet_version <- function() {
+
+  available_py_packages <- tryCatch({
+    reticulate::py_list_packages()
+  }, error = function() NULL)
+
+  if (is.null(available_py_packages)) {
+    message("No Python environment available. To install, use `install_birdnet()`.")
+    return()
+  }
+
   installed_birdnet_version <- tryCatch(
     {
-      available_py_pkgs <- reticulate::py_list_packages()
-      subset(available_py_pkgs, package == "birdnet")$version
+      subset(available_py_packages, package == "birdnet")$version
     },
-    error = function(e) {
-      # warning("Error in checking BirdNET version: ", conditionMessage(e))
-      NULL
-    }
+    error = function(e) NULL
   )
 
-  if (is.null(installed_birdnet_version)) {
-    message("BirdNET or Python environment not available. To install, use `install_birdnet()`.")
+  if (is.null(installed_birdnet_version) | length(installed_birdnet_version) == 0) {
+    message("No version of birdnet found. To install, use `install_birdnet()`.")
     return()
   }
 
