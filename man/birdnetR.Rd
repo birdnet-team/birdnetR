@@ -16,10 +16,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Stefan Kahl \email{stefan.kahl@cornell.edu}
+\strong{Maintainer}: Felix Günther \email{felix.guenther@informatik.tu-chemnitz.de}
 
 Authors:
 \itemize{
+  \item Stefan Kahl \email{stefan.kahl@cornell.edu}
   \item BirdNET Team
 }
 
