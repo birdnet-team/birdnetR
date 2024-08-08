@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">birdnetR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/birdnetR.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -85,39 +86,11 @@ https://github.com/kahst/BirdNET-Analyzer/discussions/234</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Predict species in Chemnitz, Germany, that are present all year round</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
+<span class="r-in"><span><span class="co"># Predict species in Chemnitz, Germany, that are present all year round</span></span></span>
 <span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="init_model.html">init_model</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"de"</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> List of 22</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ python              : chr "/usr/bin/python3"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ libpython           : chr "/usr/lib/python3.10/config-3.10-x86_64-linux-gnu/libpython3.10.so"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ pythonhome          : chr "//usr://usr"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ pythonpath          : chr "/home/runner/work/_temp/Library/reticulate/config:/usr/lib/python310.zip:/usr/lib/python3.10:/usr/lib/python3.1"| __truncated__</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ prefix              : chr "/usr"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ exec_prefix         : chr "/usr"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ base_exec_prefix    : chr "/usr"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ virtualenv          : chr ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ virtualenv_activate : chr ""</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ executable          : chr "/usr/bin/python3"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ base_executable     : chr "/usr/bin/python3"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ version_string      : chr "3.10.12 (main, Jul 29 2024, 16:56:48) [GCC 11.4.0]"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ version             : chr "3.10"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ architecture        : chr "64bit"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ anaconda            : logi FALSE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ conda               : chr "False"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ numpy               : NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ required_module     : chr "birdnet"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ required_module_path: NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ available           : logi TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ python_versions     : chr [1:2] "/usr/bin/python3" "/usr/bin/python"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ forced              : NULL</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  - attr(*, "class")= chr "py_config"</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Python module birdnet.models was not found.</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> Detected Python configuration:</span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="fu">predict_species_at_location_and_time</span><span class="op">(</span><span class="va">model</span>, latitude <span class="op">=</span> <span class="fl">50.8334</span>, longitude <span class="op">=</span> <span class="fl">12.9231</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in eval(expr, envir, enclos):</span> object 'model' not found</span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

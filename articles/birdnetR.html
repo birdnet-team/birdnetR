@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">birdnetR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,7 @@
       <ul class="navbar-nav me-auto">
 <li class="active nav-item"><a class="nav-link" href="../articles/birdnetR.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -86,6 +87,26 @@
 <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
 <p><strong>Incompatible Python Version</strong><br> If you do not have a compatible Python version installed, you can use <code>reticulate::use_python_version(version = &lt;version&gt;)</code>.</p>
 </div>
+<div class="section level3">
+<h3 id="custom-virtual-environment">Custom virtual environment<a class="anchor" aria-label="anchor" href="#custom-virtual-environment"></a>
+</h3>
+<p>By default, a virtual environment named <code>r-birdnet</code> will be used. If you don’t need any customization, you can ignore this section, and everything should work out-of-the-box.</p>
+<p>If you need to use a custom name for the virtual environment, you can specify it using the <code>envname</code> argument:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/install_birdnet.html">install_birdnet</a></span><span class="op">(</span>envname <span class="op">=</span> <span class="st">"custom"</span><span class="op">)</span></span></code></pre></div>
+<p>The next time you start a new R session, tell <code>reticulate</code> to use this environment after loading your libraries:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
+<span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_virtualenv</a></span><span class="op">(</span><span class="st">"custom"</span><span class="op">)</span></span></code></pre></div>
+<p>By default, <code>reticulate</code> will install to and use a folder <code>.virtualenvs</code> in your home directory. You can also specify paths to your virtual environments, which is useful if you want to install <code>birdnetR</code> into an existing virtual environment:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
+<span><span class="va">path_venv</span> <span class="op">&lt;-</span> <span class="st">"/path/to/existing/venv"</span></span>
+<span><span class="fu"><a href="../reference/install_birdnet.html">install_birdnet</a></span><span class="op">(</span>envname <span class="op">=</span> <span class="va">path_venv</span><span class="op">)</span></span>
+<span><span class="fu">reticulate</span><span class="fu">::</span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_virtualenv</a></span><span class="op">(</span><span class="va">path_venv</span><span class="op">)</span></span></code></pre></div>
+<p>If you prefer to store your virtual environment in the project folder, <code>reticulate</code> will automatically discover it, and there is no need to call <code>use_virtualenv()</code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
@@ -94,7 +115,7 @@
 <h3 id="identify-species-in-an-audio-file">Identify species in an audio file<a class="anchor" aria-label="anchor" href="#identify-species-in-an-audio-file"></a>
 </h3>
 <p>Using BirdNET, you can identify bird species within an audio file. The function returns predictions for every 3-second snippet in the file that exceed the specified <code>min_confidence</code> threshold. Each row in the resulting data frame represents a single prediction for a specific 3-second interval.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load the package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
 <span></span>
@@ -107,7 +128,7 @@
 <span><span class="co"># Predict species within the audio file</span></span>
 <span><span class="fu"><a href="../reference/predict_species.html">predict_species</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">audio_path</span>, min_confidence <span class="op">=</span> <span class="fl">0.3</span>, keep_empty <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>If there are multiple predictions above the confidence threshold within the same time interval, you will see multiple rows for that interval. To filter and keep only the most probable prediction per interval, you can use the convenience function provided in the package.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/get_top_prediction.html">get_top_prediction</a></span><span class="op">(</span><span class="va">predictions</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -115,18 +136,18 @@
 </h3>
 <p>You may not always need to identify all 6,000+ species available in the model. To focus on species relevant to your project, you can use a custom species list containing only the necessary class labels.</p>
 <p>Class labels follow a specific format, consisting of the scientific name and the common name, separated by an underscore, like this:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="st">"Accipiter cooperii_Cooper's Hawk"</span></span>
 <span><span class="st">"Agelaius phoeniceus_Red-winged Blackbird"</span></span></code></pre></div>
 <p>To create a custom species list, ensure each class label is on a separate line in a <code>.txt</code> file. You can refer to the example included in this package or check out the full list of species that BirdNET was trained on.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Path to the label file including all BirdNET classes</span></span>
 <span><span class="co"># use this file as a template to create your custom species list but don't change it. </span></span>
 <span><span class="fu"><a href="../reference/get_labels_path.html">get_labels_path</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"en_us"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Path to the example custom species list with a reduced number of class</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"species_list.txt"</span>, package <span class="op">=</span> <span class="st">"birdnetR"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># read in your custom species list</span></span>
 <span><span class="va">species_list_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"species_list.txt"</span>, package <span class="op">=</span> <span class="st">"birdnetR"</span><span class="op">)</span></span>
 <span><span class="va">custom_species_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_species_from_file.html">get_species_from_file</a></span><span class="op">(</span><span class="va">species_list_file</span><span class="op">)</span></span>
@@ -141,7 +162,7 @@
 <h3 id="predict-species-occurence-with-the-meta-model">Predict species occurence with the meta model<a class="anchor" aria-label="anchor" href="#predict-species-occurence-with-the-meta-model"></a>
 </h3>
 <p>BirdNET includes a Meta Model that can predict the occurrence of bird species at a specific location and time of the year. This function returns a data frame containing class labels and their corresponding confidence values, which indicate the likelihood of species presence. These labels can be used to create a custom species list for further analysis.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># predict species occurrence in Ithaca, NY</span></span>
 <span><span class="va">predicted_species</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/predict_species_at_location_and_time.html">predict_species_at_location_and_time</a></span><span class="op">(</span><span class="va">model</span>, latitude <span class="op">=</span> <span class="fl">42.5</span>, longitude <span class="op">=</span> <span class="op">-</span><span class="fl">76.45</span>, week <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
 <span></span>
@@ -153,13 +174,13 @@
 <h3 id="translating-common-species-names">Translating common species names<a class="anchor" aria-label="anchor" href="#translating-common-species-names"></a>
 </h3>
 <p>The birdnetR package allows you to translate common bird species names into several different languages. To check which languages are supported, you can use the following command:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/available_languages.html">available_languages</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>To output the common names in your preferred language, initialize the model with the language parameter set to your desired language code:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/init_model.html">init_model</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span></span></code></pre></div>
 <p>If you want to view the class labels in a specific language, you can retrieve and inspect them using these commands:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">labels_path_lang</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_labels_path.html">get_labels_path</a></span><span class="op">(</span>language <span class="op">=</span> <span class="st">"fr"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/get_species_from_file.html">get_species_from_file</a></span><span class="op">(</span><span class="va">labels_path_lang</span><span class="op">)</span> </span></code></pre></div>

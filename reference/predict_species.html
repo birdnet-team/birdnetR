@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">birdnetR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/birdnetR.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -42,13 +43,13 @@
 <span>  audio_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"soundscape.wav"</span>, package <span class="op">=</span> <span class="st">"birdnetR"</span><span class="op">)</span>,</span>
 <span>  min_confidence <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  batch_size <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  chunk_overlap_s <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  use_bandpass <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  bandpass_fmin <span class="op">=</span> <span class="fl">0L</span>,</span>
 <span>  bandpass_fmax <span class="op">=</span> <span class="fl">15000L</span>,</span>
 <span>  apply_sigmoid <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sigmoid_sensitivity <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  filter_species <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  file_splitting_duration_s <span class="op">=</span> <span class="fl">600</span>,</span>
 <span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -73,6 +74,10 @@
 <dd><p>integer. Number of audio samples to process in a batch.</p></dd>
 
 
+<dt id="arg-chunk-overlap-s">chunk_overlap_s<a class="anchor" aria-label="anchor" href="#arg-chunk-overlap-s"></a></dt>
+<dd><p>numeric. Overlapping of chunks in seconds. Must be in the interval [0.0, 3.0\).</p></dd>
+
+
 <dt id="arg-use-bandpass">use_bandpass<a class="anchor" aria-label="anchor" href="#arg-use-bandpass"></a></dt>
 <dd><p>logical. Whether to apply a bandpass filter.</p></dd>
 
@@ -91,10 +96,6 @@
 
 <dt id="arg-filter-species">filter_species<a class="anchor" aria-label="anchor" href="#arg-filter-species"></a></dt>
 <dd><p>NULL, a character vector of length greater than 0 or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL, no filtering is applied. See <code><a href="get_species_from_file.html">get_species_from_file()</a></code> for more details.</p></dd>
-
-
-<dt id="arg-file-splitting-duration-s">file_splitting_duration_s<a class="anchor" aria-label="anchor" href="#arg-file-splitting-duration-s"></a></dt>
-<dd><p>numeric. Duration in seconds for splitting the audio file into smaller segments for processing.</p></dd>
 
 
 <dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>

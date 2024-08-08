@@ -7,8 +7,12 @@
 <url><loc>https://birdnet-team.github.io/birdnetR/articles/index.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/authors.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/index.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/news/index.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/available_languages.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/birdnetR.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-check_birdnet_version.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-required_birdnet_version.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-suggested_python_version.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/get_labels_path.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/get_species_from_file.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/get_top_prediction.html</loc></url>
