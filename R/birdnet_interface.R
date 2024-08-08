@@ -9,14 +9,33 @@ py_builtins <- NULL
 
 #' Check the Installed BirdNET Version
 #'
-#' This internal function checks if the installed version of the BirdNET Python package matches the required version.
-#' If the versions do not match, an error is raised with instructions to update the package.
+#' This internal function checks if BirdNET Python is installed and if the version matches the required version.
+#' If it is not available or if the versions do not match, issue a warning with instructions to update the package.
 #'
 #' @keywords internal
 #' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
 .check_birdnet_version <- function() {
-  available_py_pkgs <- reticulate::py_list_packages()
-  installed_birdnet_version <- subset(available_py_pkgs, package == "birdnet")$version
+
+  available_py_packages <- tryCatch({
+    reticulate::py_list_packages()
+  }, error = function() NULL)
+
+  if (is.null(available_py_packages)) {
+    message("No Python environment available. To install, use `install_birdnet()`.")
+    return()
+  }
+
+  installed_birdnet_version <- tryCatch(
+    {
+      subset(available_py_packages, package == "birdnet")$version
+    },
+    error = function(e) NULL
+  )
+
+  if (is.null(installed_birdnet_version) | length(installed_birdnet_version) == 0) {
+    message("No version of birdnet found. To install, use `install_birdnet()`.")
+    return()
+  }
 
   if (installed_birdnet_version != .required_birdnet_version()) {
     warning(
@@ -28,6 +47,7 @@ py_builtins <- NULL
     )
   }
 }
+
 
 
 
@@ -45,7 +65,8 @@ py_builtins <- NULL
 
   # Use superassignment to update global reference to the Python packages
   py_birdnet_models <<- reticulate::import("birdnet.models",
-                                           delay_load = list(before_load = .check_birdnet_version()))
+    delay_load = list(before_load = .check_birdnet_version())
+  )
   py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- import_builtins(delay_load = TRUE)
@@ -86,7 +107,7 @@ init_model <-
   function(tflite_num_threads = NULL,
            language = "en_us") {
     stopifnot(is.integer(tflite_num_threads) |
-                is.null(tflite_num_threads))
+      is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
     model <-
@@ -206,7 +227,7 @@ predict_species <- function(model,
     # if not NULL, convert filter_species to a python set
     # Wrap single character strings in a list if necessary, otherwise `set` splits the string into individual characters
     if (is.character(filter_species) &&
-        length(filter_species) == 1) {
+      length(filter_species) == 1) {
       filter_species <- list(filter_species)
     }
     filter_species <- py_builtins$set(filter_species)
@@ -262,9 +283,10 @@ predict_species_at_location_and_time <- function(model,
   stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
 
   predictions <- model$predict_species_at_location_and_time(latitude,
-                                                            longitude,
-                                                            week = week,
-                                                            min_confidence = min_confidence)
+    longitude,
+    week = week,
+    min_confidence = min_confidence
+  )
   data.frame(
     label = names(predictions),
     confidence = unlist(predictions),
