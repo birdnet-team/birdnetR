@@ -31,22 +31,32 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: r-lib/actions/setup-pandoc@v2
 
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: ${{ matrix.config.r }}
-          http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: true
+          r-version: release
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
-          needs: check
+          extra-packages: rcmdcheck reticulate
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: setup r-reticulate venv
+        shell: Rscript {0}
+        run: |
+
+          path_to_python <- reticulate::virtualenv_create(
+            envname = "r-reticulate",
+            python = Sys.which("python"), # placed on PATH by the setup-python action
+            packages = c(
+              "numpy", "any-other-python-packages-you-want-go-here"
+            )
+          )
+
+          writeLines(sprintf("RETICULATE_PYTHON=%s", path_to_python),
+                     Sys.getenv("GITHUB_ENV"))
 
       - uses: r-lib/actions/check-r-package@v2
-        with:
-          upload-snapshots: true
-          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'

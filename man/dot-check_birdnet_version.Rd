@@ -10,7 +10,7 @@
 None. This function is called for its side effect of stopping execution if the wrong version is installed.
 }
 \description{
-This internal function checks if the installed version of the BirdNET Python package matches the required version.
-If the versions do not match, an error is raised with instructions to update the package.
+This internal function checks if BirdNET Python is installed and if the version matches the required version.
+If it is not available or if the versions do not match, issue a warning with instructions to update the package.
 }
 \keyword{internal}
