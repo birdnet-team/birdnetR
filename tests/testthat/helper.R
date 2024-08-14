@@ -6,7 +6,6 @@
 # automatically. Can use .check_birdnet_version()
 
 # make sure birdnet Python modules are installed
-devtools::load_all()
 birdnetR::install_birdnet()
 
 # Make sure reticulate uses the 'r-birdnet'
