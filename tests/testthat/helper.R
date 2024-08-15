@@ -5,10 +5,10 @@
 # them to install those, or see if we can do it
 # automatically. Can use .check_birdnet_version()
 
-# make sure birdnet Python modules are installed
-birdnetR::install_birdnet()
-
 # Make sure reticulate uses the 'r-birdnet'
 # virtual environment when running tests.
 library(reticulate)
 reticulate::use_virtualenv("r-birdnet", required = TRUE)
+
+# make sure birdnet Python modules are installed
+birdnetR::install_birdnet()
