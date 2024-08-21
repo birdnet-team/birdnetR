@@ -63,7 +63,14 @@ jobs:
               "numpy", "pandas"
             )
           )
-          
+
+      - name: Install BirdNet
+        shell: Rscript {0}
+        run: |
+          devtools::load_all()
+          library(reticulate)
+          reticulate::use_virtualenv("r-birdnet", required = TRUE)
+          birdnetR::install_birdnet()
 
       - uses: r-lib/actions/check-r-package@v2
         with:
