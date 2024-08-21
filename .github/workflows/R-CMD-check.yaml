@@ -52,26 +52,26 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: setup r-birdnet venv
+      # - name: setup r-birdnet venv
+      #   shell: Rscript {0}
+      #   run: |
+
+      #     path_to_python <- reticulate::virtualenv_create(
+      #       envname = "r-birdnet",
+      #       python = Sys.which("python"), # placed on PATH by the setup-python action
+      #       packages = c(
+      #         "numpy", "pandas"
+      #       )
+      #     )
+
+      #     writeLines(sprintf("RETICULATE_PYTHON=%s", path_to_python),
+      #                Sys.getenv("GITHUB_ENV"))
+
+
+      - name: setup r-birdnet venv and install birdnet
         shell: Rscript {0}
         run: |
 
-          path_to_python <- reticulate::virtualenv_create(
-            envname = "r-birdnet",
-            python = Sys.which("python"), # placed on PATH by the setup-python action
-            packages = c(
-              "numpy", "pandas"
-            )
-          )
-
-          writeLines(sprintf("RETICULATE_PYTHON=%s", path_to_python),
-                     Sys.getenv("GITHUB_ENV"))
-
-
-      - name: install birdNet
-        shell: Rscript {0}
-        run: |
-          library(reticulate)
           reticulate::install_python("3.11")
           reticulate::virtualenv_create(envname = "r-birdnet", 
                                         version = "3.11")
