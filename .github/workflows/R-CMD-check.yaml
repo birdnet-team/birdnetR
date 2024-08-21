@@ -52,12 +52,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: setup r-reticulate venv
+      - name: setup r-birdnet venv
         shell: Rscript {0}
         run: |
 
           path_to_python <- reticulate::virtualenv_create(
-            envname = "r-reticulate",
+            envname = "r-birdnet",
             python = Sys.which("python"), # placed on PATH by the setup-python action
             packages = c(
               "numpy", "pandas"
