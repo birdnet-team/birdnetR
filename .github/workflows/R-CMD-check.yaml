@@ -64,17 +64,23 @@ jobs:
             )
           )
 
+          writeLines(sprintf("RETICULATE_PYTHON=%s", path_to_python),
+                     Sys.getenv("GITHUB_ENV"))
+
+
       - name: Install BirdNet
         shell: Rscript {0}
         run: |
           library(reticulate)
-          reticulate::use_virtualenv("r-birdnet", required = TRUE)
+          reticulate::install_python("3.11")
+          reticulate::virtualenv_create("r-birdnet", version = "3.11")
+          reticulate::use_virtualenv("r-birdnet")
 
           install.packages("devtools")
           library(devtools)
           devtools::load_all()
           birdnetR::install_birdnet()
-          
+
 
       - uses: r-lib/actions/check-r-package@v2
         with:
