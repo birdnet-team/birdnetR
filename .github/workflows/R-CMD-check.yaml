@@ -63,9 +63,6 @@ jobs:
               "numpy", "pandas"
             )
           )
-
-          writeLines(sprintf("RETICULATE_PYTHON=%s", path_to_python),
-                     Sys.getenv("GITHUB_ENV"))
           
 
       - uses: r-lib/actions/check-r-package@v2
