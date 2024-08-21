@@ -60,7 +60,7 @@ jobs:
             envname = "r-reticulate",
             python = Sys.which("python"), # placed on PATH by the setup-python action
             packages = c(
-              "numpy", "any-other-python-packages-you-want-go-here"
+              "numpy" "pandas"
             )
           )
 
