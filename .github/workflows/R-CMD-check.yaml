@@ -68,12 +68,13 @@ jobs:
                      Sys.getenv("GITHUB_ENV"))
 
 
-      - name: Install BirdNet
+      - name: install birdNet
         shell: Rscript {0}
         run: |
           library(reticulate)
           reticulate::install_python("3.11")
-          reticulate::virtualenv_create("r-birdnet", version = "3.11")
+          reticulate::virtualenv_create(envname = "r-birdnet", 
+                                        version = "3.11")
           reticulate::use_virtualenv("r-birdnet")
 
           install.packages("devtools")
