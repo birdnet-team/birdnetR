@@ -3,6 +3,9 @@
 # Import the necessary Python modules layzily in .onLoad
 py_birdnet_models <- NULL
 py_birdnet_utils <- NULL
+py_birdnet_audio_based_prediction <- NULL
+py_birdnet_location_based_prediction <- NULL
+py_birdnet_types <- NULL
 py_pathlib <- NULL
 py_builtins <- NULL
 
@@ -68,6 +71,9 @@ py_builtins <- NULL
     delay_load = list(before_load = .check_birdnet_version())
   )
   py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
+  py_birdnet_audio_based_prediction <<- reticulate::import("birdnet.audio_based_prediction", delay_load = TRUE)
+  py_birdnet_location_based_prediction <<- reticulate::import("birdnet.location_based_prediction", delay_load = TRUE)
+  py_birdnet_types <<- reticulate::import("birdnet.types", delay_load = TRUE)
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- import_builtins(delay_load = TRUE)
 }
@@ -88,7 +94,7 @@ available_languages <- function() {
       "The birdnet.models module has not been loaded. Ensure the Python environment is configured correctly."
     )
   }
-  sort(py_builtins$list(py_birdnet_models$model_v2m4$AVAILABLE_LANGUAGES))
+  sort(py_builtins$list(py_birdnet_models$v2m4$model_v2m4_base$AVAILABLE_LANGUAGES))
 }
 
 
@@ -110,8 +116,16 @@ init_model <-
       is.null(tflite_num_threads))
     # Other Value Errors (e.g. unsupported language) are handled by the python package
 
-    model <-
-      py_birdnet_models$ModelV2M4(tflite_num_threads = tflite_num_threads, language = language)
+    # model <-
+    #   py_birdnet_models$v2m4$AudioModelV2M4TFLite(tflite_num_threads = tflite_num_threads, language = language)
+
+    model <- list(
+      audio_model = py_birdnet_models$v2m4$model_v2m4_tflite$AudioModelV2M4TFLite,
+      meta_model = py_birdnet_models$v2m4$model_v2m4_tflite$MetaModelV2M4TFLite,
+      tflite_num_threads = tflite_num_threads,
+      language = language
+    )
+
     return(model)
   }
 
@@ -137,8 +151,8 @@ get_labels_path <- function(language) {
     ))
   }
 
-  birdnet_app_data <- py_birdnet_utils$get_birdnet_app_data_folder()
-  downloader <- py_birdnet_models$model_v2m4$Downloader(birdnet_app_data)
+  birdnet_app_data <- py_pathlib$Path(py_birdnet_models$v2m4$model_v2m4_base$get_internal_version_app_data_folder(), "TFLite")
+  downloader <- py_birdnet_models$v2m4$model_v2m4_tflite$DownloaderTFLite(birdnet_app_data)
   as.character(downloader$get_language_path(language))
 }
 
@@ -208,7 +222,8 @@ predict_species <- function(model,
                             filter_species = NULL,
                             keep_empty = TRUE) {
   # Check argument types. Done mostly in order to return better error messages
-  stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
+  stopifnot(is.list(model))
+  stopifnot(inherits(model$audio_model(), "birdnet.models.v2m4.model_v2m4_base.AudioModelBaseV2M4"))
   stopifnot(is.character(audio_file))
   stopifnot(is.numeric(min_confidence))
   stopifnot(is.integer(batch_size))
@@ -235,8 +250,9 @@ predict_species <- function(model,
 
   # Main function logic
   audio_file <- py_pathlib$Path(audio_file)$expanduser()$resolve(TRUE)
+  audio_model = model$audio_model(tflite_num_threads = model$tflite_num_threads, language = model$language)
 
-  predictions <- model$predict_species_within_audio_file(
+  predictions_gen <- py_birdnet_audio_based_prediction$predict_species_within_audio_file(
     audio_file,
     min_confidence = min_confidence,
     batch_size = batch_size,
@@ -246,8 +262,10 @@ predict_species <- function(model,
     bandpass_fmax = bandpass_fmax,
     apply_sigmoid = apply_sigmoid,
     sigmoid_sensitivity = sigmoid_sensitivity,
-    filter_species = filter_species
+    species_filter = filter_species,
+    custom_model = audio_model
   )
+  predictions <- py_birdnet_types$SpeciesPredictions(predictions_gen)
   predictions_to_df(predictions, keep_empty = keep_empty)
 }
 
@@ -280,13 +298,25 @@ predict_species_at_location_and_time <- function(model,
                                                  longitude,
                                                  week = NULL,
                                                  min_confidence = 0.03) {
-  stopifnot(inherits(model, "birdnet.models.model_v2m4.ModelV2M4"))
+  stopifnot(is.list(model))
+  stopifnot(inherits(model$meta_model(), "birdnet.models.v2m4.model_v2m4_tflite.MetaModelV2M4TFLite"))
 
-  predictions <- model$predict_species_at_location_and_time(latitude,
+  meta_model  <- model$meta_model(tflite_num_threads = model$tflite_num_threads, language = model$language)
+
+  predictions <- py_birdnet_location_based_prediction$predict_species_at_location_and_time(
+    latitude,
     longitude,
     week = week,
-    min_confidence = min_confidence
+    min_confidence = min_confidence,
+    custom_model = meta_model
   )
+  #
+  # predictions <- model$predict_species_at_location_and_time(latitude,
+  #   longitude,
+  #   week = week,
+  #   min_confidence = min_confidence
+  # )
+
   data.frame(
     label = names(predictions),
     confidence = unlist(predictions),

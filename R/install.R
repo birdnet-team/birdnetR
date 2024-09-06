@@ -6,7 +6,7 @@
 #' @return A string representing the required BirdNET version.
 #' @keywords internal
 .required_birdnet_version <- function() {
-  "0.1.1"
+  "0.1.6"
 }
 
 #' Get the Suggested Python Version

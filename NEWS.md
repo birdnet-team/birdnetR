@@ -1,3 +1,8 @@
+# birdnetR 0.1.2
+
+Uses `birdnet v0.1.6` under the hood to fix an issue when downloading models.
+No new functionality has yet been implemented.
+
 
 # birdnetR 0.1.1
 
