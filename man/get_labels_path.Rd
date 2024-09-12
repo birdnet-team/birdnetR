@@ -2,12 +2,25 @@
 % Please edit documentation in R/birdnet_interface.R
 \name{get_labels_path}
 \alias{get_labels_path}
-\title{Get Path to BirdNET Labels File for a Specified Language}
+\alias{get_labels_path.birdnet_model_custom}
+\alias{get_labels_path.birdnet_model_tflite}
+\alias{get_labels_path.birdnet_model_protobuf}
+\title{Get Path to a Labels File}
 \usage{
-get_labels_path(language)
+get_labels_path(model, ...)
+
+\method{get_labels_path}{birdnet_model_custom}(model, ...)
+
+\method{get_labels_path}{birdnet_model_tflite}(model, language, ...)
+
+\method{get_labels_path}{birdnet_model_protobuf}(model, language, ...)
 }
 \arguments{
-\item{language}{A character string specifying the language code for which the labels path is requested.
+\item{model}{A BirdNET model object.}
+
+\item{...}{Additional arguments passed to the method dispatch function.}
+
+\item{language}{character. Specifies the language code for which the labels path is returned.
 The language must be one of the available languages supported by the BirdNET model.}
 }
 \value{
@@ -16,13 +29,18 @@ A character string representing the file path to the labels file for the specifi
 \description{
 This function retrieves the file path to the BirdNET labels file on your system corresponding to a specified language.
 This file contains all class labels supported by the BirdNET model.
+
+For a custom model, the path of the custom labels file is returned.
 }
 \note{
 The \code{language} parameter must be one of the available languages returned by \code{available_languages()}.
 }
 \examples{
-get_labels_path("en_us")
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+model <- birdnet_model_tflite(version = "v2.4")
+get_labels_path(model, "fr")
+\dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=available_languages]{available_languages()}}
+\code{\link[=available_languages]{available_languages()}} \code{\link[=get_species_from_file]{get_species_from_file()}}
 }

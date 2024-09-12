@@ -2,6 +2,7 @@
 % Please edit documentation in R/birdnet_interface.R
 \name{predict_species_at_location_and_time}
 \alias{predict_species_at_location_and_time}
+\alias{predict_species_at_location_and_time.birdnet_model_meta}
 \title{Predict species for a given location and time}
 \usage{
 predict_species_at_location_and_time(
@@ -11,9 +12,17 @@ predict_species_at_location_and_time(
   week = NULL,
   min_confidence = 0.03
 )
+
+\method{predict_species_at_location_and_time}{birdnet_model_meta}(
+  model,
+  latitude,
+  longitude,
+  week = NULL,
+  min_confidence = 0.03
+)
 }
 \arguments{
-\item{model}{BirdNETModel. An instance of the BirdNET model returned by \code{\link[=init_model]{init_model()}}.}
+\item{model}{birdnet_model_meta. An instance of the BirdNET model returned by \code{\link[=birdnet_model_meta]{birdnet_model_meta()}}.}
 
 \item{latitude}{numeric. The latitude of the location for species prediction. Must be in the interval [-90.0, 90.0].}
 
@@ -39,7 +48,7 @@ https://github.com/kahst/BirdNET-Analyzer/discussions/234
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Predict species in Chemnitz, Germany, that are present all year round
-model <- init_model(language = "de")
+model <- birdnet_model_meta(language = "de")
 predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
 \dontshow{\}) # examplesIf}
 }
