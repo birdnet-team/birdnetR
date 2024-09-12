@@ -14,65 +14,54 @@ create_module_map <- function(version, base_module) {
   switch(version,
     "v2.4" = list(
       "models" = list(
-        "tflite_v2.4" = paste0(base_module, "$v2m4$AudioModelV2M4TFLite"),
-        "protobuf_v2.4" = paste0(base_module, "$v2m4$AudioModelV2M4Protobuf"),
-        "custom_v2.4" = paste0(base_module, "$v2m4$CustomAudioModelV2M4TFLite"),
-        "raven_v2.4" = paste0(base_module, "$v2m4$CustomAudioModelV2M4Raven"),
-        "meta_v2.4" = paste0(base_module, "$v2m4$MetaModelV2M4TFLite")
+        "tflite" = paste0(base_module, "$v2m4$AudioModelV2M4TFLite"),
+        "protobuf" = paste0(base_module, "$v2m4$AudioModelV2M4Protobuf"),
+        "custom" = paste0(base_module, "$v2m4$CustomAudioModelV2M4TFLite"),
+        "raven" = paste0(base_module, "$v2m4$CustomAudioModelV2M4Raven"),
+        "meta" = paste0(base_module, "$v2m4$MetaModelV2M4TFLite")
       ),
       "misc" = list(
-        "available_languages_v2.4" = paste0(base_module, "$v2m4$model_v2m4_base$AVAILABLE_LANGUAGES")
+        "available_languages" = paste0(base_module, "$v2m4$model_v2m4_base$AVAILABLE_LANGUAGES"),
+        "version_app_data_folder" = paste0(base_module, "$v2m4$model_v2m4_base$get_internal_version_app_data_folder"),
+        "downloader_tflite" = paste0(base_module, "$v2m4$model_v2m4_tflite$DownloaderTFLite"),
+        "downloader_protobuf" = paste0(base_module, "$v2m4$model_v2m4_protobuf$DownloaderProtobuf"),
+        "parser_custom_tflite" = paste0(base_module, "$v2m4$model_v2m4_tflite_custom$CustomTFLiteParser")
       )
     ),
     stop("Unsupported version")
   )
 }
 
-
-#' Get a model constructor from the module map
+#' Get an element from a module map regardless of nesting level
 #'
-#' This function extracts the model constructor from the module map.
+#' This function retrieves an element from a module map by traversing the nested structure.
+#' It takes a variable number of arguments that represent the keys to navigate through the module map.
 #'
 #' @param module_map A list returned from \code{create_module_map()}.
-#' @param model_name Character. The name of the model to retrieve (e.g., "tflite_v2.4").
+#' @param ... A sequence of keys that represent the path to the desired element in the module map.
 #'
-#' @return A string representing the Python path to the model constructor.
+#' @return The element located at the specified path within the module map.
 #' @keywords internal
 #' @examplesIf interactive()
 #' module_map <- create_module_map("v2.4", "py_birdnet_models")
-#' tflite_model_path <- get_model_from_module_map(module_map, "tflite_v2.4")
-get_model_from_module_map <- function(module_map, model_name) {
-  models <- module_map$models
+#' available_languages_path <- get_element_from_module_map(module_map, "misc", "available_languages")
+get_element_from_module_map <- function(module_map, ...) {
+  # Extract the nested keys
+  keys <- list(...)
 
-  if (!model_name %in% names(models)) {
-    stop("Invalid model name. Available models are: ", paste(names(models), collapse = ", "))
+  # Start from the top-level module map
+  element <- module_map
+
+  # Traverse the nested structure using the provided keys
+  for (key in keys) {
+    if (!is.null(element[[key]])) {
+      element <- element[[key]]
+    } else {
+      stop(paste("Element", key, "not found in the module map"))
+    }
   }
 
-  return(models[[model_name]])
-}
-
-
-
-#' Get miscellaneous information from the module map
-#'
-#' This function extracts miscellaneous information (e.g., available languages) from the module map.
-#'
-#' @param module_map A list returned from \code{create_module_map()}.
-#' @param misc_name Character. The name of the miscellaneous information to retrieve (e.g., "available_languages_v2.4").
-#'
-#' @return A string representing the Python path to the miscellaneous information.
-#' @keywords internal
-#' @examplesIf interactive()
-#' module_map <- create_module_map("v2.4", "py_birdnet_models")
-#' available_languages_path <- get_misc_from_module_map(module_map, "available_languages_v2.4")
-get_misc_from_module_map <- function(module_map, misc_name) {
-  misc <- module_map$misc
-
-  if (!misc_name %in% names(misc)) {
-    stop("Invalid misc name. Available misc items are: ", paste(names(misc), collapse = ", "))
-  }
-
-  return(misc[[misc_name]])
+  return(element)
 }
 
 
