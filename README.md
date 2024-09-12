@@ -11,7 +11,7 @@ birdnetR is geared towards providing a robust workflow for ecological data analy
 
 Please note that birdnetR is under active development, so you might encounter changes that could affect your current workflow. We recommend checking for updates regularly.
 
-
+For more information, please visit the [birdnetR website](https://birdnet-team.github.io/birdnetR/).
 
 
 ## Citation
@@ -74,14 +74,14 @@ Here's a simple example of how to use this package to predict bird species from 
 # Load the package
 library(birdnetR)
 
-# Initialize the BirdNET model
-model <- init_model()
+# Initialize a BirdNET model
+model <- birdnet_model_tflite()
 
 # Path to the audio file (replace with your own file path)
-audio_path <- "path/to/your/soundscape.wav"
+audio_path <- system.file("extdata", "soundscape.wav", package = "birdnetR")
 
 # Predict species within the audio file
-predictions <- predict_species(model, audio_path)
+predictions <- predict_species_from_audio_file(model, audio_path)
 
 # Get most probable prediction within each time interval
 get_top_prediction(predictions)
