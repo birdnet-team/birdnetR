@@ -32,6 +32,32 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="birdnetr-020">birdnetR 0.2.0<a class="anchor" aria-label="anchor" href="#birdnetr-020"></a></h2>
+<p>This update brings significant changes and improvements, including support for loading pre-existing and custom-trained models, aligning the package with birdnet <code>0.1.6</code>.</p>
+<div class="section level5">
+<h5 id="breaking-changes-0-2-0">breaking changes:<a class="anchor" aria-label="anchor" href="#breaking-changes-0-2-0"></a></h5>
+<ul><li>The <code><a href="../reference/init_model.html">init_model()</a></code> function is now <strong>deprecated</strong> and will be removed in the next version. Please use the <code>birdnet_model_*</code> function family for model initialization.</li>
+<li>
+<code><a href="../reference/available_languages.html">available_languages()</a></code> <strong>update</strong>: A new argument has been added to <code><a href="../reference/available_languages.html">available_languages()</a></code> to specify the BirdNET version, making it more flexible for different model versions.</li>
+<li>
+<strong>Renaming</strong> <code>get_labels_path</code> to <code><a href="../reference/labels_path.html">labels_path()</a></code>. It now requires a model object as its first argument.</li>
+<li>
+<code>predict_species()</code> was <strong>renamed</strong> to <code><a href="../reference/predict_species_from_audio_file.html">predict_species_from_audio_file()</a></code>
+</li>
+<li>
+<code><a href="../reference/predict_species_at_location_and_time.html">predict_species_at_location_and_time()</a></code> was <strong>changed</strong> to requirer a model object as first argument.</li>
+</ul></div>
+<div class="section level5">
+<h5 id="new-features-0-2-0">New features:<a class="anchor" aria-label="anchor" href="#new-features-0-2-0"></a></h5>
+<ul><li>
+<strong>Support for Custom Models:</strong> You can now load custom-trained models</li>
+<li>
+<strong>A new set of functions</strong> (<code>birdnet_model_*</code>) to load pre-existing and custom-trained models. These functions offer a more flexible approach to model loading. See <code><a href="../reference/birdnet_model_load.html">?birdnet_model_load</a></code> for more details.</li>
+<li>
+<strong>S3 Object-Oriented System:</strong> The models are now implemented as S3 classes, and most of the functionality related to these models is provided through methods. This update makes the API cleaner and more consistent, and allows for better extensibility in future versions.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.2" id="birdnetr-012">birdnetR 0.1.2<a class="anchor" aria-label="anchor" href="#birdnetr-012"></a></h2>
 <p>Uses <code>birdnet v0.1.6</code> under the hood to fix an issue when downloading models. No new functionality has yet been implemented.</p>
 </div>

@@ -64,6 +64,7 @@
 <p>This is a wrapper for the <code>birdnet</code> Python package for automated bird sound ID available <a href="https://github.com/birdnet-team/birdnet" class="external-link">here</a>.</p>
 <p>birdnetR is geared towards providing a robust workflow for ecological data analysis in bioacoustic projects. While it covers essential functionalities, it doesn’t include all the features found in BirdNET-Analyzer, which is available <a href="https://github.com/kahst/BirdNET-Analyzer" class="external-link">here</a>. Some features might only be available in the BirdNET Analyzer and not in this package.</p>
 <p>Please note that birdnetR is under active development, so you might encounter changes that could affect your current workflow. We recommend checking for updates regularly.</p>
+<p>For more information, please visit the <a href="https://birdnet-team.github.io/birdnetR/">birdnetR website</a>.</p>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
@@ -115,14 +116,14 @@
 <code class="sourceCode R"><span><span class="co"># Load the package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Initialize the BirdNET model</span></span>
-<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/init_model.html">init_model</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co"># Initialize a BirdNET model</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/birdnet_model_load.html">birdnet_model_tflite</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Path to the audio file (replace with your own file path)</span></span>
-<span><span class="va">audio_path</span> <span class="op">&lt;-</span> <span class="st">"path/to/your/soundscape.wav"</span></span>
+<span><span class="va">audio_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"soundscape.wav"</span>, package <span class="op">=</span> <span class="st">"birdnetR"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Predict species within the audio file</span></span>
-<span><span class="va">predictions</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/predict_species.html">predict_species</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">audio_path</span><span class="op">)</span></span>
+<span><span class="va">predictions</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/predict_species_from_audio_file.html">predict_species_from_audio_file</a></span><span class="op">(</span><span class="va">model</span>, <span class="va">audio_path</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Get most probable prediction within each time interval</span></span>
 <span><span class="fu"><a href="reference/get_top_prediction.html">get_top_prediction</a></span><span class="op">(</span><span class="va">predictions</span><span class="op">)</span></span></code></pre></div>
