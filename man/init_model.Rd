@@ -17,13 +17,13 @@ An instance of the BirdNET model.
 }
 \description{
 This function initializes the BirdNET model (v2.4). It is kept for backward compatibility and is deprecated.
-Use \code{birdnet_model_tflite()} instead for model initialization.
+Use \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}} instead for model initialization.
 }
 \note{
 The \code{language} parameter must be one of the available languages returned by \code{available_languages()}.
 
-This function is kept for backward compatibility. Please use \code{birdnet_model_tflite()} instead.
+This function is kept for backward compatibility. Please use \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}} instead.
 }
 \seealso{
-\code{\link[=available_languages]{available_languages()}}
+\code{\link[=available_languages]{available_languages()}} \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}}
 }
