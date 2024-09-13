@@ -357,7 +357,7 @@ available_languages <- function(version) {
 #' model <- birdnet_model_tflite(version = "v2.4")
 #' get_labels_path(model, "fr")
 #' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
-#' @seealso [available_languages()] [get_species_from_file()]
+#' @seealso [available_languages()] [read_labels()]
 #' @export
 get_labels_path <- function(model, ...) {
   UseMethod("get_labels_path")
@@ -437,15 +437,15 @@ get_labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #' @seealso [available_languages()] [get_labels_path()]
 #' @examples
 #' # Read a custom species file
-#' get_species_from_file(system.file("extdata", "species_list.txt", package = "birdnetR"))
+#' read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 #'
 #' # To access all class labels that are supported in your language,
 #' # you can read in the respective label file
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' labels_path <- get_labels_path(model, "fr")
-#' species_list <- get_species_from_file(labels_path)
+#' species_list <- read_labels(labels_path)
 #' head(species_list)
-get_species_from_file <- function(species_file) {
+read_labels <- function(species_file) {
   species_file_path <- py_pathlib$Path(species_file)$expanduser()$resolve(TRUE)
   py_species_list <- py_birdnet_utils$get_species_from_file(species_file_path)
   py_species_list$items
@@ -481,7 +481,7 @@ get_species_from_file <- function(species_file) {
 #'
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`. Each row represents a single prediction.
 #'
-#' @seealso [`get_species_from_file()`] for more details on species filtering.
+#' @seealso [`read_labels()`] for more details on species filtering.
 #' @export
 #' @seealso [`predict_species_from_audio_file.birdnet_model`]
 #' @examplesIf interactive()

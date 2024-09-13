@@ -42,5 +42,5 @@ get_labels_path(model, "fr")
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=available_languages]{available_languages()}} \code{\link[=get_species_from_file]{get_species_from_file()}}
+\code{\link[=available_languages]{available_languages()}} \code{\link[=read_labels]{read_labels()}}
 }

@@ -83,7 +83,7 @@ predictions <- predict_species_from_audio_file(model, "path/to/audio.wav", min_c
 Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 }
 \seealso{
-\code{\link[=get_species_from_file]{get_species_from_file()}} for more details on species filtering.
+\code{\link[=read_labels]{read_labels()}} for more details on species filtering.
 
 \code{\link{predict_species_from_audio_file.birdnet_model}}
 }
