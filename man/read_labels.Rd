@@ -22,10 +22,10 @@ read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 # To access all class labels that are supported in your language,
 # you can read in the respective label file
 model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-labels_path <- get_labels_path(model, "fr")
+labels_path <- labels_path(model, "fr")
 species_list <- read_labels(labels_path)
 head(species_list)
 }
 \seealso{
-\code{\link[=available_languages]{available_languages()}} \code{\link[=get_labels_path]{get_labels_path()}}
+\code{\link[=available_languages]{available_languages()}} \code{\link[=labels_path]{labels_path()}}
 }

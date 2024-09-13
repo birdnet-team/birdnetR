@@ -355,12 +355,12 @@ available_languages <- function(version) {
 #' @return A character string representing the file path to the labels file for the specified language.
 #' @examplesIf interactive()
 #' model <- birdnet_model_tflite(version = "v2.4")
-#' get_labels_path(model, "fr")
+#' labels_path(model, "fr")
 #' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
 #' @seealso [available_languages()] [read_labels()]
 #' @export
-get_labels_path <- function(model, ...) {
-  UseMethod("get_labels_path")
+labels_path <- function(model, ...) {
+  UseMethod("labels_path")
 }
 
 #' Helper function to retrieve the language path for a BirdNET model
@@ -402,26 +402,26 @@ get_language_path <- function(model, language, downloader_key, subfolder) {
   as.character(py_downloader(py_pathlib$Path(py_app_folder(), subfolder))$get_language_path(language))
 }
 
-#' @rdname get_labels_path
+#' @rdname labels_path
 #' @description For a custom model, the path of the custom labels file is returned.
 #' @export
-#' @method get_labels_path birdnet_model_custom
-get_labels_path.birdnet_model_custom <- function(model, ...) {
+#' @method labels_path birdnet_model_custom
+labels_path.birdnet_model_custom <- function(model, ...) {
   file.path(model$classifier_folder, paste0(model$classifier_name, ".txt"))
 }
 
 
-#' @rdname get_labels_path
+#' @rdname labels_path
 #' @export
-#' @method get_labels_path birdnet_model_tflite
-get_labels_path.birdnet_model_tflite <- function(model, language, ...) {
+#' @method labels_path birdnet_model_tflite
+labels_path.birdnet_model_tflite <- function(model, language, ...) {
   get_language_path(model, language, "downloader_tflite", "TFLite")
 }
 
-#' @rdname get_labels_path
+#' @rdname labels_path
 #' @export
-#' @method get_labels_path birdnet_model_protobuf
-get_labels_path.birdnet_model_protobuf <- function(model, language, ...) {
+#' @method labels_path birdnet_model_protobuf
+labels_path.birdnet_model_protobuf <- function(model, language, ...) {
   get_language_path(model, language, "downloader_protobuf", "Protobuf")
 }
 
@@ -434,7 +434,7 @@ get_labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #'
 #' @return A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
 #' @export
-#' @seealso [available_languages()] [get_labels_path()]
+#' @seealso [available_languages()] [labels_path()]
 #' @examples
 #' # Read a custom species file
 #' read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
@@ -442,7 +442,7 @@ get_labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #' # To access all class labels that are supported in your language,
 #' # you can read in the respective label file
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-#' labels_path <- get_labels_path(model, "fr")
+#' labels_path <- labels_path(model, "fr")
 #' species_list <- read_labels(labels_path)
 #' head(species_list)
 read_labels <- function(species_file) {
