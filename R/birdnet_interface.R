@@ -39,7 +39,7 @@ py_builtins <- NULL
     error = function(e) NULL
   )
 
-  if (is.null(installed_birdnet_version) | length(installed_birdnet_version) == 0) {
+  if (is.null(installed_birdnet_version) || length(installed_birdnet_version) == 0) {
     message("No version of birdnet found. To install, use `install_birdnet()`.")
     return()
   }
