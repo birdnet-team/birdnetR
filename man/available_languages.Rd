@@ -16,5 +16,7 @@ A sorted character vector containing the available language codes.
 Retrieve the available languages supported by a specific version of BirdNET.
 }
 \examples{
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 available_languages("v2.4")
+\dontshow{\}) # examplesIf}
 }

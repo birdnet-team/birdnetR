@@ -30,7 +30,7 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
         # Fill empty elements with NA if keep_empty is TRUE
         predictions[i][[1]] <- list("NA_NA" = NA_real_)
       } else {
-        return()  # Skip this element if keep_empty is FALSE
+        return() # Skip this element if keep_empty is FALSE
       }
     }
     # Convert the current prediction element to a data frame
@@ -119,10 +119,10 @@ is_valid_species_list <- function(obj) {
   # Check if the object is a non-empty list where each element is a single character string
   is_list_single_elements <- is.list(obj) &&
     length(obj) > 0 &&
-    all(sapply(obj, function(x)
-      is.character(x) && length(x) == 1 && length(x) != 0))
+    all(sapply(obj, function(x) {
+      is.character(x) && length(x) == 1 && length(x) != 0
+    }))
 
   # Return TRUE if either condition is met
   return(is_vector || is_list_single_elements)
 }
-

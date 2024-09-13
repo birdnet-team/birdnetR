@@ -20,7 +20,7 @@ test_that("birdnet_model_protobuf works", {
 
 test_that("birdnet_model structure is correct", {
   expect_s3_class(tflite_model, c("birdnet_model_tflite"))
-  expect_s3_class(tflite_model$py_model, c("python.builtin.object", "birdnet.models.v2m4.model_v2m4_tflite.AudioModelV2M4TFLite" ))
+  expect_s3_class(tflite_model$py_model, c("python.builtin.object", "birdnet.models.v2m4.model_v2m4_tflite.AudioModelV2M4TFLite"))
   expect_equal(tflite_model$model_version, "v2.4")
 
   expect_s3_class(protobuf_model, c("birdnet_model_protobuf"))
@@ -75,7 +75,6 @@ test_that("predict_species applies sigmoid function correctly", {
 })
 
 test_that("predict_species respects minimum confidence threshold", {
-
   # Lower threshold
   predictions <- predict_species_from_audio_file(tflite_model, audio_file, min_confidence = 0.05)
   expect_true(!is.null(predictions))
@@ -90,7 +89,6 @@ test_that("predict_species respects minimum confidence threshold", {
 })
 
 test_that("predict_species applies overlap", {
-
   # Lower threshold
   predictions <- predict_species_from_audio_file(tflite_model, audio_file, chunk_overlap_s = 1)
   expect_true(!is.null(predictions))
@@ -114,10 +112,9 @@ test_that("predict_species keeps empty intervals when specified", {
 })
 
 test_that("predict_species handles invalid inputs gracefully", {
-
   # Invalid species list type
   expect_error(predict_species_from_audio_file(tflite_model, audio_file, filter_species = 123))
-  expect_error(predict_species_from_audio_file(tflite_model, audio_file,filter_species = list(c("A", "B"))))
+  expect_error(predict_species_from_audio_file(tflite_model, audio_file, filter_species = list(c("A", "B"))))
 
   # Invalid bandpass frequencies
   expect_error(predict_species_from_audio_file(tflite_model, audio_file, bandpass_fmin = -100L))

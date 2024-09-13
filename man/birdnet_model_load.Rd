@@ -72,8 +72,10 @@ The \code{\link[=birdnet_model_meta]{birdnet_model_meta()}} model can be used to
 Currently, all models can only be executed on the CPU. GPU support is not yet available.
 }
 \examples{
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Create a TFLite BirdNET model with 2 threads and English (US) language
 birdnet_model <- birdnet_model_tflite(version = "v2.4", language = "en_us", tflite_num_threads = 2)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=available_languages]{available_languages()}} \code{\link[=predict_species_from_audio_file]{predict_species_from_audio_file()}} \code{\link[=predict_species_at_location_and_time]{predict_species_at_location_and_time()}}

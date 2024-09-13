@@ -16,6 +16,7 @@ A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macro
 This is a convenience function to read species labels from a file.
 }
 \examples{
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Read a custom species file
 read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 
@@ -25,6 +26,7 @@ model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 labels_path <- labels_path(model, "fr")
 species_list <- read_labels(labels_path)
 head(species_list)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=available_languages]{available_languages()}} \code{\link[=labels_path]{labels_path()}}

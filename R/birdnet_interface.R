@@ -22,7 +22,9 @@ py_builtins <- NULL
     {
       reticulate::py_list_packages()
     },
-    error = function() NULL
+    error = function() {
+      NULL
+    }
   )
 
   if (is.null(available_py_packages)) {
@@ -36,10 +38,13 @@ py_builtins <- NULL
       package <- NULL
       subset(available_py_packages, package == "birdnet")$version
     },
-    error = function(e) NULL
+    error = function(e) {
+      NULL
+    }
   )
 
-  if (is.null(installed_birdnet_version) || length(installed_birdnet_version) == 0) {
+  if (is.null(installed_birdnet_version) ||
+    length(installed_birdnet_version) == 0) {
     message("No version of birdnet found. To install, use `install_birdnet()`.")
     return()
   }
@@ -108,10 +113,7 @@ new_birdnet_model <- function(x, ..., subclass = character()) {
   subclasse <- paste(class_name, subclass, sep = "_") # Create subclass by combining base class with user-provided subclass
 
   # Return an S3 object containing the Python model and additional attributes, with the specified class hierarchy
-  structure(
-    list("py_model" = x, ...),
-    class = c(subclasse, "birdnet_model")
-  )
+  structure(list("py_model" = x, ...), class = c(subclasse, "birdnet_model"))
 }
 
 
@@ -150,11 +152,19 @@ model_factory <- function(model_name, version, ...) {
 
   # Create a subclass for the model: model_name_version is the specific subclass of model_name
   subclasses <- c(version, model_name)
-  subclasses <- gsub(x = subclasses, pattern = "\\.", replacement = "_")
+  subclasses <- gsub(
+    x = subclasses,
+    pattern = "\\.",
+    replacement = "_"
+  )
 
   # Create and return the BirdNET model object with the subclasses
   # passing model_version adds a list element with the version of the model.
-  new_birdnet_model(py_model, model_version = version, ..., subclass = subclasses)
+  new_birdnet_model(py_model,
+    model_version = version,
+    ...,
+    subclass = subclasses
+  )
 }
 
 
@@ -186,7 +196,7 @@ model_factory <- function(model_name, version, ...) {
 #'
 #' @seealso [available_languages()] [predict_species_from_audio_file()] [predict_species_at_location_and_time()]
 #' @return A BirdNET model object.
-#' @examples
+#' @examplesIf interactive()
 #' # Create a TFLite BirdNET model with 2 threads and English (US) language
 #' birdnet_model <- birdnet_model_tflite(version = "v2.4", language = "en_us", tflite_num_threads = 2)
 #' @name birdnet_model_load
@@ -199,8 +209,7 @@ birdnet_model_tflite <- function(version = "v2.4",
                                  language = "en_us",
                                  tflite_num_threads = NULL) {
   # Validate tflite_num_threads: must be NULL or numeric (will be coerced to integer)
-  if (!is.null(tflite_num_threads) &&
-    !is.numeric(tflite_num_threads)) {
+  if (!is.null(tflite_num_threads) && !is.numeric(tflite_num_threads)) {
     stop("tflite_num_threads must be a numeric value or NULL.")
   }
 
@@ -229,8 +238,7 @@ birdnet_model_custom <- function(version = "v2.4",
                                  classifier_name,
                                  tflite_num_threads = NULL) {
   # Validate tflite_num_threads: must be NULL or numeric (will be coerced to integer)
-  if (!is.null(tflite_num_threads) &&
-    !is.numeric(tflite_num_threads)) {
+  if (!is.null(tflite_num_threads) && !is.numeric(tflite_num_threads)) {
     stop("tflite_num_threads must be a numeric value or NULL.")
   }
 
@@ -252,7 +260,13 @@ birdnet_model_custom <- function(version = "v2.4",
 
   # Because classifier_folder and classifier_name need to be positional and cannot be named, we need to rename the
   # list elements
-  names(model) <- c("py_model", "model_version", "classifier_folder", "classifier_name", "tflite_num_threads")
+  names(model) <- c(
+    "py_model",
+    "model_version",
+    "classifier_folder",
+    "classifier_name",
+    "tflite_num_threads"
+  )
   model
 }
 
@@ -262,8 +276,7 @@ birdnet_model_meta <- function(version = "v2.4",
                                language = "en_us",
                                tflite_num_threads = NULL) {
   # Validate tflite_num_threads: must be NULL or numeric (will be coerced to integer)
-  if (!is.null(tflite_num_threads) &&
-    !is.numeric(tflite_num_threads)) {
+  if (!is.null(tflite_num_threads) && !is.numeric(tflite_num_threads)) {
     stop("tflite_num_threads must be a numeric value or NULL.")
   }
 
@@ -315,12 +328,20 @@ birdnet_model_protobuf <- function(version = "v2.4",
 #' @export
 #' @note This function is kept for backward compatibility. Please use \code{birdnet_model_tflite()} instead.
 init_model <-
-  function(tflite_num_threads = NULL, language = "en_us") {
+  function(tflite_num_threads = NULL,
+           language = "en_us") {
     # Deprecation warning
-    warning("`init_model()` is deprecated. Please use `birdnet_model_tflite()` instead.", call. = FALSE)
+    warning(
+      "`init_model()` is deprecated. Please use `birdnet_model_tflite()` instead.",
+      call. = FALSE
+    )
 
     # Call the updated model initialization function
-    birdnet_model_tflite(version = "v2.4", language = language, tflite_num_threads = tflite_num_threads)
+    birdnet_model_tflite(
+      version = "v2.4",
+      language = language,
+      tflite_num_threads = tflite_num_threads
+    )
   }
 
 
@@ -331,7 +352,7 @@ init_model <-
 #' @param version character. The version of BirdNET to use (default is "v2.4", no other versions are currently supported).
 #'
 #' @return A sorted character vector containing the available language codes.
-#' @examples
+#' @examplesIf interactive()
 #' available_languages("v2.4")
 #' @export
 available_languages <- function(version) {
@@ -381,7 +402,10 @@ labels_path <- function(model, ...) {
 #' @examplesIf interactive()
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' language_path <- get_language_path(model, "en_us", "downloader_tflite", "TFLite")
-get_language_path <- function(model, language, downloader_key, subfolder) {
+get_language_path <- function(model,
+                              language,
+                              downloader_key,
+                              subfolder) {
   # Validate that the language is available for the given model version
   langs <- available_languages(model$model_version)
 
@@ -407,7 +431,10 @@ get_language_path <- function(model, language, downloader_key, subfolder) {
 #' @export
 #' @method labels_path birdnet_model_custom
 labels_path.birdnet_model_custom <- function(model, ...) {
-  file.path(model$classifier_folder, paste0(model$classifier_name, ".txt"))
+  file.path(
+    model$classifier_folder,
+    paste0(model$classifier_name, ".txt")
+  )
 }
 
 
@@ -435,7 +462,7 @@ labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #' @return A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
 #' @export
 #' @seealso [available_languages()] [labels_path()]
-#' @examples
+#' @examplesIf interactive()
 #' # Read a custom species file
 #' read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 #'
@@ -507,19 +534,18 @@ predict_species_from_audio_file <- function(model,
 #' @rdname predict_species_from_audio_file
 #' @method predict_species_from_audio_file birdnet_model
 #' @export
-predict_species_from_audio_file.birdnet_model <- function(
-    model,
-    audio_file,
-    min_confidence = 0.1,
-    batch_size = 1L,
-    chunk_overlap_s = 0,
-    use_bandpass = TRUE,
-    bandpass_fmin = 0L,
-    bandpass_fmax = 15000L,
-    apply_sigmoid = TRUE,
-    sigmoid_sensitivity = 1,
-    filter_species = NULL,
-    keep_empty = TRUE) {
+predict_species_from_audio_file.birdnet_model <- function(model,
+                                                          audio_file,
+                                                          min_confidence = 0.1,
+                                                          batch_size = 1L,
+                                                          chunk_overlap_s = 0,
+                                                          use_bandpass = TRUE,
+                                                          bandpass_fmin = 0L,
+                                                          bandpass_fmax = 15000L,
+                                                          apply_sigmoid = TRUE,
+                                                          sigmoid_sensitivity = 1,
+                                                          filter_species = NULL,
+                                                          keep_empty = TRUE) {
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.character(audio_file))
