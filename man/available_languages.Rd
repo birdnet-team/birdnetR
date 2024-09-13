@@ -4,14 +4,19 @@
 \alias{available_languages}
 \title{Get Available Languages for BirdNET Model}
 \usage{
-available_languages()
+available_languages(version)
+}
+\arguments{
+\item{version}{character. The version of BirdNET to use (default is "v2.4", no other versions are currently supported).}
 }
 \value{
 A sorted character vector containing the available language codes.
 }
 \description{
-Retrieve the available languages supported by the BirdNET model.
+Retrieve the available languages supported by a specific version of BirdNET.
 }
 \examples{
-available_languages()
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+available_languages("v2.4")
+\dontshow{\}) # examplesIf}
 }

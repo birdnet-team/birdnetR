@@ -1,7 +1,20 @@
 library(testthat)
 
 # Assuming that `init_model` is a function that initializes the BirdNET model
-model <- init_model(language = "en_us")
+
+model <- NULL
+
+test_that("birdnet_model_meta works", {
+  model <<- birdnet_model_meta(version = "v2.4")
+  expect_true(!is.null(model))
+})
+
+test_that("birdnet_model structure is correct", {
+  expect_s3_class(model, "birdnet_model_meta")
+  expect_s3_class(model$py_model, "birdnet.models.v2m4.model_v2m4_tflite.MetaModelV2M4TFLite")
+  expect_equal(model$model_version, "v2.4")
+})
+
 
 test_that("predict_species_at_location_and_time returns a data frame", {
   result <- predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)

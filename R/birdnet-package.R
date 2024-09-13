@@ -15,4 +15,3 @@
 #' @importFrom reticulate use_python_version
 ## usethis namespace: end
 NULL
-

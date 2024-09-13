@@ -2,7 +2,7 @@
 % Please edit documentation in R/birdnet_interface.R
 \name{init_model}
 \alias{init_model}
-\title{Initialize the BirdNET Model}
+\title{Initialize the BirdNET Model (Deprecated)}
 \usage{
 init_model(tflite_num_threads = NULL, language = "en_us")
 }
@@ -10,17 +10,20 @@ init_model(tflite_num_threads = NULL, language = "en_us")
 \item{tflite_num_threads}{integer. The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
 Will be coerced to an integer if possible.}
 
-\item{language}{A character string specifying the language code to use for the model's text processing. The language must be one of the available languages supported by the BirdNET model.}
+\item{language}{Character string specifying the language code to use for the model's text processing. The language must be one of the available languages supported by the BirdNET model.}
 }
 \value{
 An instance of the BirdNET model.
 }
 \description{
-This function initializes the BirdNET model (v2.4).
+This function initializes the BirdNET model (v2.4). It is kept for backward compatibility and is deprecated.
+Use \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}} instead for model initialization.
 }
 \note{
 The \code{language} parameter must be one of the available languages returned by \code{available_languages()}.
+
+This function is kept for backward compatibility. Please use \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}} instead.
 }
 \seealso{
-\code{\link[=available_languages]{available_languages()}}
+\code{\link[=available_languages]{available_languages()}} \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}}
 }
