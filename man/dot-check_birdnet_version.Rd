@@ -2,7 +2,7 @@
 % Please edit documentation in R/birdnet_interface.R
 \name{.check_birdnet_version}
 \alias{.check_birdnet_version}
-\title{Check the Installed BirdNET Version}
+\title{Check the Installed birdnet Version}
 \usage{
 .check_birdnet_version()
 }
@@ -10,7 +10,7 @@
 None. This function is called for its side effect of stopping execution if the wrong version is installed.
 }
 \description{
-This internal function checks if BirdNET Python is installed and if the version matches the required version.
+This internal function checks if birdnet Python is installed and if the version matches the requirement.
 If it is not available or if the versions do not match, issue a warning with instructions to update the package.
 }
 \keyword{internal}

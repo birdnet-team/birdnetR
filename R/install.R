@@ -6,7 +6,7 @@
 #' @return A string representing the required BirdNET version.
 #' @keywords internal
 .required_birdnet_version <- function() {
-  "0.1.1"
+  "0.1.6"
 }
 
 #' Get the Suggested Python Version
@@ -31,11 +31,9 @@
 #'
 #' @export
 install_birdnet <- function(
-  ...,
-  envname = "r-birdnet",
-  new_env = identical(envname, "r-birdnet")
-) {
-
+    ...,
+    envname = "r-birdnet",
+    new_env = identical(envname, "r-birdnet")) {
   # Try to use python 3.11. the request is taken as a hint only, and scanning for other versions will still proceed
   reticulate::use_python_version(.suggested_python_version(), required = FALSE)
 

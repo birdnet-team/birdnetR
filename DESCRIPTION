@@ -1,7 +1,7 @@
 Package: birdnetR
 Type: Package
 Title: Identifying bird species by their sounds
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(
   person("Felix", "Günther", email = "felix.guenther@informatik.tu-chemnitz.de", role = c("cre")),
   person("Stefan", "Kahl", email = "stefan.kahl@cornell.edu", role = c("aut")),

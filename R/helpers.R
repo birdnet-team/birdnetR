@@ -55,19 +55,20 @@ get_top_prediction <- function(data, filter = NULL) {
   if (!is.data.frame(data)) {
     stop("The 'data' argument must be a data frame.")
   }
-  required_columns <- c("start",
-                        "end",
-                        "scientific_name",
-                        "common_name",
-                        "confidence")
+  required_columns <- c(
+    "start",
+    "end",
+    "scientific_name",
+    "common_name",
+    "confidence"
+  )
   if (!all(required_columns %in% names(data))) {
     stop(paste(
       "Data frame must contain the following columns:",
       paste(required_columns, collapse = ", ")
     ))
   }
-  if (!is.null(filter) &&
-      (!is.list(filter) || !all(c("start", "end") %in% names(filter)))) {
+  if (!is.null(filter) && (!is.list(filter) || !all(c("start", "end") %in% names(filter)))) {
     stop("The 'filter' must be a list containing 'start' and 'end'.")
   }
 
@@ -79,7 +80,7 @@ get_top_prediction <- function(data, filter = NULL) {
   if (!is.null(filter)) {
     # Apply the filter condition if specified
     data <- data[data$start == filter$start &
-                   data$end == filter$end, ]
+      data$end == filter$end, ]
   }
 
   # Split data by start and end columns to find the max confidence in each interval

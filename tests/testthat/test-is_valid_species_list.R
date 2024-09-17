@@ -33,7 +33,7 @@ test_that("is_valid_species_list identifies valid vectors and lists", {
   expect_false(is_valid_species_list(list(a = NULL, b = "a")))
 })
 
-test_that("is_valid_species_list works with get_species_from_file", {
-  species_list <- get_species_from_file(system.file("extdata", "species_list.txt", package = "birdnetR"))
+test_that("is_valid_species_list works with read_labels", {
+  species_list <- read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
   expect_true(is_valid_species_list(species_list))
 })
