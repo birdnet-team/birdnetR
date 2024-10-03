@@ -75,7 +75,7 @@ py_builtins <- NULL
 
   # Use superassignment to update global reference to the Python packages
   py_birdnet_models <<- reticulate::import("birdnet.models",
-    delay_load = list(before_load = function() .check_birdnet_version())
+    delay_load = list(before_load = .check_birdnet_version())
   )
   py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
   py_birdnet_audio_based_prediction <<- reticulate::import("birdnet.audio_based_prediction", delay_load = TRUE)
