@@ -48,19 +48,12 @@ jobs:
           extra-packages: any::rcmdcheck reticulate devtools
           needs: check
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-
       - name: setup r-birdnet venv and install birdnet
         shell: Rscript {0}
         run: |
-
           reticulate::install_python("3.11")
           devtools::load_all()
           birdnetR::install_birdnet()
-
 
       - uses: r-lib/actions/check-r-package@v2
         with:
