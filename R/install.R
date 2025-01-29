@@ -43,7 +43,7 @@ install_birdnet <- function(
   } else {
     switch(OS,
            "Darwin" = "virtualenv",
-           "Windows" = "conda",
+           "Windows" = "auto",
            "Linux" = "virtualenv",
            stop("Unsupported operating system")
     )
