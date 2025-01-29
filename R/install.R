@@ -34,6 +34,9 @@ install_birdnet <- function(
     ...,
     envname = "r-birdnet",
     new_env = identical(envname, "r-birdnet")) {
+
+  OS = Sys.info()[["sysname"]]
+
   # Try to use python 3.11. the request is taken as a hint only, and scanning for other versions will still proceed
   reticulate::use_python_version(.suggested_python_version(), required = FALSE)
 
@@ -48,4 +51,20 @@ install_birdnet <- function(
     envname = envname,
     ...
   )
+
+  if (OS == "Darwin") {
+   # Try to install Metal plugin for GPU support
+   tryCatch(
+     {
+       reticulate::py_install("tensorflow-metal", envname = envname)
+       message("GPU supoort installed successfully!")
+     },
+     error = function(e) {
+       message(
+         "Failed to install Metal plugin for GPU support. Error: ",
+         e$message
+       )
+     }
+   )
+ }
 }
