@@ -26,7 +26,7 @@
 #'
 #'
 #' @param ... Further arguments passed to `reticulate::py_install()`
-#' @param method Installation method. Defaults to 'virtualenv' on macOS and Linux, and 'conda' on Windows. See `reticulate::py_install()` for more details.
+#' @param method Installation method. Defaults to 'virtualenv' on macOS and Linux, and 'auto' on Windows. See `reticulate::py_install()` for more details.
 #' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @param new_env If `TRUE`, any existing Python virtual environment specified by `envname` is deleted first.
 #'

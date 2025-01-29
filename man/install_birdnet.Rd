@@ -6,12 +6,15 @@
 \usage{
 install_birdnet(
   ...,
+  method = NULL,
   envname = "r-birdnet",
   new_env = identical(envname, "r-birdnet")
 )
 }
 \arguments{
 \item{...}{Further arguments passed to \code{reticulate::py_install()}}
+
+\item{method}{Installation method. Defaults to 'virtualenv' on macOS and Linux, and 'auto' on Windows. See \code{reticulate::py_install()} for more details.}
 
 \item{envname}{Name of the virtual environment. Defaults to 'r-birdnet'.}
 
