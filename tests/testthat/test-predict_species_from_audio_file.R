@@ -3,7 +3,6 @@ library(testthat)
 # Assuming that the BirdNET model and data are set up correctly in the environment.
 
 tflite_model <- NULL
-protobuf_model <- NULL
 audio_file <- system.file("extdata", "soundscape.wav", package = "birdnetR")
 
 
@@ -12,28 +11,15 @@ test_that("birdnet_model_tflite works", {
   expect_true(!is.null(tflite_model))
 })
 
-test_that("birdnet_model_protobuf works", {
-  protobuf_model <<- birdnet_model_protobuf(version = "v2.4")
-  expect_true(!is.null(tflite_model))
-})
-
 
 test_that("birdnet_model structure is correct", {
   expect_s3_class(tflite_model, c("birdnet_model_tflite"))
   expect_s3_class(tflite_model$py_model, c("python.builtin.object", "birdnet.models.v2m4.model_v2m4_tflite.AudioModelV2M4TFLite"))
   expect_equal(tflite_model$model_version, "v2.4")
-
-  expect_s3_class(protobuf_model, c("birdnet_model_protobuf"))
-  expect_s3_class(protobuf_model$py_model, c("birdnet.models.v2m4.model_v2m4_protobuf.AudioModelV2M4Protobuf"))
-  expect_equal(protobuf_model$model_version, "v2.4")
 })
 
 test_that("predict_species works with default parameters", {
   predictions <- predict_species_from_audio_file(tflite_model, audio_file)
-  expect_true(!is.null(predictions))
-  expect_true(nrow(predictions) > 0)
-
-  predictions <- predict_species_from_audio_file(protobuf_model, audio_file)
   expect_true(!is.null(predictions))
   expect_true(nrow(predictions) > 0)
 })

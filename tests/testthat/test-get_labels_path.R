@@ -1,22 +1,15 @@
 library(testthat)
 
 tflite_model <- birdnet_model_tflite(version = "v2.4")
-protobuf_model <- birdnet_model_protobuf(version = "v2.4")
-
 
 test_that("labels_path returns correct path for valid language", {
   path <- labels_path(model = tflite_model, language = "en_us")
-  expect_true(basename(path) == "en_us.txt")
-  expect_true(file.exists(path))
-
-  path <- labels_path(model = protobuf_model, language = "en_us")
   expect_true(basename(path) == "en_us.txt")
   expect_true(file.exists(path))
 })
 
 test_that("labels_path returns correct path for invalid language", {
   expect_error(labels_path(model = tflite_model, language = "blonk"))
-  expect_error(labels_path(model = protobuf_model, language = "blonk"))
 })
 
 

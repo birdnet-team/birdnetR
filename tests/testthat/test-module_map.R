@@ -10,7 +10,7 @@ test_that("create_module_map", {
   )
 })
 
-test_that("getting eelements from modules mpa", {
+test_that("getting elements from modules map", {
   module_map <- create_module_map("v2.4", "py_birdnet_models")
   tflite_model_path <- get_element_from_module_map(module_map, "models", "tflite")
   expect_equal(
@@ -21,7 +21,7 @@ test_that("getting eelements from modules mpa", {
 
 
 
-test_that("all mapped modules can be evaluates", {
+test_that("all mapped modules can be evaluated", {
   module_map <- create_module_map("v2.4", "py_birdnet_models")
 
   # Evaluate all modules
