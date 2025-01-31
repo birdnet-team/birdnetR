@@ -26,14 +26,29 @@
 #'
 #'
 #' @param ... Further arguments passed to `reticulate::py_install()`
+#' @param method Installation method. Defaults to 'virtualenv' on macOS and Linux, and 'auto' on Windows. See `reticulate::py_install()` for more details.
 #' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @param new_env If `TRUE`, any existing Python virtual environment specified by `envname` is deleted first.
 #'
 #' @export
 install_birdnet <- function(
     ...,
+    method = NULL,
     envname = "r-birdnet",
     new_env = identical(envname, "r-birdnet")) {
+
+  OS <-  Sys.info()[["sysname"]]
+  method <- if (!is.null(method)) {
+    method
+  } else {
+    switch(OS,
+           "Darwin" = "virtualenv",
+           "Windows" = "auto",
+           "Linux" = "virtualenv",
+           stop("Unsupported operating system")
+    )
+  }
+
   # Try to use python 3.11. the request is taken as a hint only, and scanning for other versions will still proceed
   reticulate::use_python_version(.suggested_python_version(), required = FALSE)
 
@@ -43,9 +58,37 @@ install_birdnet <- function(
 
   # Let the system automatically discover if the correct python version is installed
   # if not the user will be prompted with options to install a correct version
-  reticulate::py_install(
-    paste0("birdnet==", .required_birdnet_version()),
-    envname = envname,
-    ...
+
+  tryCatch(
+    {
+      reticulate::py_install(
+        "birdnet",
+        envname = envname,
+        method = method,
+        ...
+      )
+    },
+    error = function(e) {
+      stop("Failed to install BirdNET. Error: ", e$message)
+    }
   )
+
+
+  if (OS == "Darwin") {
+   # Try to install Metal plugin for GPU support
+   tryCatch(
+     {
+       reticulate::py_install("tensorflow-metal", envname = envname)
+       message("Enabled GPU support.")
+     },
+     error = function(e) {
+       message(
+         "Failed to install Metal plugin for GPU support. Error: ",
+         e$message
+       )
+     }
+   )
+  }
+
+  message("BirdNET installed successfully!")
 }

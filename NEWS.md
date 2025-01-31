@@ -1,3 +1,9 @@
+
+# unreleased
+
+- install the TensorFlow Metal Plugin for GPU support on Apple devices
+
+
 # birdnetR 0.2.0
 
 This update brings significant changes and improvements, including support for loading pre-existing and custom-trained models, aligning the package with birdnet `0.1.6`.
