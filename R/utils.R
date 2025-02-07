@@ -1,7 +1,7 @@
 #' Convert a list of predictions from python to a data frame
 #'
-#' This function processes a list of predictions from the python `birdnet` package, each containing time intervals, scientific names,
-#' common names, and confidence levels, and converts them into a structured data frame. It handles
+#' This function processes a list of predictions from the python `birdnet` package, each containing time intervals,
+#' scientific names, common names, and confidence levels, and converts them into a structured data frame. It handles
 #' cases where some elements in the list might be empty.
 #'
 #' @param predictions A list where each element is expected to be a named list. The names of the
@@ -14,82 +14,88 @@
 #'   Each row represents a single prediction.
 #' @keywords internal
 predictions_to_df <- function(predictions, keep_empty = FALSE) {
-  # Validate input types
+  # Validate inputs
   if (!is.list(predictions)) {
     stop("The 'predictions' argument must be a list.")
   }
-
-  if (!is.logical(keep_empty)) {
-    stop("The 'keep_empty' argument must be a logical value.")
+  if (!is.logical(keep_empty) || length(keep_empty) != 1) {
+    stop("The 'keep_empty' argument must be a single logical value.")
   }
 
-  list_of_dfs <- lapply(seq_along(predictions), function(i) {
-    # Check if the current prediction is empty
-    if (length(predictions[i][[1]]) == 0) {
-      if (keep_empty) {
-        # Fill empty elements with NA if keep_empty is TRUE
-        predictions[i][[1]] <- list("NA_NA" = NA_real_)
-      } else {
-        return() # Skip this element if keep_empty is FALSE
-      }
+  # Pre-calculate total detections (inner list lengths)
+  detection_counts <- vapply(predictions, function(pred) {
+    n <- length(pred)
+    if (n == 0L) {
+      if (keep_empty) 1L else 0L
+    } else {
+      n
     }
-    # Convert the current prediction element to a data frame
-    predictions_list_element_to_df(predictions[i])
-  })
+  }, FUN.VALUE = integer(1))
 
-  # Combine all individual data frames into one
-  do.call(rbind, list_of_dfs)
-}
+  total_detections <- sum(detection_counts)
 
-#' Convert a single prediction element to a data frame
-#'
-#' This helper function takes a single list element from the predictions list and parses it into
-#' a data frame format, extracting the time interval, scientific name, common name, and confidence level.
-#'
-#' @param x A single list element from the predictions list. It is expected to be a named list
-#'   with one or more elements where the names represent labels "scientificName_commonName" and
-#'   the values are confidence scores.
-#' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
-#' @keywords internal
-predictions_list_element_to_df <- function(x) {
-  # Ensure the element has expected structure
-  if (!is.list(x) || length(x) == 0 || !is.character(names(x))) {
-    stop("Each element in the 'predictions' list should be a named list.")
-  }
+  # Pre-allocate vectors for time values, raw label strings, and confidence scores.
+  starts      <- numeric(total_detections)
+  ends        <- numeric(total_detections)
+  labels_all  <- character(total_detections)
+  confidences <- numeric(total_detections)
 
-  # Extract and parse the time interval from the element's name
-  time_interval_str <- names(x)
-  time_interval_vec <- as.numeric(unlist(strsplit(
-    gsub("[()]", "", time_interval_str), ","
-  )))
+  idx <- 1L
+  # Iterate over each time interval in predictions
+  for (interval in names(predictions)) {
+    preds <- predictions[[interval]]
+    num_preds <- length(preds)
 
-  # Ensure the time interval is correctly parsed
-  if (length(time_interval_vec) != 2) {
-    stop("Time interval parsing failed; expected two numeric values.")
-  }
-
-  # Create a data frame for each label within the time interval
-  do.call(rbind, lapply(names(x[[1]]), function(label) {
-    labels <- strsplit(label, "_")[[1]]
-
-    # Ensure labels are correctly parsed
-    if (length(labels) != 2) {
-      stop("Label parsing failed; expected two values separated by an underscore.")
+    if (num_preds == 0L) {
+      if (!keep_empty) next
+      # If there are no predictions and we want to keep empty entries,
+      # insert a placeholder.
+      preds <- list("NA_NA" = NA_real_)
+      num_preds <- 1L
     }
 
-    # Extract confidence score
-    confidence_score <- x[[1]][[label]]
+    # Parse the time interval (e.g. "(0.0, 3.0)") into numeric start and end.
+    time_vals <- as.numeric(strsplit(gsub("[()]", "", interval), ",")[[1]])
+    if (length(time_vals) != 2L) {
+      stop("Time interval '", interval, "' does not contain exactly two numeric values.")
+    }
 
-    # Create a data frame row for each entry
-    data.frame(
-      start = time_interval_vec[1],
-      end = time_interval_vec[2],
-      scientific_name = labels[1],
-      common_name = labels[2],
-      confidence = confidence_score
-    )
-  }))
+    # Store the labels as they are (e.g., "Poecile atricapillus_Black-capped Chickadee").
+    current_labels <- names(preds)
+
+    idx_range <- idx:(idx + num_preds - 1L)
+    starts[idx_range]      <- time_vals[1]
+    ends[idx_range]        <- time_vals[2]
+    labels_all[idx_range]  <- current_labels
+    confidences[idx_range] <- unlist(preds, use.names = FALSE)
+
+    idx <- idx + num_preds
+  }
+
+  # Now, vectorized splitting of the full labels vector:
+  scientific_name <- sub("_.*", "", labels_all)
+  common_name     <- sub("^[^_]+_", "", labels_all)
+
+
+  # Create a data frame using the collected time values, labels, and confidence scores.
+  df <- data.frame(
+    start = starts,
+    end = ends,
+    scientific_name = scientific_name,
+    common_name = common_name,
+    confidence = confidences,
+    stringsAsFactors = FALSE
+  )
+
+  # When not keeping empty predictions, remove rows with missing values.
+  if (!keep_empty) {
+    df <- df[complete.cases(df), , drop = FALSE]
+  }
+
+  df
 }
+
+
 
 #' Check if an Object is a Valid Species List
 #'
