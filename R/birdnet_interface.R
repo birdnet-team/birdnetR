@@ -22,7 +22,7 @@ py_builtins <- NULL
     {
       reticulate::py_list_packages()
     },
-    error = function() {
+    error = function(e) {
       NULL
     }
   )
