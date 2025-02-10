@@ -20,6 +20,7 @@
   "3.11"
 }
 
+
 #' Install BirdNET and its dependencies
 #'
 #' `install_birdnet()` installs the python package `birdnet` from PyPi into a virtual environment.
@@ -72,7 +73,6 @@ install_birdnet <- function(
       stop("Failed to install BirdNET. Error: ", e$message)
     }
   )
-
 
   if (OS == "Darwin") {
    # Try to install Metal plugin for GPU support

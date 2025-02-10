@@ -8,6 +8,7 @@ py_birdnet_location_based_prediction <- NULL
 py_birdnet_types <- NULL
 py_pathlib <- NULL
 py_builtins <- NULL
+py_birdnetr_utils <- NULL
 
 
 #' Check the Installed birdnet Version
@@ -73,6 +74,13 @@ py_builtins <- NULL
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
+  # Import custom utils from the package's python directory
+  py_birdnetr_utils <<- reticulate::import_from_path(
+    "birdnetr_utils",
+    path = system.file("python", package = "birdnetR"),
+    delay_load = TRUE
+  )
+
   # Use superassignment to update global reference to the Python packages
   py_birdnet_models <<- reticulate::import("birdnet.models",
     delay_load = list(before_load = .check_birdnet_version())
@@ -85,6 +93,60 @@ py_builtins <- NULL
   py_builtins <<- reticulate::import_builtins(delay_load = TRUE)
 }
 
+
+#' Check Arrow Package Availability
+#'
+#' This function checks if the Arrow package is installed and available in both R and Python.
+#'
+#' @return A named logical vector indicating availability in R and Python
+#' @keywords internal
+.check_arrow <- function() {
+  c(
+    r = requireNamespace("arrow", quietly = TRUE),
+    python = reticulate::py_module_available("pyarrow")
+  )
+}
+
+#' Install the Arrow package
+#'
+#' `install_arrow()` ensures that Arrow is properly installed and loaded in both R and Python environments.
+#'
+#' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
+#' @return Invisible TRUE if successful, stops with error message if installation fails
+#' @export
+#' @examplesIf interactive()
+#' install_arrow()
+install_arrow <- function(envname = "r-birdnet") {
+  arrow_status <- .check_arrow()
+
+  # Install R package if needed
+  if (!arrow_status["r"]) {
+    message("Installing R package 'arrow'...")
+    utils::install.packages("arrow")
+    if (!requireNamespace("arrow", quietly = TRUE)) {
+      stop("Failed to install R package 'arrow'. Please install it manually.", call. = FALSE)
+    }
+  }
+
+  # Install Python package if needed
+  if (!arrow_status["python"]) {
+    message("Installing Python package 'pyarrow'...")
+    tryCatch({
+      reticulate::py_install("pyarrow", envname = envname)
+    }, error = function(e) {
+      stop("Failed to install Python package 'pyarrow'. Please install it manually.", call. = FALSE)
+    })
+  }
+
+  # Verify final status
+  arrow_status <- .check_arrow()
+  if (!all(arrow_status)) {
+    missing <- names(arrow_status)[!arrow_status]
+    stop("Arrow installation failed for: ", paste(missing, collapse = ", "), call. = FALSE)
+  }
+
+  invisible(TRUE)
+}
 
 #' Create a new BirdNET model object
 #'
@@ -520,7 +582,8 @@ predict_species_from_audio_file <- function(model,
                                             apply_sigmoid = TRUE,
                                             sigmoid_sensitivity = 1,
                                             filter_species = NULL,
-                                            keep_empty = TRUE) {
+                                            keep_empty = TRUE,
+                                            use_arrow = FALSE) {
   UseMethod("predict_species_from_audio_file")
 }
 
@@ -538,7 +601,9 @@ predict_species_from_audio_file.birdnet_model <- function(model,
                                                           apply_sigmoid = TRUE,
                                                           sigmoid_sensitivity = 1,
                                                           filter_species = NULL,
-                                                          keep_empty = TRUE) {
+                                                          keep_empty = TRUE,
+                                                          use_arrow = FALSE
+                                                          ) {
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.character(audio_file))
@@ -550,6 +615,7 @@ predict_species_from_audio_file.birdnet_model <- function(model,
   stopifnot(is.logical(apply_sigmoid))
   stopifnot(is.numeric(sigmoid_sensitivity))
   stopifnot(is.logical(keep_empty))
+  stopifnot(is.logical(use_arrow))
 
   # Handle species filter
   if (!is.null(filter_species)) {
@@ -567,7 +633,6 @@ predict_species_from_audio_file.birdnet_model <- function(model,
   # Convert path to a Python Path object
   audio_file <- py_pathlib$Path(audio_file)$expanduser()$resolve(TRUE)
 
-  # Main function logic
   predictions_gen <- py_birdnet_audio_based_prediction$predict_species_within_audio_file(
     audio_file,
     min_confidence = min_confidence,
@@ -582,10 +647,27 @@ predict_species_from_audio_file.birdnet_model <- function(model,
     custom_model = model$py_model
   )
 
-  predictions <- py_birdnet_types$SpeciesPredictions(predictions_gen)
-  predictions_to_df(predictions, keep_empty = keep_empty)
-}
+  if (use_arrow && !all(.check_arrow())) {
+    message("Arrow support not fully available. Installing required packages...")
+    install_arrow()
+  }
 
+  if (use_arrow) {
+    # Process predictions and convert to Arrow table directly in Python
+    arrow_table <- py_birdnetr_utils$process_predictions_to_arrow_table(
+      predictions_gen,
+      keep_empty = keep_empty
+    )
+
+    return(as.data.frame(arrow_table))
+
+  } else {
+
+    predictions <- py_birdnet_types$SpeciesPredictions(predictions_gen)
+    return(predictions_to_df(predictions, keep_empty = keep_empty))
+
+  }
+}
 
 
 #' Predict species for a given location and time
