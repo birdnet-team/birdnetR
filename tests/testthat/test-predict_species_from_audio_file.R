@@ -115,3 +115,11 @@ test_that("predict_species handles invalid inputs gracefully", {
   # Invalid file path
   expect_error(predict_species_from_audio_file(tflite_model, audio_file = "nonexistent_file.wav"))
 })
+
+test_that("using arrow produces the same predictions", {
+  install_arrow()
+  predictions_no_arrow <- predict_species_from_audio_file(tflite_model, audio_file, use_arrow = FALSE)
+  predictions_arrow <- predict_species_from_audio_file(tflite_model, audio_file, use_arrow = TRUE)
+
+  expect_equal(predictions_no_arrow, predictions_arrow)
+})
