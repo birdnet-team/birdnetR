@@ -109,7 +109,7 @@ py_birdnetr_utils <- NULL
 
 #' Install Apache Arrow
 #'
-#' This helper function installs the Apache Arrow package in both R and Python environments.
+#' This helper function installs Apache Arrow for both R and Python.
 #'
 #' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @return Invisible TRUE if successful, stops with error message if installation fails
@@ -562,11 +562,11 @@ read_labels <- function(species_file) {
 #' * Whenever you encounter an unusual long pause after inference. This is a sign that the data conversion is taking a long time.
 #'
 #' Note that using Apache Arrow requires additional dependencies (`arrow` R package and `pyarrow` Python package).
-#' These will be installed automatically when needed, or you can install them manually using [install_arrow()].
+#' You can install them manually using [install_arrow()].
 #'
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
-#' @param model A BirdNET model object. An instance of the BirdNET model (e.g., `birdnet_model_tflite`, `birdnet_model_protobuf`).
+#' @param model A BirdNET model object. An instance of the BirdNET model (e.g., [`birdnet_model_tflite()`]).
 #' @param audio_file character. The path to the audio file.
 #' @param min_confidence numeric. Minimum confidence threshold for predictions (default is 0.1).
 #' @param batch_size integer. Number of audio samples to process in a batch (default is 1L).
@@ -588,13 +588,14 @@ read_labels <- function(species_file) {
 #'   \item{confidence}{BirdNET’s confidence score for the prediction.}
 #' }
 #' @seealso [`read_labels()`] for more details on species filtering.
+#' @seealso [`birdnet_model_tflite()`], [`birdnet_model_protobuf()`], [`birdnet_model_custom()`]
 #' @export
-#' @seealso [`predict_species_from_audio_file.birdnet_model`]
 #' @examplesIf interactive()
 #' library(birdnetR)
 #'
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-#' predictions <- predict_species_from_audio_file(model, "path/to/audio.wav", min_confidence = 0.2)
+#' audio_file <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+#' predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
 predict_species_from_audio_file <- function(model,
                                             audio_file,
                                             min_confidence = 0.1,
