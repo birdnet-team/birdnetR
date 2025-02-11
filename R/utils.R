@@ -72,10 +72,9 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
     idx <- idx + num_preds
   }
 
-  # Now, vectorized splitting of the full labels vector:
+  # Now, vectorized splitting of the full labels vector
   scientific_name <- sub("_.*", "", labels_all)
-  common_name     <- sub("^[^_]+_", "", labels_all)
-
+  common_name <- sub("^[^_]+_", "", labels_all)
 
   # Create a data frame using the collected time values, labels, and confidence scores.
   df <- data.frame(
@@ -86,6 +85,11 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
     confidence = confidences,
     stringsAsFactors = FALSE
   )
+
+  # conbvert NA strings to actual NA values
+  na_rows <- df$scientific_name == "NA"
+  df$scientific_name[na_rows] <- NA_character_
+  df$common_name[na_rows] <- NA_character_
 
   # When not keeping empty predictions, remove rows with missing values.
   if (!keep_empty) {
