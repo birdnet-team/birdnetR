@@ -54,12 +54,7 @@ jobs:
           reticulate::install_python("3.11")
           devtools::load_all()
           birdnetR::install_birdnet()
-
-      - name: Install Apache Arrow dependencies
-        shell: Rscript {0}
-        run: |
           birdnetR::install_arrow()
-
 
       - uses: r-lib/actions/check-r-package@v2
         with:
