@@ -13,6 +13,7 @@
 #' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
 #'   Each row represents a single prediction.
 #' @keywords internal
+#' @importFrom stats complete.cases
 predictions_to_df <- function(predictions, keep_empty = FALSE) {
   # Validate inputs
   if (!is.list(predictions)) {
