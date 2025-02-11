@@ -17,7 +17,8 @@ predict_species_from_audio_file(
   apply_sigmoid = TRUE,
   sigmoid_sensitivity = 1,
   filter_species = NULL,
-  keep_empty = TRUE
+  keep_empty = TRUE,
+  use_arrow = FALSE
 )
 
 \method{predict_species_from_audio_file}{birdnet_model}(
@@ -32,11 +33,12 @@ predict_species_from_audio_file(
   apply_sigmoid = TRUE,
   sigmoid_sensitivity = 1,
   filter_species = NULL,
-  keep_empty = TRUE
+  keep_empty = TRUE,
+  use_arrow = FALSE
 )
 }
 \arguments{
-\item{model}{A BirdNET model object. An instance of the BirdNET model (e.g., \code{birdnet_model_tflite}, \code{birdnet_model_protobuf}).}
+\item{model}{A BirdNET model object. An instance of the BirdNET model (e.g., \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}}).}
 
 \item{audio_file}{character. The path to the audio file.}
 
@@ -57,26 +59,60 @@ predict_species_from_audio_file(
 \item{filter_species}{NULL, a character vector of length greater than 0, or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL (default), no filtering is applied.}
 
 \item{keep_empty}{logical. Whether to include empty intervals in the output (default is TRUE).}
+
+\item{use_arrow}{logical. Whether to use Arrow for processing predictions (default is FALSE).}
 }
 \value{
-A data frame with columns: \code{start}, \code{end}, \code{scientific_name}, \code{common_name}, and \code{confidence}. Each row represents a single prediction.
+A data frame with the following columns:
+\describe{
+\item{start}{Start time of the prediction interval.}
+\item{end}{End time of the prediction interval.}
+\item{scientific_name}{Scientific name of the predicted species.}
+\item{common_name}{Common name of the predicted species.}
+\item{confidence}{BirdNET’s confidence score for the prediction.}
+}
 }
 \description{
 Use a BirdNET model to predict species within an audio file. The model can be a TFLite model, a custom model, or a Protobuf model.
 }
 \details{
-Applying a sigmoid activation function (\code{apply_sigmoid=TRUE}) scales the unbound class output of the linear classifier ("logit score") to the range \code{0-1}.
-This confidence score is a unitless, numeric expression of BirdNET’s “confidence” in its prediction (but not the probability of species presence).
-Sigmoid sensitivity < 1 leads to more higher and lower scoring predictions, and a value > 1 leads to more intermediate-scoring predictions.
+\subsection{Sigmoid Activation}{
 
-For more information on BirdNET confidence scores, the sigmoid activation function, and a suggested workflow on how to convert confidence scores to probabilities, see Wood & Kahl, 2024.
+When \code{apply_sigmoid = TRUE}, the raw logit scores from the linear classifier are passed
+through a sigmoid function, scaling them into the range [0, 1]. This unitless confidence
+score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
+Adjusting the \code{sigmoid_sensitivity} parameter modifies the score distribution:
+\itemize{
+\item Values \strong{< 1} tend to produce more extreme scores (closer to 0 or 1).
+\item Values \strong{> 1} result in scores that are more moderate (centered around intermediate values).
+For additional details on BirdNET confidence scores and guidelines for converting them to probabilities, see Wood & Kahl (2024).
+}
+}
+
+\subsection{Apache Arrow optimization}{
+
+By default, predictions from Python are converted to R using basic data structures. For large datasets using Apache Arrow (\code{use_arrow=TRUE}) can significantly improve performance by reducing memory usage during data conversion
+and minimizing data copying between R and Python.
+
+When to use Apache Arrow:
+\itemize{
+\item Large audio files (>20 minutes)
+\item Low confidence thresholds (\code{min_confidence < 0.1})
+\item Memory-constrained environments
+\item Whenever you encounter an unusual long pause after inference. This is a sign that the data conversion is taking a long time.
+}
+
+Note that using Apache Arrow requires additional dependencies (\code{arrow} R package and \code{pyarrow} Python package).
+You can install them manually using \code{\link[=install_arrow]{install_arrow()}}.
+}
 }
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 library(birdnetR)
 
 model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-predictions <- predict_species_from_audio_file(model, "path/to/audio.wav", min_confidence = 0.2)
+audio_file <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
 \dontshow{\}) # examplesIf}
 }
 \references{
@@ -85,5 +121,5 @@ Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores
 \seealso{
 \code{\link[=read_labels]{read_labels()}} for more details on species filtering.
 
-\code{\link{predict_species_from_audio_file.birdnet_model}}
+\code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}}, \code{\link[=birdnet_model_protobuf]{birdnet_model_protobuf()}}, \code{\link[=birdnet_model_custom]{birdnet_model_custom()}}
 }
