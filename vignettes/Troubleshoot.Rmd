@@ -29,12 +29,8 @@ While there are no drawbacks to enabling Arrow, the performance gains are neglig
 
 To enable Arrow:
 
-1. Install the required packages:
-```{r}
-birdnetR::install_arrow()
-```
-
+1. Install the required packages using `install_arrow()`
 2. Restart your R session
-3. Set the `use_arrow` argument to `TRUE` in the `predict_species_from_audio_file` function
+3. Set the `use_arrow` argument to `TRUE` in the `predict_species_from_audio_file()` function
 
 Credits to Danielle Navarro for the original solution^[Navarro, Danielle. 2022. “Passing Arrow Data Between R and Python with Reticulate.” September 9, 2022. https://blog.djnavarro.net/posts/2022-09-09_reticulated-arrow/.].
