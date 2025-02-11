@@ -107,9 +107,9 @@ py_birdnetr_utils <- NULL
   )
 }
 
-#' Install the Arrow package
+#' Install Apache Arrow
 #'
-#' `install_arrow()` ensures that Arrow is properly installed and loaded in both R and Python environments.
+#' This helper function installs the Apache Arrow package in both R and Python environments.
 #'
 #' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @return Invisible TRUE if successful, stops with error message if installation fails
@@ -539,13 +539,30 @@ read_labels <- function(species_file) {
 #' @description
 #' Use a BirdNET model to predict species within an audio file. The model can be a TFLite model, a custom model, or a Protobuf model.
 #'
-#'
 #' @details
-#' Applying a sigmoid activation function (`apply_sigmoid=TRUE`) scales the unbound class output of the linear classifier ("logit score") to the range `0-1`.
-#' This confidence score is a unitless, numeric expression of BirdNET’s “confidence” in its prediction (but not the probability of species presence).
-#' Sigmoid sensitivity < 1 leads to more higher and lower scoring predictions, and a value > 1 leads to more intermediate-scoring predictions.
+#' ### Sigmoid Activation
+#' When `apply_sigmoid = TRUE`, the raw logit scores from the linear classifier are passed
+#' through a sigmoid function, scaling them into the range \[0, 1\]. This unitless confidence
+#' score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
+#' Adjusting the `sigmoid_sensitivity` parameter modifies the score distribution:
+#' * Values **< 1** tend to produce more extreme scores (closer to 0 or 1).
+#' * Values **> 1** result in scores that are more moderate (centered around intermediate values).
+
+#' For additional details on BirdNET confidence scores and guidelines for converting them to probabilities, see Wood & Kahl (2024).
 #'
-#' For more information on BirdNET confidence scores, the sigmoid activation function, and a suggested workflow on how to convert confidence scores to probabilities, see Wood & Kahl, 2024.
+#'
+#' ### Apache Arrow optimization
+#' By default, predictions from Python are converted to R using basic data structures. For large datasets using Apache Arrow (`use_arrow=TRUE`) can significantly improve performance by reducing memory usage during data conversion
+#' and minimizing data copying between R and Python.
+#'
+#' When to use Apache Arrow:
+#' * Large audio files (>20 minutes)
+#' * Low confidence thresholds (`min_confidence < 0.1`)
+#' * Memory-constrained environments
+#' * Whenever you encounter an unusual long pause after inference. This is a sign that the data conversion is taking a long time.
+#'
+#' Note that using Apache Arrow requires additional dependencies (`arrow` R package and `pyarrow` Python package).
+#' These will be installed automatically when needed, or you can install them manually using [install_arrow()].
 #'
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
@@ -560,9 +577,16 @@ read_labels <- function(species_file) {
 #' @param sigmoid_sensitivity numeric. Sensitivity parameter for the sigmoid function (default is 1). Must be in the interval \[0.5, 1.5\]. Ignored if `apply_sigmoid` is FALSE.
 #' @param filter_species NULL, a character vector of length greater than 0, or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL (default), no filtering is applied.
 #' @param keep_empty logical. Whether to include empty intervals in the output (default is TRUE).
+#' @param use_arrow logical. Whether to use Arrow for processing predictions (default is FALSE).
 #'
-#' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`. Each row represents a single prediction.
-#'
+#' @return A data frame with the following columns:
+#' \describe{
+#'   \item{start}{Start time of the prediction interval.}
+#'   \item{end}{End time of the prediction interval.}
+#'   \item{scientific_name}{Scientific name of the predicted species.}
+#'   \item{common_name}{Common name of the predicted species.}
+#'   \item{confidence}{BirdNET’s confidence score for the prediction.}
+#' }
 #' @seealso [`read_labels()`] for more details on species filtering.
 #' @export
 #' @seealso [`predict_species_from_audio_file.birdnet_model`]
@@ -648,8 +672,10 @@ predict_species_from_audio_file.birdnet_model <- function(model,
   )
 
   if (use_arrow && !all(.check_arrow())) {
-    message("Arrow support not fully available. Installing required packages...")
-    install_arrow()
+    stop(
+      "Arrow support not fully available. Please run `install_arrow()` first and restart your R session.",
+      call. = FALSE
+    )
   }
 
   if (use_arrow) {
