@@ -117,7 +117,10 @@ test_that("predict_species handles invalid inputs gracefully", {
 })
 
 test_that("using arrow produces the same predictions", {
-  install_arrow()
+
+  check_arrow <- getFromNamespace(".check_arrow", "birdnetR")
+  skip_if(!all(check_arrow()), "Arrow is not available")
+
   predictions_no_arrow <- predict_species_from_audio_file(tflite_model, audio_file, use_arrow = FALSE)
   predictions_arrow <- predict_species_from_audio_file(tflite_model, audio_file, use_arrow = TRUE)
 
