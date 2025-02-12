@@ -1,7 +1,8 @@
 
 # unreleased
 
-- install the TensorFlow Metal Plugin for GPU support on Apple devices
+- install the TensorFlow Metal Plugin for GPU support on Apple devices  #25
+- optionally use Apache Arrow to transfer data between R and Python to speed up inference with very low confidence thresholds #26
 
 
 # birdnetR 0.2.0

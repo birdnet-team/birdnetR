@@ -1,4 +1,20 @@
 url: https://birdnet-team.github.io/birdnetR/
 template:
   bootstrap: 5
-
+reference:
+- title: Installation
+- contents:
+  - starts_with("install_")
+- title: Inference
+- subtitle: Models
+- contents:
+  - starts_with("birdnet_")
+  - init_model
+- subtitle: Prediction
+- contents:
+  - contains("predict")
+- title: Helpers
+- contents:
+  - available_languages
+  - labels_path
+  - read_labels

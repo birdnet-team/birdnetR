@@ -20,8 +20,8 @@ A data frame with columns: \code{start}, \code{end}, \code{scientific_name}, \co
 Each row represents a single prediction.
 }
 \description{
-This function processes a list of predictions from the python \code{birdnet} package, each containing time intervals, scientific names,
-common names, and confidence levels, and converts them into a structured data frame. It handles
+This function processes a list of predictions from the python \code{birdnet} package, each containing time intervals,
+scientific names, common names, and confidence levels, and converts them into a structured data frame. It handles
 cases where some elements in the list might be empty.
 }
 \keyword{internal}

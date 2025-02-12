@@ -8,57 +8,7 @@ py_birdnet_location_based_prediction <- NULL
 py_birdnet_types <- NULL
 py_pathlib <- NULL
 py_builtins <- NULL
-
-
-#' Check the Installed birdnet Version
-#'
-#' This internal function checks if birdnet Python is installed and if the version matches the requirement.
-#' If it is not available or if the versions do not match, issue a warning with instructions to update the package.
-#'
-#' @keywords internal
-#' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
-.check_birdnet_version <- function() {
-  available_py_packages <- tryCatch(
-    {
-      reticulate::py_list_packages()
-    },
-    error = function(e) {
-      NULL
-    }
-  )
-
-  if (is.null(available_py_packages)) {
-    message("No Python environment available. To install, use `install_birdnet()`.")
-    return()
-  }
-
-  installed_birdnet_version <- tryCatch(
-    {
-      # we need to set `package` to NULL, to bin it to a variable. Otherwise R CMD check will throw a note "No visible binding for global variable 'package' "
-      package <- NULL
-      subset(available_py_packages, package == "birdnet")$version
-    },
-    error = function(e) {
-      NULL
-    }
-  )
-
-  if (is.null(installed_birdnet_version) ||
-    length(installed_birdnet_version) == 0) {
-    message("No version of birdnet found. To install, use `install_birdnet()`.")
-    return()
-  }
-
-  if (installed_birdnet_version != .required_birdnet_version()) {
-    warning(
-      sprintf(
-        "BirdNET version %s is installed, but %s is required. To update, use `install_birdnet()`.",
-        installed_birdnet_version,
-        .required_birdnet_version()
-      )
-    )
-  }
-}
+py_birdnetr_utils <- NULL
 
 
 #' Initialize birdnetR Package
@@ -73,6 +23,13 @@ py_builtins <- NULL
   reticulate::configure_environment(pkgname)
   reticulate::use_virtualenv("r-birdnet", required = FALSE)
 
+  # Import custom utils from the package's python directory
+  py_birdnetr_utils <<- reticulate::import_from_path(
+    "birdnetr_utils",
+    path = system.file("python", package = "birdnetR"),
+    delay_load = TRUE
+  )
+
   # Use superassignment to update global reference to the Python packages
   py_birdnet_models <<- reticulate::import("birdnet.models",
     delay_load = list(before_load = .check_birdnet_version())
@@ -84,6 +41,7 @@ py_builtins <- NULL
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- reticulate::import_builtins(delay_load = TRUE)
 }
+
 
 
 #' Create a new BirdNET model object
@@ -298,7 +256,9 @@ birdnet_model_meta <- function(version = "v2.4",
 
 
 #' @rdname birdnet_model_load
-#' @param custom_device character. This parameter allows specifying a custom device on which computations should be performed. If `custom_device` is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default. If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.
+#' @param custom_device character. This parameter allows specifying a custom device on which computations should be performed.
+#'  If `custom_device` is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default.
+#'  If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.
 #' @note Currently, all models can only be executed on the CPU. GPU support is not yet available.
 #' @export
 birdnet_model_protobuf <- function(version = "v2.4",
@@ -477,17 +437,34 @@ read_labels <- function(species_file) {
 #' @description
 #' Use a BirdNET model to predict species within an audio file. The model can be a TFLite model, a custom model, or a Protobuf model.
 #'
-#'
 #' @details
-#' Applying a sigmoid activation function (`apply_sigmoid=TRUE`) scales the unbound class output of the linear classifier ("logit score") to the range `0-1`.
-#' This confidence score is a unitless, numeric expression of BirdNET’s “confidence” in its prediction (but not the probability of species presence).
-#' Sigmoid sensitivity < 1 leads to more higher and lower scoring predictions, and a value > 1 leads to more intermediate-scoring predictions.
+#' ### Sigmoid Activation
+#' When `apply_sigmoid = TRUE`, the raw logit scores from the linear classifier are passed
+#' through a sigmoid function, scaling them into the range \[0, 1\]. This unitless confidence
+#' score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
+#' Adjusting the `sigmoid_sensitivity` parameter modifies the score distribution:
+#' * Values **< 1** tend to produce more extreme scores (closer to 0 or 1).
+#' * Values **> 1** result in scores that are more moderate (centered around intermediate values).
+
+#' For additional details on BirdNET confidence scores and guidelines for converting them to probabilities, see Wood & Kahl (2024).
 #'
-#' For more information on BirdNET confidence scores, the sigmoid activation function, and a suggested workflow on how to convert confidence scores to probabilities, see Wood & Kahl, 2024.
+#'
+#' ### Apache Arrow optimization
+#' By default, predictions from Python are converted to R using basic data structures. For large datasets using Apache Arrow (`use_arrow=TRUE`) can significantly improve performance by reducing memory usage during data conversion
+#' and minimizing data copying between R and Python.
+#'
+#' When to use Apache Arrow:
+#' * Large audio files (>20 minutes)
+#' * Low confidence thresholds (`min_confidence < 0.1`)
+#' * Memory-constrained environments
+#' * Whenever you encounter an unusual long pause after inference. This is a sign that the data conversion is taking a long time.
+#'
+#' Note that using Apache Arrow requires additional dependencies (`arrow` R package and `pyarrow` Python package).
+#' You can install them manually using [install_arrow()].
 #'
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
-#' @param model A BirdNET model object. An instance of the BirdNET model (e.g., `birdnet_model_tflite`, `birdnet_model_protobuf`).
+#' @param model A BirdNET model object. An instance of the BirdNET model (e.g., [`birdnet_model_tflite()`]).
 #' @param audio_file character. The path to the audio file.
 #' @param min_confidence numeric. Minimum confidence threshold for predictions (default is 0.1).
 #' @param batch_size integer. Number of audio samples to process in a batch (default is 1L).
@@ -498,17 +475,25 @@ read_labels <- function(species_file) {
 #' @param sigmoid_sensitivity numeric. Sensitivity parameter for the sigmoid function (default is 1). Must be in the interval \[0.5, 1.5\]. Ignored if `apply_sigmoid` is FALSE.
 #' @param filter_species NULL, a character vector of length greater than 0, or a list where each element is a single non-empty character string. Used to filter the predictions. If NULL (default), no filtering is applied.
 #' @param keep_empty logical. Whether to include empty intervals in the output (default is TRUE).
+#' @param use_arrow logical. Whether to use Arrow for processing predictions (default is FALSE).
 #'
-#' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`. Each row represents a single prediction.
-#'
+#' @return A data frame with the following columns:
+#' \describe{
+#'   \item{start}{Start time of the prediction interval.}
+#'   \item{end}{End time of the prediction interval.}
+#'   \item{scientific_name}{Scientific name of the predicted species.}
+#'   \item{common_name}{Common name of the predicted species.}
+#'   \item{confidence}{BirdNET’s confidence score for the prediction.}
+#' }
 #' @seealso [`read_labels()`] for more details on species filtering.
+#' @seealso [`birdnet_model_tflite()`], [`birdnet_model_protobuf()`], [`birdnet_model_custom()`]
 #' @export
-#' @seealso [`predict_species_from_audio_file.birdnet_model`]
 #' @examplesIf interactive()
 #' library(birdnetR)
 #'
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-#' predictions <- predict_species_from_audio_file(model, "path/to/audio.wav", min_confidence = 0.2)
+#' audio_file <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+#' predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
 predict_species_from_audio_file <- function(model,
                                             audio_file,
                                             min_confidence = 0.1,
@@ -520,7 +505,8 @@ predict_species_from_audio_file <- function(model,
                                             apply_sigmoid = TRUE,
                                             sigmoid_sensitivity = 1,
                                             filter_species = NULL,
-                                            keep_empty = TRUE) {
+                                            keep_empty = TRUE,
+                                            use_arrow = FALSE) {
   UseMethod("predict_species_from_audio_file")
 }
 
@@ -538,7 +524,9 @@ predict_species_from_audio_file.birdnet_model <- function(model,
                                                           apply_sigmoid = TRUE,
                                                           sigmoid_sensitivity = 1,
                                                           filter_species = NULL,
-                                                          keep_empty = TRUE) {
+                                                          keep_empty = TRUE,
+                                                          use_arrow = FALSE
+                                                          ) {
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.character(audio_file))
@@ -550,6 +538,7 @@ predict_species_from_audio_file.birdnet_model <- function(model,
   stopifnot(is.logical(apply_sigmoid))
   stopifnot(is.numeric(sigmoid_sensitivity))
   stopifnot(is.logical(keep_empty))
+  stopifnot(is.logical(use_arrow))
 
   # Handle species filter
   if (!is.null(filter_species)) {
@@ -567,7 +556,6 @@ predict_species_from_audio_file.birdnet_model <- function(model,
   # Convert path to a Python Path object
   audio_file <- py_pathlib$Path(audio_file)$expanduser()$resolve(TRUE)
 
-  # Main function logic
   predictions_gen <- py_birdnet_audio_based_prediction$predict_species_within_audio_file(
     audio_file,
     min_confidence = min_confidence,
@@ -582,10 +570,29 @@ predict_species_from_audio_file.birdnet_model <- function(model,
     custom_model = model$py_model
   )
 
-  predictions <- py_birdnet_types$SpeciesPredictions(predictions_gen)
-  predictions_to_df(predictions, keep_empty = keep_empty)
-}
+  if (use_arrow && !all(.check_arrow())) {
+    stop(
+      "Arrow support not fully available. Please run `install_arrow()` first and restart your R session.",
+      call. = FALSE
+    )
+  }
 
+  if (use_arrow) {
+    # Process predictions and convert to Arrow table directly in Python
+    arrow_table <- py_birdnetr_utils$process_predictions_to_arrow_table(
+      predictions_gen,
+      keep_empty = keep_empty
+    )
+
+    return(as.data.frame(arrow_table))
+
+  } else {
+
+    predictions <- py_birdnet_types$SpeciesPredictions(predictions_gen)
+    return(predictions_to_df(predictions, keep_empty = keep_empty))
+
+  }
+}
 
 
 #' Predict species for a given location and time

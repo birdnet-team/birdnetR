@@ -1,23 +1,27 @@
-Package: birdnetR
 Type: Package
+Package: birdnetR
 Title: Identifying bird species by their sounds
 Version: 0.2.0
 Authors@R: c(
-  person("Felix", "Günther", email = "felix.guenther@informatik.tu-chemnitz.de", role = c("cre")),
-  person("Stefan", "Kahl", email = "stefan.kahl@cornell.edu", role = c("aut")),
-  person("BirdNET", "Team", role = c("aut")))
+    person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
+    person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = "aut"),
+    person("BirdNET", "Team", role = "aut")
+  )
 Description: This packages is a wrapper for the BirdNET Python package.
 License: MIT + file LICENSE
-Encoding: UTF-8
-LazyData: true
+URL: https://birdnet-team.github.io/birdnetR/
 Imports:
     reticulate
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
-Suggests: 
+Suggests:
+    arrow,
+    devtools,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
 Config/testthat/edition: 3
-VignetteBuilder: knitr
-URL: https://birdnet-team.github.io/birdnetR/
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2

@@ -1,0 +1,36 @@
+---
+title: "Troubleshoot"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Troubleshoot}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Long Pause After Prediction
+
+If you notice a significant pause after BirdNET has finished processing your audio file but before returning the results, this is likely due to data conversion overhead between Python and R. This is particularly noticeable when:
+
+- Processing long audio files (>20 minutes)
+- Using low confidence thresholds that generate many predictions (`min_confidence < 0.1`)
+- Working with memory-constrained environments
+
+### Solution: Use Apache Arrow
+
+Apache Arrow can significantly reduce these delays by optimizing data transfer between Python and R.
+While there are no drawbacks to enabling Arrow, the performance gains are negligible when processing small amounts of data.
+
+To enable Arrow:
+
+1. Install the required packages using `install_arrow()`
+2. Restart your R session
+3. Set the `use_arrow` argument to `TRUE` in the `predict_species_from_audio_file()` function
+
+Credits to Danielle Navarro for the original solution^[Navarro, Danielle. 2022. “Passing Arrow Data Between R and Python with Reticulate.” September 9, 2022. https://blog.djnavarro.net/posts/2022-09-09_reticulated-arrow/.].
