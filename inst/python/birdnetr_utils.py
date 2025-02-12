@@ -7,7 +7,10 @@ try:
 except ModuleNotFoundError as e:
     raise RuntimeError(f"Failed to import required modules: {str(e)}")
 
-def convert_species_predictions_to_arrow_table(nested_od: OrderedDict, keep_empty: bool = True) -> pa.Table:
+
+def convert_species_predictions_to_arrow_table(
+    nested_od: OrderedDict, keep_empty: bool = True
+) -> pa.Table:
     """
     Convert a nested OrderedDict of species predictions to a flattened Apache Arrow Table.
     Each species prediction gets its own row, with scientific and common names split.
@@ -47,10 +50,10 @@ def convert_species_predictions_to_arrow_table(nested_od: OrderedDict, keep_empt
 
     # Create initial arrow table
     data = {
-        'start': pa.array(starts, type=pa.float64()),
-        'end': pa.array(ends, type=pa.float64()),
-        'species': pa.array(species, type=pa.string()),
-        'confidence': pa.array(confidences, type=pa.float64())
+        "start": pa.array(starts, type=pa.float64()),
+        "end": pa.array(ends, type=pa.float64()),
+        "species": pa.array(species, type=pa.string()),
+        "confidence": pa.array(confidences, type=pa.float64()),
     }
 
     table = pa.Table.from_pydict(data)
@@ -58,23 +61,27 @@ def convert_species_predictions_to_arrow_table(nested_od: OrderedDict, keep_empt
     # Split species column into scientific_name and common_name using Arrow compute functions
     if len(table) > 0:
         # Split on underscore
-        split_result = pc.split_pattern(table['species'], '_')
+        split_result = pc.split_pattern(table["species"], "_")
         # Extract scientific and common names
         scientific_names = pc.list_element(split_result, 0)
         common_names = pc.list_element(split_result, 1)
 
         # Create new table with split columns
-        table = table.append_column('scientific_name', scientific_names)
-        table = table.append_column('common_name', common_names)
-        table = table.remove_column(table.schema.get_field_index('species'))
+        table = table.append_column("scientific_name", scientific_names)
+        table = table.append_column("common_name", common_names)
+        table = table.remove_column(table.schema.get_field_index("species"))
 
         # Reorder columns
-        table = table.select(['start', 'end', 'scientific_name', 'common_name', 'confidence'])
+        table = table.select(
+            ["start", "end", "scientific_name", "common_name", "confidence"]
+        )
 
     return table
 
 
-def process_predictions_to_arrow_table(predictions_gen, keep_empty: bool = True) -> pa.Table:
+def process_predictions_to_arrow_table(
+    predictions_gen, keep_empty: bool = True
+) -> pa.Table:
     """
     Process a predictions generator directly into an Arrow table.
     This combines the SpeciesPredictions creation and table conversion into a single step,
@@ -91,13 +98,13 @@ def process_predictions_to_arrow_table(predictions_gen, keep_empty: bool = True)
             - scientific_name (string): Scientific name of the species
             - common_name (string): Common name of the species
             - confidence (float64): Confidence score
-            
+
     Raises:
         RuntimeError: If there's an error processing the predictions or creating the Arrow table
     """
     try:
         predictions = SpeciesPredictions(predictions_gen)
         return convert_species_predictions_to_arrow_table(predictions, keep_empty)
-    
+
     except Exception as e:
         raise RuntimeError(f"Error processing predictions: {str(e)}") from e
