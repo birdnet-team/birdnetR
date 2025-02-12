@@ -45,7 +45,9 @@ Will be coerced to an integer if possible.}
 
 \item{classifier_name}{character. Name of the custom classifier.}
 
-\item{custom_device}{character. This parameter allows specifying a custom device on which computations should be performed. If \code{custom_device} is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default. If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.}
+\item{custom_device}{character. This parameter allows specifying a custom device on which computations should be performed.
+If \code{custom_device} is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default.
+If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.}
 }
 \value{
 A BirdNET model object.

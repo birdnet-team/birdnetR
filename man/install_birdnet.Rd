@@ -8,7 +8,8 @@ install_birdnet(
   ...,
   method = NULL,
   envname = "r-birdnet",
-  new_env = identical(envname, "r-birdnet")
+  new_env = identical(envname, "r-birdnet"),
+  include_arrow = FALSE
 )
 }
 \arguments{
@@ -16,9 +17,11 @@ install_birdnet(
 
 \item{method}{Installation method. Defaults to 'virtualenv' on macOS and Linux, and 'auto' on Windows. See \code{reticulate::py_install()} for more details.}
 
-\item{envname}{Name of the virtual environment. Defaults to 'r-birdnet'.}
+\item{envname}{Name of the virtual environment.}
 
 \item{new_env}{If \code{TRUE}, any existing Python virtual environment specified by \code{envname} is deleted first.}
+
+\item{include_arrow}{If \code{TRUE}, also installs the Apache Arrow for both R and Python for optimized data conversion. Arrow can be installed later using \code{install_arrow()}.}
 }
 \description{
 \code{install_birdnet()} installs the python package \code{birdnet} from PyPi into a virtual environment.
