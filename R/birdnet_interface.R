@@ -11,57 +11,6 @@ py_builtins <- NULL
 py_birdnetr_utils <- NULL
 
 
-#' Check the Installed birdnet Version
-#'
-#' This internal function checks if birdnet Python is installed and if the version matches the requirement.
-#' If it is not available or if the versions do not match, issue a warning with instructions to update the package.
-#'
-#' @keywords internal
-#' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
-.check_birdnet_version <- function() {
-  available_py_packages <- tryCatch(
-    {
-      reticulate::py_list_packages()
-    },
-    error = function(e) {
-      NULL
-    }
-  )
-
-  if (is.null(available_py_packages)) {
-    message("No Python environment available. To install, use `install_birdnet()`.")
-    return()
-  }
-
-  installed_birdnet_version <- tryCatch(
-    {
-      # we need to set `package` to NULL, to bin it to a variable. Otherwise R CMD check will throw a note "No visible binding for global variable 'package' "
-      package <- NULL
-      subset(available_py_packages, package == "birdnet")$version
-    },
-    error = function(e) {
-      NULL
-    }
-  )
-
-  if (is.null(installed_birdnet_version) ||
-    length(installed_birdnet_version) == 0) {
-    message("No version of birdnet found. To install, use `install_birdnet()`.")
-    return()
-  }
-
-  if (installed_birdnet_version != .required_birdnet_version()) {
-    warning(
-      sprintf(
-        "BirdNET version %s is installed, but %s is required. To update, use `install_birdnet()`.",
-        installed_birdnet_version,
-        .required_birdnet_version()
-      )
-    )
-  }
-}
-
-
 #' Initialize birdnetR Package
 #'
 #' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
@@ -94,59 +43,6 @@ py_birdnetr_utils <- NULL
 }
 
 
-#' Check Arrow Package Availability
-#'
-#' This function checks if the Arrow package is installed and available in both R and Python.
-#'
-#' @return A named logical vector indicating availability in R and Python
-#' @keywords internal
-.check_arrow <- function() {
-  c(
-    r = requireNamespace("arrow", quietly = TRUE),
-    python = reticulate::py_module_available("pyarrow")
-  )
-}
-
-#' Install Apache Arrow
-#'
-#' This helper function installs Apache Arrow for both R and Python.
-#'
-#' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
-#' @return Invisible TRUE if successful, stops with error message if installation fails
-#' @export
-#' @examplesIf interactive()
-#' install_arrow()
-install_arrow <- function(envname = "r-birdnet") {
-  arrow_status <- .check_arrow()
-
-  # Install R package if needed
-  if (!arrow_status["r"]) {
-    message("Installing R package 'arrow'...")
-    utils::install.packages("arrow")
-    if (!requireNamespace("arrow", quietly = TRUE)) {
-      stop("Failed to install R package 'arrow'. Please install it manually.", call. = FALSE)
-    }
-  }
-
-  # Install Python package if needed
-  if (!arrow_status["python"]) {
-    message("Installing Python package 'pyarrow'...")
-    tryCatch({
-      reticulate::py_install("pyarrow", envname = envname)
-    }, error = function(e) {
-      stop("Failed to install Python package 'pyarrow'. Please install it manually.", call. = FALSE)
-    })
-  }
-
-  # Verify final status
-  arrow_status <- .check_arrow()
-  if (!all(arrow_status)) {
-    missing <- names(arrow_status)[!arrow_status]
-    stop("Arrow installation failed for: ", paste(missing, collapse = ", "), call. = FALSE)
-  }
-
-  invisible(TRUE)
-}
 
 #' Create a new BirdNET model object
 #'
@@ -360,7 +256,9 @@ birdnet_model_meta <- function(version = "v2.4",
 
 
 #' @rdname birdnet_model_load
-#' @param custom_device character. This parameter allows specifying a custom device on which computations should be performed. If `custom_device` is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default. If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.
+#' @param custom_device character. This parameter allows specifying a custom device on which computations should be performed.
+#'  If `custom_device` is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default.
+#'  If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.
 #' @note Currently, all models can only be executed on the CPU. GPU support is not yet available.
 #' @export
 birdnet_model_protobuf <- function(version = "v2.4",
