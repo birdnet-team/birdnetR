@@ -3,6 +3,7 @@
 <url><loc>https://birdnet-team.github.io/birdnetR/CODE_OF_CONDUCT.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/LICENSE-text.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/LICENSE.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/articles/Troubleshoot.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/articles/birdnetR.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/articles/index.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/authors.html</loc></url>
@@ -13,6 +14,7 @@
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/birdnetR.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/birdnet_model_load.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/create_module_map.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-check_arrow.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-check_birdnet_version.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-required_birdnet_version.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/dot-suggested_python_version.html</loc></url>
@@ -22,6 +24,7 @@
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/get_top_prediction.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/index.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/init_model.html</loc></url>
+<url><loc>https://birdnet-team.github.io/birdnetR/reference/install_arrow.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/install_birdnet.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/is_valid_species_list.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/labels_path.html</loc></url>
@@ -29,7 +32,6 @@
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/new_birdnet_model.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/predict_species_at_location_and_time.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/predict_species_from_audio_file.html</loc></url>
-<url><loc>https://birdnet-team.github.io/birdnetR/reference/predictions_list_element_to_df.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/predictions_to_df.html</loc></url>
 <url><loc>https://birdnet-team.github.io/birdnetR/reference/read_labels.html</loc></url>
 </urlset>

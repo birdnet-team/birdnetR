@@ -17,6 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/birdnetR.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Troubleshoot.html">Troubleshoot</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -42,7 +46,8 @@
 <span>  <span class="va">...</span>,</span>
 <span>  method <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  envname <span class="op">=</span> <span class="st">"r-birdnet"</span>,</span>
-<span>  new_env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">envname</span>, <span class="st">"r-birdnet"</span><span class="op">)</span></span>
+<span>  new_env <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/identical.html" class="external-link">identical</a></span><span class="op">(</span><span class="va">envname</span>, <span class="st">"r-birdnet"</span><span class="op">)</span>,</span>
+<span>  include_arrow <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -59,11 +64,15 @@
 
 
 <dt id="arg-envname">envname<a class="anchor" aria-label="anchor" href="#arg-envname"></a></dt>
-<dd><p>Name of the virtual environment. Defaults to 'r-birdnet'.</p></dd>
+<dd><p>Name of the virtual environment.</p></dd>
 
 
 <dt id="arg-new-env">new_env<a class="anchor" aria-label="anchor" href="#arg-new-env"></a></dt>
 <dd><p>If <code>TRUE</code>, any existing Python virtual environment specified by <code>envname</code> is deleted first.</p></dd>
+
+
+<dt id="arg-include-arrow">include_arrow<a class="anchor" aria-label="anchor" href="#arg-include-arrow"></a></dt>
+<dd><p>If <code>TRUE</code>, also installs the Apache Arrow for both R and Python for optimized data conversion. Arrow can be installed later using <code><a href="install_arrow.html">install_arrow()</a></code>.</p></dd>
 
 </dl></div>
 

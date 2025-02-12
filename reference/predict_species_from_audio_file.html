@@ -17,6 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/birdnetR.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Troubleshoot.html">Troubleshoot</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -50,7 +54,8 @@
 <span>  apply_sigmoid <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sigmoid_sensitivity <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  filter_species <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  use_arrow <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'birdnet_model'</span></span>
@@ -66,7 +71,8 @@
 <span>  apply_sigmoid <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  sigmoid_sensitivity <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  filter_species <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  keep_empty <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  use_arrow <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -75,7 +81,7 @@
 
 
 <dl><dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>A BirdNET model object. An instance of the BirdNET model (e.g., <code>birdnet_model_tflite</code>, <code>birdnet_model_protobuf</code>).</p></dd>
+<dd><p>A BirdNET model object. An instance of the BirdNET model (e.g., <code><a href="birdnet_model_load.html">birdnet_model_tflite()</a></code>).</p></dd>
 
 
 <dt id="arg-audio-file">audio_file<a class="anchor" aria-label="anchor" href="#arg-audio-file"></a></dt>
@@ -117,17 +123,59 @@
 <dt id="arg-keep-empty">keep_empty<a class="anchor" aria-label="anchor" href="#arg-keep-empty"></a></dt>
 <dd><p>logical. Whether to include empty intervals in the output (default is TRUE).</p></dd>
 
+
+<dt id="arg-use-arrow">use_arrow<a class="anchor" aria-label="anchor" href="#arg-use-arrow"></a></dt>
+<dd><p>logical. Whether to use Arrow for processing predictions (default is FALSE).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame with columns: <code>start</code>, <code>end</code>, <code>scientific_name</code>, <code>common_name</code>, and <code>confidence</code>. Each row represents a single prediction.</p>
-    </div>
+    <p>A data frame with the following columns:</p><dl><dt>start</dt>
+<dd><p>Start time of the prediction interval.</p></dd>
+
+<dt>end</dt>
+<dd><p>End time of the prediction interval.</p></dd>
+
+<dt>scientific_name</dt>
+<dd><p>Scientific name of the predicted species.</p></dd>
+
+<dt>common_name</dt>
+<dd><p>Common name of the predicted species.</p></dd>
+
+<dt>confidence</dt>
+<dd><p>BirdNET’s confidence score for the prediction.</p></dd>
+
+
+</dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Applying a sigmoid activation function (<code>apply_sigmoid=TRUE</code>) scales the unbound class output of the linear classifier ("logit score") to the range <code>0-1</code>.
-This confidence score is a unitless, numeric expression of BirdNET’s “confidence” in its prediction (but not the probability of species presence).
-Sigmoid sensitivity &lt; 1 leads to more higher and lower scoring predictions, and a value &gt; 1 leads to more intermediate-scoring predictions.</p>
-<p>For more information on BirdNET confidence scores, the sigmoid activation function, and a suggested workflow on how to convert confidence scores to probabilities, see Wood &amp; Kahl, 2024.</p>
+
+<div class="section">
+<h3 id="sigmoid-activation">Sigmoid Activation<a class="anchor" aria-label="anchor" href="#sigmoid-activation"></a></h3>
+
+
+<p>When <code>apply_sigmoid = TRUE</code>, the raw logit scores from the linear classifier are passed
+through a sigmoid function, scaling them into the range [0, 1]. This unitless confidence
+score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
+Adjusting the <code>sigmoid_sensitivity</code> parameter modifies the score distribution:</p><ul><li><p>Values <strong>&lt; 1</strong> tend to produce more extreme scores (closer to 0 or 1).</p></li>
+<li><p>Values <strong>&gt; 1</strong> result in scores that are more moderate (centered around intermediate values).
+For additional details on BirdNET confidence scores and guidelines for converting them to probabilities, see Wood &amp; Kahl (2024).</p></li>
+</ul></div>
+
+<div class="section">
+<h3 id="apache-arrow-optimization">Apache Arrow optimization<a class="anchor" aria-label="anchor" href="#apache-arrow-optimization"></a></h3>
+
+
+<p>By default, predictions from Python are converted to R using basic data structures. For large datasets using Apache Arrow (<code>use_arrow=TRUE</code>) can significantly improve performance by reducing memory usage during data conversion
+and minimizing data copying between R and Python.</p>
+<p>When to use Apache Arrow:</p><ul><li><p>Large audio files (&gt;20 minutes)</p></li>
+<li><p>Low confidence thresholds (<code>min_confidence &lt; 0.1</code>)</p></li>
+<li><p>Memory-constrained environments</p></li>
+<li><p>Whenever you encounter an unusual long pause after inference. This is a sign that the data conversion is taking a long time.</p></li>
+</ul><p>Note that using Apache Arrow requires additional dependencies (<code>arrow</code> R package and <code>pyarrow</code> Python package).
+You can install them manually using <code><a href="install_arrow.html">install_arrow()</a></code>.</p>
+</div>
+
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -136,7 +184,7 @@ Sigmoid sensitivity &lt; 1 leads to more higher and lower scoring predictions, a
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="read_labels.html">read_labels()</a></code> for more details on species filtering.</p>
-<p><code>predict_species_from_audio_file.birdnet_model</code></p></div>
+<p><code><a href="birdnet_model_load.html">birdnet_model_tflite()</a></code>, <code><a href="birdnet_model_load.html">birdnet_model_protobuf()</a></code>, <code><a href="birdnet_model_load.html">birdnet_model_custom()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -145,7 +193,8 @@ Sigmoid sensitivity &lt; 1 leads to more higher and lower scoring predictions, a
 <span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="birdnet_model_load.html">birdnet_model_tflite</a></span><span class="op">(</span>version <span class="op">=</span> <span class="st">"v2.4"</span>, language <span class="op">=</span> <span class="st">"en_us"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">predictions</span> <span class="op">&lt;-</span> <span class="fu">predict_species_from_audio_file</span><span class="op">(</span><span class="va">model</span>, <span class="st">"path/to/audio.wav"</span>, min_confidence <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">audio_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, <span class="st">"soundscape.wav"</span>, package <span class="op">=</span> <span class="st">"birdnetR"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">predictions</span> <span class="op">&lt;-</span> <span class="fu">predict_species_from_audio_file</span><span class="op">(</span><span class="va">model</span>, <span class="va">audio_file</span>, min_confidence <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
