@@ -1,4 +1,8 @@
+# birdnetR 0.2.2
 
+- updates `birdnet` Python package to `0.1.7`.
+- Fixes #21: unable to initialize model
+- Added a check if audio file is mono
 
 # birdnetR 0.2.1
 
