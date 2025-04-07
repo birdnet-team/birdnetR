@@ -24,7 +24,13 @@ BirdNET model object.
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 py_birdnet_models <- reticulate::import("birdnet.models")
-birdnet_model <- model_factory("tflite", "v2.4", tflite_num_threads = 2, language = "en_us")
+birdnet_model <-
+  birdnetR:::model_factory(
+    "tflite",
+    "v2.4",
+    tflite_num_threads = 2,
+    language = "en_us"
+  )
 \dontshow{\}) # examplesIf}
 }
 \keyword{internal}

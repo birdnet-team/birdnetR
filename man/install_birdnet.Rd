@@ -26,3 +26,8 @@ install_birdnet(
 \description{
 \code{install_birdnet()} installs the python package \code{birdnet} from PyPi into a virtual environment.
 }
+\examples{
+\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+install_birdnet(method = "virtualenv", envname = "r-birdnet", include_arrow = TRUE)
+\dontshow{\}) # examplesIf}
+}

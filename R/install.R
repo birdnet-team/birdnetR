@@ -5,6 +5,7 @@
 #'
 #' @return A string representing the required BirdNET version.
 #' @keywords internal
+#' @noRd
 .required_birdnet_version <- function() {
   "0.1.7"
 }
@@ -16,6 +17,7 @@
 #'
 #' @return A string representing the suggested Python version.
 #' @keywords internal
+#' @noRd
 .suggested_python_version <- function() {
   "3.11"
 }
@@ -26,6 +28,7 @@
 #'
 #' @return A named logical vector indicating availability in R and Python
 #' @keywords internal
+#' @noRd
 .check_arrow <- function() {
   c(
     r = requireNamespace("arrow", quietly = TRUE),
@@ -40,6 +43,7 @@
 #'
 #' @keywords internal
 #' @return None. This function is called for its side effect of stopping execution if the wrong version is installed.
+#' @noRd
 .check_birdnet_version <- function() {
   available_py_packages <- tryCatch(
     {
@@ -91,6 +95,9 @@
 #' @return Invisible TRUE if successful, stops with error message if installation fails
 #' @export
 #' @examplesIf interactive()
+#' install_birdnet()
+#' install_arrow()
+#'
 install_arrow <- function(envname = "r-birdnet") {
   arrow_status <- .check_arrow()
 
@@ -145,6 +152,9 @@ install_arrow <- function(envname = "r-birdnet") {
 #' @param include_arrow If `TRUE`, also installs the Apache Arrow for both R and Python for optimized data conversion. Arrow can be installed later using `install_arrow()`.
 #'
 #' @export
+#' @examplesIf interactive()
+#' install_birdnet(method = "virtualenv", envname = "r-birdnet", include_arrow = TRUE)
+#'
 install_birdnet <- function(...,
                             method = NULL,
                             envname = "r-birdnet",

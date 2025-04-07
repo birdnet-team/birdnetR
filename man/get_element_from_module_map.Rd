@@ -21,7 +21,12 @@ It takes a variable number of arguments that represent the keys to navigate thro
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 module_map <- create_module_map("v2.4", "py_birdnet_models")
-available_languages_path <- get_element_from_module_map(module_map, "misc", "available_languages")
+available_languages_path <-
+  birdnetR:::get_element_from_module_map(
+    module_map,
+   "misc",
+   "available_languages"
+  )
 \dontshow{\}) # examplesIf}
 }
 \keyword{internal}

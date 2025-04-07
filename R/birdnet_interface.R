@@ -63,14 +63,13 @@ py_birdnetr_utils <- NULL
 #' @examplesIf interactive()
 #' py_birdnet_models <- reticulate::import("birdnet.models")
 #' tflite_model <- py_birdnet_models$v2m4$AudioModelV2M4TFLite()
-#' birdnet_model <- new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
+#' birdnet_model <- birdnetR:::new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
 new_birdnet_model <- function(x, ..., subclass = character()) {
   stopifnot(reticulate::is_py_object(x)) # Ensure that the input is a valid Python object
 
   class_name <- "birdnet_model" # Base class name for all BirdNET models
   subclasse <- paste(class_name, subclass, sep = "_") # Create subclass by combining base class with user-provided subclass
 
-  # Return an S3 object containing the Python model and additional attributes, with the specified class hierarchy
   structure(list("py_model" = x, ...), class = c(subclasse, "birdnet_model"))
 }
 
@@ -89,7 +88,14 @@ new_birdnet_model <- function(x, ..., subclass = character()) {
 #' @keywords internal
 #' @examplesIf interactive()
 #' py_birdnet_models <- reticulate::import("birdnet.models")
-#' birdnet_model <- model_factory("tflite", "v2.4", tflite_num_threads = 2, language = "en_us")
+#' birdnet_model <-
+#'   birdnetR:::model_factory(
+#'     "tflite",
+#'     "v2.4",
+#'     tflite_num_threads = 2,
+#'     language = "en_us"
+#'   )
+#'
 model_factory <- function(model_name, version, ...) {
   # Create module map using the specified version and base Python module
   module_map <- create_module_map(version, "py_birdnet_models")
@@ -134,7 +140,7 @@ model_factory <- function(model_name, version, ...) {
 #'
 #' * [birdnet_model_tflite()]: creates a tflite-model used for species prediction from audio.
 #' * [birdnet_model_custom()]: loads a custom model for species prediction from audio.
-#' * [birdnet_model_protobuf()]: creates a protobuf model for species prediction from audio that can be run on the GPU (not yet implemented).
+#' * [birdnet_model_protobuf()]: creates a protobuf model for species prediction from audio that can be run on the GPU (GPU support so far only implemented on Apple Silicon).
 #' * [birdnet_model_meta()]: creates a meta model for species prediction from location and time.
 #'
 #'
@@ -259,7 +265,7 @@ birdnet_model_meta <- function(version = "v2.4",
 #' @param custom_device character. This parameter allows specifying a custom device on which computations should be performed.
 #'  If `custom_device` is not specified (i.e., it has the default value None), the program will attempt to use a GPU (e.g., "/device:GPU:0") by default.
 #'  If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.
-#' @note Currently, all models can only be executed on the CPU. GPU support is not yet available.
+#' @note Currently, all models can only be executed on the CPU. GPU support is only available on Apple Silicon.
 #' @export
 birdnet_model_protobuf <- function(version = "v2.4",
                                    language = "en_us",
@@ -353,8 +359,8 @@ labels_path <- function(model, ...) {
 #' @return A character string representing the path to the language file.
 #' @keywords internal
 #' @examplesIf interactive()
-#' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-#' language_path <- get_language_path(model, "en_us", "downloader_tflite", "TFLite")
+#' model <- birdnetR::birdnet_model_tflite(version = "v2.4", language = "en_us")
+#' language_path <- birdnetR:::get_language_path(model, "en_us", "downloader_tflite", "TFLite")
 get_language_path <- function(model,
                               language,
                               downloader_key,

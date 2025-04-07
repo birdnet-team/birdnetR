@@ -19,9 +19,9 @@ and evaluates it to return the corresponding Python object.
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 py_birdnet_models <- reticulate::import("birdnet.models")
-module_map <- create_module_map("v2.4", "py_birdnet_models")
-model_string <- get_model_from_module_map(module_map, "tflite_v2.4")
-model_object <- evaluate_python_path(model_string)
+module_map <- birdnetR:::create_module_map("v2.4", "py_birdnet_models")
+model_string <- birdnetR:::get_model_from_module_map(module_map, "tflite_v2.4")
+model_object <- birdnetR:::evaluate_python_path(model_string)
 \dontshow{\}) # examplesIf}
 }
 \keyword{internal}

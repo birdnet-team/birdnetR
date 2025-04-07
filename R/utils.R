@@ -117,10 +117,10 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
 #' @note This function is intended for internal use and may not be exported or accessible for external users.
 #' @examples
 #' \dontrun{
-#' is_valid_species_list(c("species1", "species2")) # TRUE
-#' is_valid_species_list(list("species1", "species2")) # TRUE
-#' is_valid_species_list(c(1, 2, 3)) # FALSE
-#' is_valid_species_list(list(a = 1, b = 2)) # FALSE
+#' birdnetR:::is_valid_species_list(c("species1", "species2")) # TRUE
+#' birdnetR:::is_valid_species_list(list("species1", "species2")) # TRUE
+#' birdnetR:::is_valid_species_list(c(1, 2, 3)) # FALSE
+#' birdnetR:::is_valid_species_list(list(a = 1, b = 2)) # FALSE
 #' }
 is_valid_species_list <- function(obj) {
   # Check if the object is a character vector of length > 0 and not a list

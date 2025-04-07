@@ -27,8 +27,8 @@ downloader to retrieve the path to the language file.
 }
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-language_path <- get_language_path(model, "en_us", "downloader_tflite", "TFLite")
+model <- birdnetR::birdnet_model_tflite(version = "v2.4", language = "en_us")
+language_path <- birdnetR:::get_language_path(model, "en_us", "downloader_tflite", "TFLite")
 \dontshow{\}) # examplesIf}
 }
 \keyword{internal}

@@ -57,7 +57,7 @@ The various function of the \verb{birdnet_model_*} family are used to create and
 \itemize{
 \item \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}}: creates a tflite-model used for species prediction from audio.
 \item \code{\link[=birdnet_model_custom]{birdnet_model_custom()}}: loads a custom model for species prediction from audio.
-\item \code{\link[=birdnet_model_protobuf]{birdnet_model_protobuf()}}: creates a protobuf model for species prediction from audio that can be run on the GPU (not yet implemented).
+\item \code{\link[=birdnet_model_protobuf]{birdnet_model_protobuf()}}: creates a protobuf model for species prediction from audio that can be run on the GPU (GPU support so far only implemented on Apple Silicon).
 \item \code{\link[=birdnet_model_meta]{birdnet_model_meta()}}: creates a meta model for species prediction from location and time.
 }
 }
@@ -71,7 +71,7 @@ Models created from \code{\link[=birdnet_model_tflite]{birdnet_model_tflite()}},
 The \code{\link[=birdnet_model_meta]{birdnet_model_meta()}} model can be used to predict species occurrence at a specific location and time of the year using \code{\link[=predict_species_at_location_and_time]{predict_species_at_location_and_time()}}.
 }
 \note{
-Currently, all models can only be executed on the CPU. GPU support is not yet available.
+Currently, all models can only be executed on the CPU. GPU support is only available on Apple Silicon.
 }
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}

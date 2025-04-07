@@ -17,5 +17,7 @@ This helper function installs Apache Arrow for both R and Python.
 }
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+install_birdnet()
+install_arrow()
 \dontshow{\}) # examplesIf}
 }

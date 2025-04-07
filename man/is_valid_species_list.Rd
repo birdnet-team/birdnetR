@@ -25,10 +25,10 @@ This function is intended for internal use and may not be exported or accessible
 }
 \examples{
 \dontrun{
-is_valid_species_list(c("species1", "species2")) # TRUE
-is_valid_species_list(list("species1", "species2")) # TRUE
-is_valid_species_list(c(1, 2, 3)) # FALSE
-is_valid_species_list(list(a = 1, b = 2)) # FALSE
+birdnetR:::is_valid_species_list(c("species1", "species2")) # TRUE
+birdnetR:::is_valid_species_list(list("species1", "species2")) # TRUE
+birdnetR:::is_valid_species_list(c(1, 2, 3)) # FALSE
+birdnetR:::is_valid_species_list(list(a = 1, b = 2)) # FALSE
 }
 }
 \keyword{internal}

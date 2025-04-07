@@ -9,7 +9,7 @@
 #' @return A list containing 'models' (a list of model constructors) and 'misc' (a list of miscellaneous paths), specific to the version and base module.
 #' @examplesIf interactive()
 #' py_birdnet_models <- reticulate::import("birdnet.models")
-#' module_map <- create_module_map("v2.4", "py_birdnet_models")
+#' module_map <- birdnetR:::create_module_map("v2.4", "py_birdnet_models")
 create_module_map <- function(version, base_module) {
   switch(version,
     "v2.4" = list(
@@ -44,7 +44,12 @@ create_module_map <- function(version, base_module) {
 #' @keywords internal
 #' @examplesIf interactive()
 #' module_map <- create_module_map("v2.4", "py_birdnet_models")
-#' available_languages_path <- get_element_from_module_map(module_map, "misc", "available_languages")
+#' available_languages_path <-
+#'   birdnetR:::get_element_from_module_map(
+#'     module_map,
+#'    "misc",
+#'    "available_languages"
+#'   )
 get_element_from_module_map <- function(module_map, ...) {
   # Extract the nested keys
   keys <- list(...)
@@ -76,9 +81,9 @@ get_element_from_module_map <- function(module_map, ...) {
 #' @keywords internal
 #' @examplesIf interactive()
 #' py_birdnet_models <- reticulate::import("birdnet.models")
-#' module_map <- create_module_map("v2.4", "py_birdnet_models")
-#' model_string <- get_model_from_module_map(module_map, "tflite_v2.4")
-#' model_object <- evaluate_python_path(model_string)
+#' module_map <- birdnetR:::create_module_map("v2.4", "py_birdnet_models")
+#' model_string <- birdnetR:::get_model_from_module_map(module_map, "tflite_v2.4")
+#' model_object <- birdnetR:::evaluate_python_path(model_string)
 evaluate_python_path <- function(path_string) {
   tryCatch(
     eval(parse(text = path_string)),

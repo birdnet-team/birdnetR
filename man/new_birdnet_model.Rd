@@ -28,7 +28,7 @@ using R's S3 method dispatch.
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 py_birdnet_models <- reticulate::import("birdnet.models")
 tflite_model <- py_birdnet_models$v2m4$AudioModelV2M4TFLite()
-birdnet_model <- new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
+birdnet_model <- birdnetR:::new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
 \dontshow{\}) # examplesIf}
 }
 \keyword{internal}

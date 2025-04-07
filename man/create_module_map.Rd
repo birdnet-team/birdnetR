@@ -20,7 +20,7 @@ This function returns a list of model constructors and miscellaneous paths for a
 \examples{
 \dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 py_birdnet_models <- reticulate::import("birdnet.models")
-module_map <- create_module_map("v2.4", "py_birdnet_models")
+module_map <- birdnetR:::create_module_map("v2.4", "py_birdnet_models")
 \dontshow{\}) # examplesIf}
 }
 \keyword{internal}
