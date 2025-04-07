@@ -81,8 +81,8 @@ to use (e.g., "downloader_tflite", "downloader_protobuf").</p></dd>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># interactive()</span></span></span>
-<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="birdnet_model_load.html">birdnet_model_tflite</a></span><span class="op">(</span>version <span class="op">=</span> <span class="st">"v2.4"</span>, language <span class="op">=</span> <span class="st">"en_us"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">language_path</span> <span class="op">&lt;-</span> <span class="fu">get_language_path</span><span class="op">(</span><span class="va">model</span>, <span class="st">"en_us"</span>, <span class="st">"downloader_tflite"</span>, <span class="st">"TFLite"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">birdnetR</span><span class="fu">::</span><span class="fu"><a href="birdnet_model_load.html">birdnet_model_tflite</a></span><span class="op">(</span>version <span class="op">=</span> <span class="st">"v2.4"</span>, language <span class="op">=</span> <span class="st">"en_us"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">language_path</span> <span class="op">&lt;-</span> <span class="fu">birdnetR</span><span class="fu">:::</span><span class="fu">get_language_path</span><span class="op">(</span><span class="va">model</span>, <span class="st">"en_us"</span>, <span class="st">"downloader_tflite"</span>, <span class="st">"TFLite"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
