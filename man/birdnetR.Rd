@@ -20,7 +20,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Stefan Kahl \email{stefan.kahl@cornell.edu}
+  \item Stefan Kahl \email{stefan.kahl@cornell.edu} [copyright holder]
   \item BirdNET Team
 }
 

@@ -4,7 +4,7 @@ Title: Identifying bird species by their sounds
 Version: 0.2.2
 Authors@R: c(
     person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
-    person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = "aut"),
+    person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
     person("BirdNET", "Team", role = "aut")
   )
 Description: This packages is a wrapper for the BirdNET Python package.
