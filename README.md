@@ -5,37 +5,12 @@
 [![R-CMD-check](https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-This is a wrapper for the `birdnet` Python package for automated bird sound ID available [here](https://github.com/birdnet-team/birdnet).
+`birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow.
+This package will simplify the analysis of (large) bioacoustic datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
 
-
-birdnetR is geared towards providing a robust workflow for ecological data analysis in bioacoustic projects. While it covers essential functionalities, it doesn't include all the features found in BirdNET-Analyzer, which is available [here](https://github.com/kahst/BirdNET-Analyzer). Some features might only be available in the BirdNET Analyzer and not in this package.
-
-Please note that birdnetR is under active development, so you might encounter changes that could affect your current workflow. We recommend checking for updates regularly.
-
-For more information, please visit the [birdnetR website](https://birdnet-team.github.io/birdnetR/).
-
-
-## Citation
-
-Feel free to use birdnetR for your acoustic analyses and research. If you do, please cite as:
-
-```bibtex
-@article{kahl2021birdnet,
-  title={BirdNET: A deep learning solution for avian diversity monitoring},
-  author={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},
-  journal={Ecological Informatics},
-  volume={61},
-  pages={101236},
-  year={2021},
-  publisher={Elsevier}
-}
-```
-## License
-
-- **Source Code**: The source code for this project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-- **Models**: The models used in this project are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
-
-Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
+`birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). It provides the core functionality to analyze audio using the pre-trained 'BirdNET' or a custom classifier, and to predict bird species occurrence based on location and week of the year.
+However, it does not include all the advanced features available in the [BirdNET Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For advanced applications, such as training custom classifiers, users should use the 'BirdNET Analyzer' directly.
+`birdnetR` is under active development, and changes may affect existing workflows.
 
 
 ## Installation
@@ -45,13 +20,13 @@ Install the released version from CRAN:
 ```r
 install.packages("birdnetR")
 ```
-
+<br>
 or install the development version from GitHub with:
 
 ```r
 pak::pak("birdnet-team/birdnetR")
 ```
-
+<br>
 Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
 ```r
 library(birdnetR)
@@ -61,7 +36,7 @@ install_birdnet()
 
 ## Example use
 
-Here's a simple example of how to use this package to predict bird species from an audio file:
+This is a simple example using the `tflite` BirdNET model to predict species in an audio file.
 
 ```r
 # Load the package
@@ -81,56 +56,31 @@ get_top_prediction(predictions)
 
 ```
 
-## Developer Guide
 
-### Cloning the Repository
+## Citation
 
-To contribute to the development of birdnetR, you can clone the repository from GitHub:
+Feel free to use birdnetR for your acoustic analyses and research. If you do, please cite as:
 
-```sh
-git clone https://github.com/birdnet-team/birdnetR.git
-cd birdnetR
+```bibtex
+@article{kahl2021birdnet,
+  title={BirdNET: A deep learning solution for avian diversity monitoring},
+  author={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},
+  journal={Ecological Informatics},
+  volume={61},
+  pages={101236},
+  year={2021},
+  publisher={Elsevier}
+}
 ```
 
-### Setting Up the Development Environment
 
-**Install R Package Dependencies**
+## License
 
-Ensure you have all the necessary R package dependencies:
+- **Source Code**: The source code for this project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+- **Models**: The models used in this project are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
-```r
-install.packages(c("devtools", "roxygen2", "testthat", "reticulate"))
-```
+Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
 
-**Setting Up the Python Environment**
-
-Set up a Python virtual environment and install the `birdnet` Python package as described above.
-
-
-**Generating Documentation**
-
-To generate the documentation, use the roxygen2 package:
-
-```r
-devtools::document()
-```
-
-**Running Tests**
-
-To run the tests, use the testthat package:
-
-```r
-devtools::test()
-```
-
-**Building and checking the Package**
-
-To build and check the package, use the devtools package:
-
-```r
-devtools::build()
-devtools::check()
-```
 
 ## Funding
 
