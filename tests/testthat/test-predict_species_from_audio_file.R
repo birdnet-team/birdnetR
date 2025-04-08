@@ -3,7 +3,7 @@ library(testthat)
 # Assuming that the BirdNET model and data are set up correctly in the environment.
 
 tflite_model <- NULL
-audio_file <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
 
 test_that("birdnet_model_tflite works", {

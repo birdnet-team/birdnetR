@@ -111,7 +111,7 @@ You can install them manually using \code{\link[=install_arrow]{install_arrow()}
 library(birdnetR)
 
 model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-audio_file <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
 \dontshow{\}) # examplesIf}
 }
