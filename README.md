@@ -38,26 +38,18 @@ Feel free to use birdnetR for your acoustic analyses and research. If you do, pl
 Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
 
 
-## Setup
+## Installation
 
-First, install the `reticulate` package if you haven't already:
+Install the released version from CRAN:
 
 ```r
-install.packages("reticulate")
+install.packages("birdnetR")
 ```
 
-For now, you have to install the package from GitHub. 
-
-To install the package directly from GitHub, you need to have the devtools package installed. If you don't have devtools installed, you can install it using:
+or install the development version from GitHub with:
 
 ```r
-install.packages("devtools")
-```
-
-Then, you can install birdnetR from GitHub:
-
-```r
-devtools::install_github("birdnet-team/birdnetR")
+pak::pak("birdnet-team/birdnetR")
 ```
 
 Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
