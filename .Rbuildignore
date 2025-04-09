@@ -8,3 +8,4 @@
 ^\.github$
 ^dev$
 .lintr
+^cran-comments\.md$
