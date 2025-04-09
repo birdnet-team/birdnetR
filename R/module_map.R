@@ -62,7 +62,7 @@ get_element_from_module_map <- function(module_map, ...) {
     if (!is.null(element[[key]])) {
       element <- element[[key]]
     } else {
-      stop(paste("Element", key, "not found in the module map"))
+      stop(sprintf("Element '%s' not found in module map", key))
     }
   }
 
