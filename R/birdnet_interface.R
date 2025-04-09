@@ -531,8 +531,7 @@ predict_species_from_audio_file.birdnet_model <- function(model,
                                                           sigmoid_sensitivity = 1,
                                                           filter_species = NULL,
                                                           keep_empty = TRUE,
-                                                          use_arrow = FALSE
-                                                          ) {
+                                                          use_arrow = FALSE) {
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.character(audio_file))
@@ -591,12 +590,9 @@ predict_species_from_audio_file.birdnet_model <- function(model,
     )
 
     return(as.data.frame(arrow_table))
-
   } else {
-
     predictions <- py_birdnet_types$SpeciesPredictions(predictions_gen)
     return(predictions_to_df(predictions, keep_empty = keep_empty))
-
   }
 }
 
