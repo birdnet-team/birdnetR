@@ -17,6 +17,7 @@ Imports:
     reticulate
 Suggests:
     arrow,
+    curl,
     devtools,
     knitr,
     rmarkdown,
