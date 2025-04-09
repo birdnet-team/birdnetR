@@ -69,7 +69,7 @@
 <!-- badges: start -->
 
 <p><code>birdnetR</code> integrates <a href="https://birdnet.cornell.edu/" class="external-link">BirdNET</a>, a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow. This package will simplify the analysis of (large) bioacoustic datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.</p>
-<p><code>birdnetR</code> is an R wrapper around the <code>birdnet</code> <a href="https://github.com/birdnet-team/birdnet" class="external-link">Python package</a>. It provides the core functionality to analyze audio using the pre-trained ‘BirdNET’ or a custom classifier, and to predict bird species occurrence based on location and week of the year. However, it does not include all the advanced features available in the <a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET Analyzer</a>. For advanced applications, such as training custom classifiers, users should use the ‘BirdNET Analyzer’ directly. <code>birdnetR</code> is under active development, and changes may affect existing workflows.</p>
+<p><code>birdnetR</code> is an R wrapper around the <code>birdnet</code> <a href="https://github.com/birdnet-team/birdnet" class="external-link">Python package</a>. It provides the core functionality to analyze audio using the pre-trained ‘BirdNET’ model or a custom classifier, and to predict bird species occurrence based on location and week of the year. However, it does not include all the advanced features available in the <a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET Analyzer</a>. For advanced applications, such as training custom classifiers and validation, users should use the ‘BirdNET Analyzer’ directly. <code>birdnetR</code> is under active development, and changes may affect existing workflows.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -107,7 +107,7 @@
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
-<p>Feel free to use birdnetR for your acoustic analyses and research. If you do, please cite as:</p>
+<p>Feel free to use <code>birdnetR</code> for your acoustic analyses and research. If you do, please cite as:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">kahl2021birdnet</span>,</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="dt">title</span>={BirdNET: A deep learning solution for avian diversity monitoring},</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="dt">author</span>={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},</span>

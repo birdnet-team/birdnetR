@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   birdnetR: birdnetR.html
   Troubleshoot: Troubleshoot.html
-last_built: 2025-04-09T09:20Z
+last_built: 2025-04-09T13:57Z
 urls:
   reference: https://birdnet-team.github.io/birdnetR/reference
   article: https://birdnet-team.github.io/birdnetR/articles
