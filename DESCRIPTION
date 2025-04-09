@@ -1,13 +1,17 @@
 Type: Package
 Package: birdnetR
-Title: Identifying bird species by their sounds
+Title: Deep Learning for Automated (Bird) Sound Identification
 Version: 0.2.2
 Authors@R: c(
     person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
     person("BirdNET", "Team", role = "aut")
   )
-Description: This packages is a wrapper for the BirdNET Python package.
+Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to automatically identify (bird) sounds.
+    Analyze bioacoustic datasets without any computer science background using a pre-trained model or a custom trained classifier.
+    Predict bird species occurrence based on location and week of the year.
+    Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021) <doi:0.1016/j.ecoinf.2021.101236>
+    
 License: MIT + file LICENSE
 URL: https://birdnet-team.github.io/birdnetR/
 Imports:
