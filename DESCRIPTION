@@ -10,10 +10,9 @@ Authors@R: c(
 Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to automatically identify (bird) sounds.
     Analyze bioacoustic datasets without any computer science background using a pre-trained model or a custom trained classifier.
     Predict bird species occurrence based on location and week of the year.
-    Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021) <doi:0.1016/j.ecoinf.2021.101236>
-    
+    Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021) <doi:0.1016/j.ecoinf.2021.101236>.
 License: MIT + file LICENSE
-URL: https://birdnet-team.github.io/birdnetR/
+URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/birdnetR
 Imports:
     reticulate
 Suggests:
@@ -29,3 +28,4 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+BugReports: https://github.com/birdnet-team/birdnetR/issues
