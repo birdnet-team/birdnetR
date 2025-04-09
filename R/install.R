@@ -72,7 +72,7 @@
 
   if (is.null(installed_birdnet_version) ||
     length(installed_birdnet_version) == 0) {
-    message("No version of birdnet found. To install, use `install_birdnet()`.")
+    packageStartupMessage("No version of birdnet found. To install, use `install_birdnet()`.")
     return()
   }
 
