@@ -12,6 +12,8 @@
 Useful links:
 \itemize{
   \item \url{https://birdnet-team.github.io/birdnetR/}
+  \item \url{https://github.com/birdnet-team/birdnetR}
+  \item Report bugs at \url{https://github.com/birdnet-team/birdnetR/issues}
 }
 
 }

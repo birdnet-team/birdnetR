@@ -24,26 +24,18 @@ The `birdnetR` package provides a comprehensive interface for utilizing the `bir
 
 ##  Installation
 
+Install the released version from CRAN:
 
-First, install the `reticulate` package if you haven't already:
-
-```{r install_reticulate}
-install.packages("reticulate")
+```r
+install.packages("birdnetR")
 ```
+<br>
+or install the development version from GitHub with:
 
-For now, you have to install the package from GitHub. 
-
-To install the package directly from GitHub, you need to have the devtools package installed. If you don't have devtools installed, you can install it using:
-
-```{r install_devtools}
-install.packages("devtools")
+```r
+pak::pak("birdnet-team/birdnetR")
 ```
-
-Then, you can install `birdnetR` from GitHub:
-
-```{r install_birdnetR}
-devtools::install_github("birdnet-team/birdnetR")
-```
+<br>
 
 Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
 ```{r load_and_install_birdnet}
