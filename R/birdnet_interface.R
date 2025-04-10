@@ -500,38 +500,40 @@ read_labels <- function(species_file) {
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 #' predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
-predict_species_from_audio_file <- function(model,
-                                            audio_file,
-                                            min_confidence = 0.1,
-                                            batch_size = 1L,
-                                            chunk_overlap_s = 0,
-                                            use_bandpass = TRUE,
-                                            bandpass_fmin = 0L,
-                                            bandpass_fmax = 15000L,
-                                            apply_sigmoid = TRUE,
-                                            sigmoid_sensitivity = 1,
-                                            filter_species = NULL,
-                                            keep_empty = TRUE,
-                                            use_arrow = FALSE) {
+predict_species_from_audio_file <- function(
+    model,
+    audio_file,
+    min_confidence = 0.1,
+    batch_size = 1L,
+    chunk_overlap_s = 0,
+    use_bandpass = TRUE,
+    bandpass_fmin = 0L,
+    bandpass_fmax = 15000L,
+    apply_sigmoid = TRUE,
+    sigmoid_sensitivity = 1,
+    filter_species = NULL,
+    keep_empty = TRUE,
+    use_arrow = FALSE) {
   UseMethod("predict_species_from_audio_file")
 }
 
 #' @rdname predict_species_from_audio_file
 #' @method predict_species_from_audio_file birdnet_model
 #' @export
-predict_species_from_audio_file.birdnet_model <- function(model,
-                                                          audio_file,
-                                                          min_confidence = 0.1,
-                                                          batch_size = 1L,
-                                                          chunk_overlap_s = 0,
-                                                          use_bandpass = TRUE,
-                                                          bandpass_fmin = 0L,
-                                                          bandpass_fmax = 15000L,
-                                                          apply_sigmoid = TRUE,
-                                                          sigmoid_sensitivity = 1,
-                                                          filter_species = NULL,
-                                                          keep_empty = TRUE,
-                                                          use_arrow = FALSE) {
+predict_species_from_audio_file.birdnet_model <- function(
+    model,
+    audio_file,
+    min_confidence = 0.1,
+    batch_size = 1L,
+    chunk_overlap_s = 0,
+    use_bandpass = TRUE,
+    bandpass_fmin = 0L,
+    bandpass_fmax = 15000L,
+    apply_sigmoid = TRUE,
+    sigmoid_sensitivity = 1,
+    filter_species = NULL,
+    keep_empty = TRUE,
+    use_arrow = FALSE) {
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.character(audio_file))
@@ -620,22 +622,24 @@ predict_species_from_audio_file.birdnet_model <- function(model,
 #' # Predict species in Chemnitz, Germany, that are present all year round
 #' model <- birdnet_model_meta(language = "de")
 #' predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
-predict_species_at_location_and_time <- function(model,
-                                                 latitude,
-                                                 longitude,
-                                                 week = NULL,
-                                                 min_confidence = 0.03) {
+predict_species_at_location_and_time <- function(
+    model,
+    latitude,
+    longitude,
+    week = NULL,
+    min_confidence = 0.03) {
   UseMethod("predict_species_at_location_and_time")
 }
 
 #' @rdname predict_species_at_location_and_time
 #' @export
 #' @method predict_species_at_location_and_time birdnet_model_meta
-predict_species_at_location_and_time.birdnet_model_meta <- function(model,
-                                                                    latitude,
-                                                                    longitude,
-                                                                    week = NULL,
-                                                                    min_confidence = 0.03) {
+predict_species_at_location_and_time.birdnet_model_meta <- function(
+    model,
+    latitude,
+    longitude,
+    week = NULL,
+    min_confidence = 0.03) {
   stopifnot(is.list(model))
   stopifnot(inherits(model, "birdnet_model_meta"))
 
