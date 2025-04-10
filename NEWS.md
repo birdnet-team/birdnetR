@@ -1,3 +1,9 @@
+# birdnet 0.2.3
+
+- refactors tests to use a hybrif approach of unit tests and mocking without the `birdnet` python package,
+  and full integration tests that depend on the `birdnet` python package. See `tests/TEST_PLAN.md` for more details.
+- prepaqre for initial CRAN release
+
 # birdnetR 0.2.2
 
 - updates `birdnet` Python package to `0.1.7`.
