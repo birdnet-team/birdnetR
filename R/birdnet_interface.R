@@ -1,48 +1,5 @@
 # Place functions in this file that are directly related to implementing the functionality of the `birdnet` Python package.
 
-# Import the necessary Python modules layzily in .onLoad
-py_birdnet_models <- NULL
-py_birdnet_utils <- NULL
-py_birdnet_audio_based_prediction <- NULL
-py_birdnet_location_based_prediction <- NULL
-py_birdnet_types <- NULL
-py_pathlib <- NULL
-py_builtins <- NULL
-py_birdnetr_utils <- NULL
-
-
-#' Initialize birdnetR Package
-#'
-#' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
-#'
-#' @param libname Name of the library being loaded.
-#' @param pkgname Name of the package being loaded.
-#' @param ... Additional arguments.
-#' @noRd
-.onLoad <- function(libname, pkgname, ...) {
-  reticulate::configure_environment(pkgname)
-  reticulate::use_virtualenv("r-birdnet", required = FALSE)
-
-  # Import custom utils from the package's python directory
-  py_birdnetr_utils <<- reticulate::import_from_path(
-    "birdnetr_utils",
-    path = system.file("python", package = "birdnetR"),
-    delay_load = TRUE
-  )
-
-  # Use superassignment to update global reference to the Python packages
-  py_birdnet_models <<- reticulate::import("birdnet.models",
-    delay_load = list(before_load = .check_birdnet_version())
-  )
-  py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
-  py_birdnet_audio_based_prediction <<- reticulate::import("birdnet.audio_based_prediction", delay_load = TRUE)
-  py_birdnet_location_based_prediction <<- reticulate::import("birdnet.location_based_prediction", delay_load = TRUE)
-  py_birdnet_types <<- reticulate::import("birdnet.types", delay_load = TRUE)
-  py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
-  py_builtins <<- reticulate::import_builtins(delay_load = TRUE)
-}
-
-
 
 #' Create a new BirdNET model object
 #'
@@ -270,6 +227,14 @@ birdnet_model_meta <- function(version = "v2.4",
 birdnet_model_protobuf <- function(version = "v2.4",
                                    language = "en_us",
                                    custom_device = NULL) {
+
+  os <- Sys.info()[["sysname"]]
+
+  # Check if the system is macOS (Darwin) and add tensorflow-metal for GPU support
+  if (os == "Darwin") {
+    reticulate::py_require("tensorflow-metal")
+  }
+
   # Call the model factory to create and return the Protobuf model
   model_factory(
     model_name = "protobuf",
@@ -577,16 +542,29 @@ predict_species_from_audio_file.birdnet_model <- function(
     custom_model = model$py_model
   )
 
-  if (use_arrow && !all(.check_arrow())) {
-    stop(
-      "Arrow support not fully available. Please run `install_arrow()` first and restart your R session.",
-      call. = FALSE
-    )
+  # check arrow installation status
+  # manage R installation manually, and python automatically with py_require()
+  if (use_arrow) {
+    arrow_status <- .check_arrow()
+    if (!arrow_status["r"]) {
+      stop(
+        "Arrow support not fully available. Please run `install_arrow()` first and restart your R session.",
+        call. = FALSE
+      )
+    }
   }
 
   if (use_arrow) {
+    reticulate::py_require("pyarrow")
+
+    # Import custom utils from the package's python directory
+    py_arrow_utils <- reticulate::import_from_path(
+      "arrow_utils",
+      path = system.file("python", package = "birdnetR")
+    )
+
     # Process predictions and convert to Arrow table directly in Python
-    arrow_table <- py_birdnetr_utils$process_predictions_to_arrow_table(
+    arrow_table <- py_arrow_utils$process_predictions_to_arrow_table(
       predictions_gen,
       keep_empty = keep_empty
     )
