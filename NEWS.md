@@ -1,8 +1,14 @@
 # birdnetR 0.2.3
 
-- refactors tests to use a hybrif approach of unit tests and mocking without the `birdnet` python package,
+## Major changes
+- use `recticulate::py_require()` to resolve python dependencies in an ephemeral virtual environment
+- refactors tests to use a hybrid approach of unit tests and mocking without the `birdnet` python package,
   and full integration tests that depend on the `birdnet` python package. See `tests/TEST_PLAN.md` for more details.
-- prepaqre for initial CRAN release
+- initial CRAN release preparations
+
+## Defunctions
+- `install_birdnet()` is now a defunctioned. It is no longer needed to install the `birdnet` python package
+  manually. The package will be installed automatically when you use it for the first time.
 
 # birdnetR 0.2.2
 
