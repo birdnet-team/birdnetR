@@ -14,7 +14,7 @@ Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to auto
 License: MIT + file LICENSE
 URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/birdnetR
 Imports:
-    reticulate
+    reticulate (>= 1.41)
 Suggests:
     arrow,
     curl,
