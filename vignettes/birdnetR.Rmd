@@ -37,45 +37,10 @@ pak::pak("birdnet-team/birdnetR")
 ```
 <br>
 
-Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
-```{r load_and_install_birdnet}
-library(birdnetR)
-install_birdnet()
-```
-
-
 <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
-<strong>Incompatible Python Version</strong><br>
-If you do not have a compatible Python version installed, you can use <code>reticulate::use_python_version(version = &lt;version&gt;)</code>.
+<strong>Note</strong><br>
+ `birdnetR` uses [`reticulate::py_require()`](https://rstudio.github.io/reticulate/reference/py_require.html) to handle Python dependencies. These dependencies are installed only when needed, which might result in a longer initial setup.
 </div>
-
-### Custom virtual environment
-By default, a virtual environment named `r-birdnet` will be used. If you don't need any customization, you can ignore this section, and everything should work out-of-the-box.
-
-If you need to use a custom name for the virtual environment, you can specify it using the `envname` argument:
-
-```{r}
-library(birdnetR)
-install_birdnet(envname = "custom")
-```
-
-The next time you start a new R session, tell `reticulate` to use this environment after loading your libraries:
-```{r}
-library(birdnetR)
-reticulate::use_virtualenv("custom")
-```
-
-By default, `reticulate` will install to and use a folder `.virtualenvs` in your home directory. You can also specify paths to your virtual environments, which is useful if you want to install `birdnetR` into an existing virtual environment:
-
-```{r}
-library(birdnetR)
-path_venv <- "/path/to/existing/venv"
-install_birdnet(envname = path_venv)
-reticulate::use_virtualenv(path_venv)
-```
-
-
-If you prefer to store your virtual environment in the project folder, `reticulate` will automatically discover it, and there is no need to call `use_virtualenv()`.
 
 
 ## Usage
@@ -261,4 +226,4 @@ read_labels(labels_path_lang)
 # [10] "Acanthisitta chloris_Xénique grimpeur"                    "Acanthiza apicalis_Acanthize troglodyte"                  "Acanthiza chrysorrhoa_Acanthize à croupion jaune"        
 # [13] "Acanthiza ewingii_Acanthize de Tasmanie"                  "Acanthiza inornata_Acanthize sobre"                       "Acanthiza lineata_Acanthize ridé"                        
 ```
- 
+

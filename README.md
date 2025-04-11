@@ -27,13 +27,12 @@ or install the development version from GitHub with:
 ```r
 pak::pak("birdnet-team/birdnetR")
 ```
-<br>
-Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
-```r
-library(birdnetR)
-install_birdnet()
 
-```
+<div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
+<strong>Note</strong><br>
+ Python dependencies are installed on demand, meaning they are installed when you use them for the first time. This will result in longer initial setup.
+</div>
+
 
 ## Example use
 
