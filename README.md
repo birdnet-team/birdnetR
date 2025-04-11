@@ -7,7 +7,7 @@
 <!-- badges: end -->
 
 `birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow.
-This package will simplify the analysis of (large) bioacoustic datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
+This package will simplify the analysis of (large) audio datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
 
 `birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). It provides the core functionality to analyze audio using the pre-trained 'BirdNET' or a custom classifier, and to predict bird species occurrence based on location and week of the year.
 However, it does not include all the advanced features available in the [BirdNET Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For advanced applications, such as training custom classifiers, users should use the 'BirdNET Analyzer' directly.

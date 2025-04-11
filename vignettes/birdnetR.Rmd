@@ -88,7 +88,7 @@ library(birdnetR)
 model <- birdnet_model_tflite("v2.4")
 
 # Path to an example audio file (replace with your own file path)
-audio_path <- system.file("extdata", "soundscape.wav", package = "birdnetR")
+audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
 # Predict species in the audio file
 predictions <- predict_species_from_audio_file(model, audio_path, min_confidence = 0.3, keep_empty = FALSE)
