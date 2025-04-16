@@ -33,8 +33,12 @@ py_builtins <- NULL
 #' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
+
+  # set the KERAS_HOME environment variable (dont't write to user home)
+  Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
+
   # force reticulate to use an self-managed, ephemeral virtual environment
-  Sys.setenv(RETICULATE_USE_MANAGED_VENV = "yes")
+  Sys.setenv(RETICULATE_PYTHON = "managed")
 
   # Versions of Python and BirdNET; numpy is automatically installed by `reticulate`.
   # To prevent conflicts, we specify a version range according to `birdnet`python.
