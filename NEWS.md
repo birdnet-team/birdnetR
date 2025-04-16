@@ -1,4 +1,4 @@
-# birdnetR 0.3.0
+# birdnetR 0.3.1
 
 ## Major changes
 - use `recticulate::py_require()` to resolve python dependencies in an ephemeral virtual environment

@@ -1,7 +1,7 @@
 Type: Package
 Package: birdnetR
 Title: Deep Learning for Automated (Bird) Sound Identification
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: c(
     person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
