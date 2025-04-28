@@ -10,3 +10,5 @@
 .lintr
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^doc$
+^Meta$
