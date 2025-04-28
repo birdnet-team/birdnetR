@@ -116,7 +116,30 @@ model_factory <- function(model_name, version, ...) {
 #' Will be coerced to an integer if possible.
 #'
 #' @seealso [available_languages()] [predict_species_from_audio_file()] [predict_species_at_location_and_time()]
-#' @return A BirdNET model object.
+#' @return A BirdNET model object, which is an S3 object of class `birdnet_model` and specific subclasses (e.g., `birdnet_model_tflite`, `birdnet_model_v2_4`). This object is a list containing:
+#' \describe{
+#'   \item{`py_model`}{The underlying Python BirdNET model object.}
+#'   \item{`model_version`}{The version string of the model (e.g., "v2.4").}
+#'   \item{...}{Additional elements specific to the model type:}
+#'   \itemize{
+#'     \item **For `birdnet_model_tflite` and `birdnet_model_meta`:**
+#'       \itemize{
+#'         \item `language`: The language code used (e.g., "en_us").
+#'         \item `tflite_num_threads`: The number of TFLite threads used (or `NULL`).
+#'       }
+#'     \item **For `birdnet_model_custom`:**
+#'       \itemize{
+#'         \item `classifier_folder`: Path to the custom classifier folder.
+#'         \item `classifier_name`: Name of the custom classifier.
+#'         \item `tflite_num_threads`: The number of TFLite threads used (or `NULL`).
+#'       }
+#'     \item **For `birdnet_model_protobuf`:**
+#'       \itemize{
+#'         \item `language`: The language code used (e.g., "en_us").
+#'         \item `custom_device`: The custom device specified (or `NULL`).
+#'       }
+#'   }
+#' }
 #' @examplesIf interactive()
 #' # Create a TFLite BirdNET model with 2 threads and English (US) language
 #' birdnet_model <- birdnet_model_tflite(version = "v2.4", language = "en_us", tflite_num_threads = 2)
