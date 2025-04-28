@@ -140,9 +140,11 @@ model_factory <- function(model_name, version, ...) {
 #'       }
 #'   }
 #' }
-#' @examplesIf interactive()
+#' @examples
 #' # Create a TFLite BirdNET model with 2 threads and English (US) language
+#' \dontrun{
 #' birdnet_model <- birdnet_model_tflite(version = "v2.4", language = "en_us", tflite_num_threads = 2)
+#' }
 #' @name birdnet_model_load
 NULL
 #> NULL
@@ -275,8 +277,8 @@ birdnet_model_protobuf <- function(version = "v2.4",
 #' @param version character. The version of BirdNET to use (default is "v2.4", no other versions are currently supported).
 #'
 #' @return A sorted character vector containing the available language codes.
-#' @examplesIf interactive()
-#' available_languages("v2.4")
+#' @examples
+#' \dontrun{available_languages("v2.4")}
 #' @export
 available_languages <- function(version) {
   module_map <- create_module_map(version = version, "py_birdnet_models")
@@ -297,9 +299,11 @@ available_languages <- function(version) {
 #'                 The language must be one of the available languages supported by the BirdNET model.
 #' @param ... Additional arguments passed to the method dispatch function.
 #' @return A character string representing the file path to the labels file for the specified language.
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4")
 #' labels_path(model, "fr")
+#' }
 #' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
 #' @seealso [available_languages()] [read_labels()]
 #' @export
@@ -323,8 +327,10 @@ labels_path <- function(model, ...) {
 #' @return A character string representing the path to the language file.
 #' @noRd
 #' @examples
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' language_path <- get_language_path(model, "en_us", "downloader_tflite", "TFLite")
+#' }
 get_language_path <- function(model,
                               language,
                               downloader_key,
@@ -385,16 +391,19 @@ labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #' @return A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
 #' @export
 #' @seealso [available_languages()] [labels_path()]
-#' @examplesIf interactive()
+#' @examples
 #' # Read a custom species file
 #' read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 #'
 #' # To access all class labels that are supported in your language,
 #' # you can read in the respective label file
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' labels_path <- labels_path(model, "fr")
 #' species_list <- read_labels(labels_path)
 #' head(species_list)
+#' }
+#'
 read_labels <- function(species_file) {
   species_file_path <- py_pathlib$Path(species_file)$expanduser()$resolve(TRUE)
   py_species_list <- py_birdnet_utils$get_species_from_file(species_file_path)
@@ -458,12 +467,13 @@ read_labels <- function(species_file) {
 #' @seealso [`read_labels()`] for more details on species filtering.
 #' @seealso [`birdnet_model_tflite()`], [`birdnet_model_protobuf()`], [`birdnet_model_custom()`]
 #' @export
-#' @examplesIf interactive()
-#' library(birdnetR)
-#'
+#' @examples
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 #' predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
+#' }
+#'
 predict_species_from_audio_file <- function(
     model,
     audio_file,
@@ -595,10 +605,12 @@ predict_species_from_audio_file.birdnet_model <- function(
 #'
 #' @return A data frame with columns: `label`, `confidence`. Each row represents a predicted species, with the `confidence` indicating the likelihood of the species being present at the specified location and time.
 #' @export
-#' @examplesIf interactive()
+#' @examples
 #' # Predict species in Chemnitz, Germany, that are present all year round
+#' \dontrun{
 #' model <- birdnet_model_meta(language = "de")
 #' predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
+#' }
 predict_species_at_location_and_time <- function(
     model,
     latitude,

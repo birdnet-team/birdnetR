@@ -16,14 +16,11 @@
 #'
 #' This helper function installs Apache Arrow for both R and Python.
 #'
-#' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @return Invisible TRUE if successful, stops with error message if installation fails
 #' @export
-#' @examplesIf interactive()
-#' install_birdnet()
-#' install_arrow()
-#'
-install_arrow <- function(envname = "r-birdnet") {
+#' @examples
+#' \dontrun{install_arrow()}
+install_arrow <- function() {
   arrow_status <- .check_arrow()
 
   # Install R package if needed

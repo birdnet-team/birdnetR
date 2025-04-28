@@ -36,10 +36,10 @@ For a custom model, the path of the custom labels file is returned.
 The \code{language} parameter must be one of the available languages returned by \code{available_languages()}.
 }
 \examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontrun{
 model <- birdnet_model_tflite(version = "v2.4")
 labels_path(model, "fr")
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 \code{\link[=available_languages]{available_languages()}} \code{\link[=read_labels]{read_labels()}}
