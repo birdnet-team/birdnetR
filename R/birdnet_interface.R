@@ -391,7 +391,7 @@ labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #' @return A vector with class labels e.g. c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
 #' @export
 #' @seealso [available_languages()] [labels_path()]
-#' @examples
+#' @examplesIf interactive()
 #' # Read a custom species file
 #' read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 #'
