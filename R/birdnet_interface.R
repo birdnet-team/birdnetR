@@ -268,30 +268,6 @@ birdnet_model_protobuf <- function(version = "v2.4",
 }
 
 
-#' Initialize the BirdNET Model (Deprecated)
-#'
-#' This function initializes the BirdNET model (v2.4). It is kept for backward compatibility and is deprecated.
-#' Use [birdnet_model_tflite()] instead for model initialization.
-#'
-#' @param tflite_num_threads integer. The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
-#'  Will be coerced to an integer if possible.
-#' @param language Character string specifying the language code to use for the model's text processing. The language must be one of the available languages supported by the BirdNET model.
-#' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
-#' @seealso [available_languages()] [birdnet_model_tflite()]
-#' @return An instance of the BirdNET model.
-#' @export
-#' @note This function is kept for backward compatibility. Please use [birdnet_model_tflite()] instead.
-init_model <- function(tflite_num_threads = NULL, language = "en_us") {
-  .Deprecated("birdnet_model_tflite", package = "birdnetR")
-  birdnet_model_tflite(
-    version = "v2.4",
-    language = language,
-    tflite_num_threads = tflite_num_threads
-  )
-}
-
-
-
 #' Get Available Languages for BirdNET Model
 #'
 #' Retrieve the available languages supported by a specific version of BirdNET.
