@@ -29,7 +29,7 @@
 
     <a class="navbar-brand me-2" href="index.html">birdnetR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@
 </div>
 <!-- badges: start -->
 
-<p><code>birdnetR</code> integrates <a href="https://birdnet.cornell.edu/" class="external-link">BirdNET</a>, a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow. This package will simplify the analysis of (large) bioacoustic datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.</p>
+<p><code>birdnetR</code> integrates <a href="https://birdnet.cornell.edu/" class="external-link">BirdNET</a>, a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow. This package will simplify the analysis of (large) audio datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.</p>
 <p><code>birdnetR</code> is an R wrapper around the <code>birdnet</code> <a href="https://github.com/birdnet-team/birdnet" class="external-link">Python package</a>. It provides the core functionality to analyze audio using the pre-trained ‘BirdNET’ model or a custom classifier, and to predict bird species occurrence based on location and week of the year. However, it does not include all the advanced features available in the <a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET Analyzer</a>. For advanced applications, such as training custom classifiers and validation, users should use the ‘BirdNET Analyzer’ directly. <code>birdnetR</code> is under active development, and changes may affect existing workflows.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -79,16 +79,15 @@
 <p><br> or install the development version from GitHub with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"birdnet-team/birdnetR"</span><span class="op">)</span></span></code></pre></div>
-<p><br> Next, install <code>birdnet</code>, which will set up a Python virtual environment named <code>r-birdnet</code> by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/install_birdnet.html">install_birdnet</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
+<p><strong>Note</strong><br> Python dependencies are installed on demand, meaning they are installed when you use them for the first time. This will result in longer initial setup.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="example-use">Example use<a class="anchor" aria-label="anchor" href="#example-use"></a>
 </h2>
 <p>This is a simple example using the <code>tflite</code> BirdNET model to predict species in an audio file.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load the package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://birdnet-team.github.io/birdnetR/">birdnetR</a></span><span class="op">)</span></span>
 <span></span>
@@ -108,15 +107,15 @@
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
 </h2>
 <p>Feel free to use <code>birdnetR</code> for your acoustic analyses and research. If you do, please cite as:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">kahl2021birdnet</span>,</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="dt">title</span>={BirdNET: A deep learning solution for avian diversity monitoring},</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="dt">author</span>={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="dt">journal</span>={Ecological Informatics},</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="dt">volume</span>={61},</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="dt">pages</span>={101236},</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="dt">year</span>={2021},</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="dt">publisher</span>={Elsevier}</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bibtex"><code class="sourceCode bibtex"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="va">@article</span>{<span class="ot">kahl2021birdnet</span>,</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="dt">title</span>={BirdNET: A deep learning solution for avian diversity monitoring},</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="dt">author</span>={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="dt">journal</span>={Ecological Informatics},</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="dt">volume</span>={61},</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="dt">pages</span>={101236},</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="dt">year</span>={2021},</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="dt">publisher</span>={Elsevier}</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
@@ -188,6 +187,7 @@
 <ul class="list-unstyled">
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
 <li><a href="https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://CRAN.R-project.org/package=birdnetR" class="external-link"><img src="https://www.r-pkg.org/badges/version/birdnetR" alt="CRAN status"></a></li>
 </ul>
 </div>
 

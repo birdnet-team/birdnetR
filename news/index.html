@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">birdnetR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,20 @@
       <small>Source: <a href="https://github.com/birdnet-team/birdnetR/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.1" id="birdnetr-031">birdnetR 0.3.1<a class="anchor" aria-label="anchor" href="#birdnetr-031"></a></h2>
+<div class="section level3">
+<h3 id="major-changes-0-3-1">Major changes<a class="anchor" aria-label="anchor" href="#major-changes-0-3-1"></a></h3>
+<ul><li>use <code>recticulate::py_require()</code> to resolve python dependencies in an ephemeral virtual environment</li>
+<li>refactors tests to use a hybrid approach of unit tests and mocking without the <code>birdnet</code> python package, and full integration tests that depend on the <code>birdnet</code> python package. See <code>tests/TEST_PLAN.md</code> for more details.</li>
+<li>initial CRAN release preparations</li>
+</ul></div>
+<div class="section level3">
+<h3 id="defunctions-0-3-1">Defunctions<a class="anchor" aria-label="anchor" href="#defunctions-0-3-1"></a></h3>
+<ul><li>
+<code><a href="../reference/install_birdnet.html">install_birdnet()</a></code> is now a defunctioned. It is no longer needed to install the <code>birdnet</code> python package manually. The package will be installed automatically when you use it for the first time.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.2" id="birdnetr-022">birdnetR 0.2.2<a class="anchor" aria-label="anchor" href="#birdnetr-022"></a></h2>
 <ul><li>updates <code>birdnet</code> Python package to <code>0.1.7</code>.</li>
