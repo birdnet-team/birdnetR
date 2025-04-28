@@ -1,6 +1,7 @@
 dev/
 .lintr
 __pycache__/
+.DS_Store
 
 # History files
 .Rhistory

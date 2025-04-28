@@ -2,32 +2,22 @@
 % Please edit documentation in R/install.R
 \name{install_birdnet}
 \alias{install_birdnet}
-\title{Install BirdNET and its dependencies}
+\title{Install BirdNET and its dependencies (Defunct)}
 \usage{
-install_birdnet(
-  ...,
-  method = NULL,
-  envname = "r-birdnet",
-  new_env = identical(envname, "r-birdnet"),
-  include_arrow = FALSE
-)
+install_birdnet(...)
 }
 \arguments{
-\item{...}{Further arguments passed to \code{reticulate::py_install()}}
-
-\item{method}{Installation method. Defaults to 'virtualenv' on macOS and Linux, and 'auto' on Windows. See \code{reticulate::py_install()} for more details.}
-
-\item{envname}{Name of the virtual environment.}
-
-\item{new_env}{If \code{TRUE}, any existing Python virtual environment specified by \code{envname} is deleted first.}
-
-\item{include_arrow}{If \code{TRUE}, also installs the Apache Arrow for both R and Python for optimized data conversion. Arrow can be installed later using \code{install_arrow()}.}
+\item{...}{Arguments previously passed to this function (ignored)}
 }
 \description{
-\code{install_birdnet()} installs the python package \code{birdnet} from PyPi into a virtual environment.
+This function is defunct and should not be used.
 }
-\examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-install_birdnet(method = "virtualenv", envname = "r-birdnet", include_arrow = TRUE)
-\dontshow{\}) # examplesIf}
+\details{
+The package functions and Python dependencies are now automatically handled
+by the reticulate package via \code{reticulate::py_require()}.
 }
+\seealso{
+\code{\link{Defunct}}
+}
+\keyword{defunct}
+\keyword{internal}

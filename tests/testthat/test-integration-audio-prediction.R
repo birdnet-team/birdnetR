@@ -1,16 +1,15 @@
-library(testthat)
+# Skip the entire file if not in a full test environment
+skip_if_not(is_full_test_env(), "Not in full test environment - skipping all integration tests")
 
-# Assuming that the BirdNET model and data are set up correctly in the environment.
+# Setup once for all tests
+tflite_model <- get_test_tflite_model(skip_if_not_available = FALSE)
+audio_file <- test_audio_file()
 
-tflite_model <- NULL
-audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
-
-
-test_that("birdnet_model_tflite works", {
-  tflite_model <<- birdnet_model_tflite(version = "v2.4")
-  expect_true(!is.null(tflite_model))
+test_that("predict_species works with default parameters", {
+  predictions <- predict_species_from_audio_file(tflite_model, audio_file)
+  expect_true(!is.null(predictions))
+  expect_true(nrow(predictions) > 0)
 })
-
 
 test_that("birdnet_model structure is correct", {
   expect_s3_class(tflite_model, c("birdnet_model_tflite"))
@@ -83,7 +82,6 @@ test_that("predict_species applies overlap", {
   expect_equal(sort(unique(predictions$start))[1:4], c(0, 2, 4, 6))
 })
 
-
 test_that("predict_species keeps empty intervals when specified", {
   # Keep empty intervals
   predictions_with_empty <- predict_species_from_audio_file(tflite_model, audio_file, keep_empty = TRUE)
@@ -117,7 +115,6 @@ test_that("predict_species handles invalid inputs gracefully", {
 })
 
 test_that("using arrow produces the same predictions", {
-
   check_arrow <- getFromNamespace(".check_arrow", "birdnetR")
   skip_if(!all(check_arrow()), "Arrow is not available")
 

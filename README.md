@@ -3,10 +3,11 @@
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![R-CMD-check](https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml)
+[![CRAN status](https://www.r-pkg.org/badges/version/birdnetR)](https://CRAN.R-project.org/package=birdnetR)
 <!-- badges: end -->
 
 `birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow.
-This package will simplify the analysis of (large) bioacoustic datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
+This package will simplify the analysis of (large) audio datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
 
 `birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). It provides the core functionality to analyze audio using the pre-trained 'BirdNET' model or a custom classifier, and to predict bird species occurrence based on location and week of the year.
 However, it does not include all the advanced features available in the [BirdNET Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For advanced applications, such as training custom classifiers and validation, users should use the 'BirdNET Analyzer' directly.
@@ -26,13 +27,12 @@ or install the development version from GitHub with:
 ```r
 pak::pak("birdnet-team/birdnetR")
 ```
-<br>
-Next, install `birdnet`, which will set up a Python virtual environment named `r-birdnet` by default. You can configure this with the envname parameter. Do this only once during the initial setup or if you encounter issues with the environment.
-```r
-library(birdnetR)
-install_birdnet()
 
-```
+<div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
+<strong>Note</strong><br>
+ Python dependencies are installed on demand, meaning they are installed when you use them for the first time. This will result in longer initial setup.
+</div>
+
 
 ## Example use
 

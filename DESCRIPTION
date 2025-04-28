@@ -1,7 +1,7 @@
 Type: Package
 Package: birdnetR
 Title: Deep Learning for Automated (Bird) Sound Identification
-Version: 0.2.2
+Version: 0.3.1
 Authors@R: c(
     person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
@@ -13,10 +13,13 @@ Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to auto
     Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021) <doi:10.1016/j.ecoinf.2021.101236>.
 License: MIT + file LICENSE
 URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/birdnetR
+Depends:
+    R (>= 4.0)
 Imports:
-    reticulate
+    reticulate (>= 1.41)
 Suggests:
     arrow,
+    curl,
     devtools,
     knitr,
     rmarkdown,
