@@ -16,11 +16,11 @@
 #' @return An S3 object of class `birdnet_model` (and any specified subclass) containing the Python model object
 #' and any additional attributes passed in `...`.
 #'
-#' @keywords internal
-#' @examplesIf interactive()
+#' @noRd
+#' @examples
 #' py_birdnet_models <- reticulate::import("birdnet.models")
 #' tflite_model <- py_birdnet_models$v2m4$AudioModelV2M4TFLite()
-#' birdnet_model <- birdnetR:::new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
+#' birdnet_model <- new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
 new_birdnet_model <- function(x, ..., subclass = character()) {
   stopifnot(reticulate::is_py_object(x)) # Ensure that the input is a valid Python object
 
@@ -42,11 +42,11 @@ new_birdnet_model <- function(x, ..., subclass = character()) {
 #' @param ... Additional arguments passed to the Python model constructor (e.g., `tflite_num_threads`, `language`).
 #'
 #' @return A BirdNET model object of class `birdnet_model` and its subclasses (e.g., "tflite_v2.4").
-#' @keywords internal
-#' @examplesIf interactive()
+#' @noRd
+#' @examples
 #' py_birdnet_models <- reticulate::import("birdnet.models")
 #' birdnet_model <-
-#'   birdnetR:::model_factory(
+#'   model_factory(
 #'     "tflite",
 #'     "v2.4",
 #'     tflite_num_threads = 2,
@@ -345,10 +345,10 @@ labels_path <- function(model, ...) {
 #' @param subfolder Character. The subfolder in which the language files are stored (e.g., "TFLite", "Protobuf").
 #'
 #' @return A character string representing the path to the language file.
-#' @keywords internal
-#' @examplesIf interactive()
-#' model <- birdnetR::birdnet_model_tflite(version = "v2.4", language = "en_us")
-#' language_path <- birdnetR:::get_language_path(model, "en_us", "downloader_tflite", "TFLite")
+#' @noRd
+#' @examples
+#' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
+#' language_path <- get_language_path(model, "en_us", "downloader_tflite", "TFLite")
 get_language_path <- function(model,
                               language,
                               downloader_key,
