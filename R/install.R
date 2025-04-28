@@ -65,23 +65,3 @@ install_arrow <- function(envname = "r-birdnet") {
 
   invisible(TRUE)
 }
-
-#' Install BirdNET and its dependencies (Defunct)
-#'
-#' @description
-#' This function is defunct and should not be used.
-#'
-#' @details
-#' The package functions and Python dependencies are now automatically handled
-#' by the reticulate package via \code{reticulate::py_require()}.
-#'
-#' @param ... Arguments previously passed to this function (ignored)
-#' @seealso \code{\link{Defunct}}
-#' @keywords internal defunct
-#' @export
-install_birdnet <- function(...) {
-  .Defunct(
-    msg = "The 'install_birdnet()' function is defunct.\nThe package functions and Python dependencies are now automatically handled by reticulate::py_require().",
-    package = "birdnetR"
-  )
-}
