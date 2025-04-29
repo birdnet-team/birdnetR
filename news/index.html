@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">birdnetR</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,11 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.2" id="birdnetr-032">birdnetR 0.3.2<a class="anchor" aria-label="anchor" href="#birdnetr-032"></a></h2>
+<ul><li>Removes defunct and deprected functions <code>init_model()</code> and <code>install_birdnet()</code>.</li>
+<li>Includes some minor changes to take CRAN Reviewer comments into account.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.3.1" id="birdnetr-031">birdnetR 0.3.1<a class="anchor" aria-label="anchor" href="#birdnetr-031"></a></h2>
 <div class="section level3">
 <h3 id="major-changes-0-3-1">Major changes<a class="anchor" aria-label="anchor" href="#major-changes-0-3-1"></a></h3>
@@ -47,7 +52,7 @@
 <div class="section level3">
 <h3 id="defunctions-0-3-1">Defunctions<a class="anchor" aria-label="anchor" href="#defunctions-0-3-1"></a></h3>
 <ul><li>
-<code><a href="../reference/install_birdnet.html">install_birdnet()</a></code> is now a defunctioned. It is no longer needed to install the <code>birdnet</code> python package manually. The package will be installed automatically when you use it for the first time.</li>
+<code>install_birdnet()</code> is now a defunctioned. It is no longer needed to install the <code>birdnet</code> python package manually. The package will be installed automatically when you use it for the first time.</li>
 </ul></div>
 </div>
     <div class="section level2">
@@ -66,7 +71,7 @@
 <p>This update brings significant changes and improvements, including support for loading pre-existing and custom-trained models, aligning the package with birdnet <code>0.1.6</code>.</p>
 <div class="section level5">
 <h5 id="breaking-changes-0-2-0">breaking changes:<a class="anchor" aria-label="anchor" href="#breaking-changes-0-2-0"></a></h5>
-<ul><li>The <code><a href="../reference/init_model.html">init_model()</a></code> function is now <strong>deprecated</strong> and will be removed in the next version. Please use the <code>birdnet_model_*</code> function family for model initialization.</li>
+<ul><li>The <code>init_model()</code> function is now <strong>deprecated</strong> and will be removed in the next version. Please use the <code>birdnet_model_*</code> function family for model initialization.</li>
 <li>
 <code><a href="../reference/available_languages.html">available_languages()</a></code> <strong>update</strong>: A new argument has been added to <code><a href="../reference/available_languages.html">available_languages()</a></code> to specify the BirdNET version, making it more flexible for different model versions.</li>
 <li>
