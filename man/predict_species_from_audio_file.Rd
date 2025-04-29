@@ -107,13 +107,12 @@ You can install them manually using \code{\link[=install_arrow]{install_arrow()}
 }
 }
 \examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-library(birdnetR)
-
+\dontrun{
 model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
-\dontshow{\}) # examplesIf}
+}
+
 }
 \references{
 Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5

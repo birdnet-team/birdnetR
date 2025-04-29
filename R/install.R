@@ -16,14 +16,11 @@
 #'
 #' This helper function installs Apache Arrow for both R and Python.
 #'
-#' @param envname Name of the virtual environment. Defaults to 'r-birdnet'.
 #' @return Invisible TRUE if successful, stops with error message if installation fails
 #' @export
-#' @examplesIf interactive()
-#' install_birdnet()
-#' install_arrow()
-#'
-install_arrow <- function(envname = "r-birdnet") {
+#' @examples
+#' \dontrun{install_arrow()}
+install_arrow <- function() {
   arrow_status <- .check_arrow()
 
   # Install R package if needed
@@ -64,24 +61,4 @@ install_arrow <- function(envname = "r-birdnet") {
   }
 
   invisible(TRUE)
-}
-
-#' Install BirdNET and its dependencies (Defunct)
-#'
-#' @description
-#' This function is defunct and should not be used.
-#'
-#' @details
-#' The package functions and Python dependencies are now automatically handled
-#' by the reticulate package via \code{reticulate::py_require()}.
-#'
-#' @param ... Arguments previously passed to this function (ignored)
-#' @seealso \code{\link{Defunct}}
-#' @keywords internal defunct
-#' @export
-install_birdnet <- function(...) {
-  .Defunct(
-    msg = "The 'install_birdnet()' function is defunct.\nThe package functions and Python dependencies are now automatically handled by reticulate::py_require().",
-    package = "birdnetR"
-  )
 }

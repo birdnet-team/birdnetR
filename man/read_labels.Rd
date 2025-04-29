@@ -22,10 +22,12 @@ read_labels(system.file("extdata", "species_list.txt", package = "birdnetR"))
 
 # To access all class labels that are supported in your language,
 # you can read in the respective label file
+\dontrun{
 model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 labels_path <- labels_path(model, "fr")
 species_list <- read_labels(labels_path)
 head(species_list)
+}
 \dontshow{\}) # examplesIf}
 }
 \seealso{

@@ -9,7 +9,6 @@ reference:
 - subtitle: Models
 - contents:
   - starts_with("birdnet_")
-  - init_model
 - subtitle: Prediction
 - contents:
   - contains("predict")

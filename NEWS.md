@@ -1,3 +1,8 @@
+# birdnetR 0.3.2
+
+- Removes defunct and deprected functions `init_model()` and `install_birdnet()`.
+- Includes some minor changes to take CRAN Reviewer comments into account.
+
 # birdnetR 0.3.1
 
 ## Major changes

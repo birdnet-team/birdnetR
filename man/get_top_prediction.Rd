@@ -21,7 +21,6 @@ This convenience function retrieves the row(s) with the highest confidence value
 It can also limit the results to a specific time interval if specified.
 }
 \examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Example data
 data <- data.frame(
   start = c(0, 0, 1, 1, 2, 2),
@@ -53,8 +52,11 @@ get_top_prediction(data)
 get_top_prediction(data, filter = list(start = 1, end = 2))
 
 # The same thing can be done using dplyr
-# data |>
-#    dplyr::group_by(start, end) |>
-#    dplyr::slice_max(order_by = confidence)
-\dontshow{\}) # examplesIf}
+\dontrun{
+ data |>
+    dplyr::group_by(start, end) |>
+    dplyr::slice_max(order_by = confidence)
+}
+
+
 }

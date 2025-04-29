@@ -50,7 +50,30 @@ If \code{custom_device} is not specified (i.e., it has the default value None), 
 If no GPU is available, it will fall back to using the CPU. By specifying a device string such as "/device:GPU:0" or "/device:CPU:0", the user can explicitly choose the device on which operations should be executed.}
 }
 \value{
-A BirdNET model object.
+A BirdNET model object, which is an S3 object of class \code{birdnet_model} and specific subclasses (e.g., \code{birdnet_model_tflite}, \code{birdnet_model_v2_4}). This object is a list containing:
+\describe{
+\item{\code{py_model}}{The underlying Python BirdNET model object.}
+\item{\code{model_version}}{The version string of the model (e.g., "v2.4").}
+\item{...}{Additional elements specific to the model type:}
+\itemize{
+\item \strong{For \code{birdnet_model_tflite} and \code{birdnet_model_meta}:}
+\itemize{
+\item \code{language}: The language code used (e.g., "en_us").
+\item \code{tflite_num_threads}: The number of TFLite threads used (or \code{NULL}).
+}
+\item \strong{For \code{birdnet_model_custom}:}
+\itemize{
+\item \code{classifier_folder}: Path to the custom classifier folder.
+\item \code{classifier_name}: Name of the custom classifier.
+\item \code{tflite_num_threads}: The number of TFLite threads used (or \code{NULL}).
+}
+\item \strong{For \code{birdnet_model_protobuf}:}
+\itemize{
+\item \code{language}: The language code used (e.g., "en_us").
+\item \code{custom_device}: The custom device specified (or \code{NULL}).
+}
+}
+}
 }
 \description{
 The various function of the \verb{birdnet_model_*} family are used to create and initialize diffent BirdNET models. Models will be downloaded if necessary.
@@ -74,10 +97,10 @@ The \code{\link[=birdnet_model_meta]{birdnet_model_meta()}} model can be used to
 Currently, all models can only be executed on the CPU. GPU support is only available on Apple Silicon.
 }
 \examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Create a TFLite BirdNET model with 2 threads and English (US) language
+\dontrun{
 birdnet_model <- birdnet_model_tflite(version = "v2.4", language = "en_us", tflite_num_threads = 2)
-\dontshow{\}) # examplesIf}
+}
 }
 \seealso{
 \code{\link[=available_languages]{available_languages()}} \code{\link[=predict_species_from_audio_file]{predict_species_from_audio_file()}} \code{\link[=predict_species_at_location_and_time]{predict_species_at_location_and_time()}}

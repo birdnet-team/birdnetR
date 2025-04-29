@@ -16,11 +16,11 @@
 #' @return An S3 object of class `birdnet_model` (and any specified subclass) containing the Python model object
 #' and any additional attributes passed in `...`.
 #'
-#' @keywords internal
-#' @examplesIf interactive()
+#' @noRd
+#' @examples
 #' py_birdnet_models <- reticulate::import("birdnet.models")
 #' tflite_model <- py_birdnet_models$v2m4$AudioModelV2M4TFLite()
-#' birdnet_model <- birdnetR:::new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
+#' birdnet_model <- new_birdnet_model(tflite_model, language = "en_us", version = "v2.4")
 new_birdnet_model <- function(x, ..., subclass = character()) {
   stopifnot(reticulate::is_py_object(x)) # Ensure that the input is a valid Python object
 
@@ -42,11 +42,11 @@ new_birdnet_model <- function(x, ..., subclass = character()) {
 #' @param ... Additional arguments passed to the Python model constructor (e.g., `tflite_num_threads`, `language`).
 #'
 #' @return A BirdNET model object of class `birdnet_model` and its subclasses (e.g., "tflite_v2.4").
-#' @keywords internal
-#' @examplesIf interactive()
+#' @noRd
+#' @examples
 #' py_birdnet_models <- reticulate::import("birdnet.models")
 #' birdnet_model <-
-#'   birdnetR:::model_factory(
+#'   model_factory(
 #'     "tflite",
 #'     "v2.4",
 #'     tflite_num_threads = 2,
@@ -116,10 +116,35 @@ model_factory <- function(model_name, version, ...) {
 #' Will be coerced to an integer if possible.
 #'
 #' @seealso [available_languages()] [predict_species_from_audio_file()] [predict_species_at_location_and_time()]
-#' @return A BirdNET model object.
-#' @examplesIf interactive()
+#' @return A BirdNET model object, which is an S3 object of class `birdnet_model` and specific subclasses (e.g., `birdnet_model_tflite`, `birdnet_model_v2_4`). This object is a list containing:
+#' \describe{
+#'   \item{`py_model`}{The underlying Python BirdNET model object.}
+#'   \item{`model_version`}{The version string of the model (e.g., "v2.4").}
+#'   \item{...}{Additional elements specific to the model type:}
+#'   \itemize{
+#'     \item **For `birdnet_model_tflite` and `birdnet_model_meta`:**
+#'       \itemize{
+#'         \item `language`: The language code used (e.g., "en_us").
+#'         \item `tflite_num_threads`: The number of TFLite threads used (or `NULL`).
+#'       }
+#'     \item **For `birdnet_model_custom`:**
+#'       \itemize{
+#'         \item `classifier_folder`: Path to the custom classifier folder.
+#'         \item `classifier_name`: Name of the custom classifier.
+#'         \item `tflite_num_threads`: The number of TFLite threads used (or `NULL`).
+#'       }
+#'     \item **For `birdnet_model_protobuf`:**
+#'       \itemize{
+#'         \item `language`: The language code used (e.g., "en_us").
+#'         \item `custom_device`: The custom device specified (or `NULL`).
+#'       }
+#'   }
+#' }
+#' @examples
 #' # Create a TFLite BirdNET model with 2 threads and English (US) language
+#' \dontrun{
 #' birdnet_model <- birdnet_model_tflite(version = "v2.4", language = "en_us", tflite_num_threads = 2)
+#' }
 #' @name birdnet_model_load
 NULL
 #> NULL
@@ -245,30 +270,6 @@ birdnet_model_protobuf <- function(version = "v2.4",
 }
 
 
-#' Initialize the BirdNET Model (Deprecated)
-#'
-#' This function initializes the BirdNET model (v2.4). It is kept for backward compatibility and is deprecated.
-#' Use [birdnet_model_tflite()] instead for model initialization.
-#'
-#' @param tflite_num_threads integer. The number of threads to use for TensorFlow Lite operations. If NULL (default), the default threading behavior will be used.
-#'  Will be coerced to an integer if possible.
-#' @param language Character string specifying the language code to use for the model's text processing. The language must be one of the available languages supported by the BirdNET model.
-#' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
-#' @seealso [available_languages()] [birdnet_model_tflite()]
-#' @return An instance of the BirdNET model.
-#' @export
-#' @note This function is kept for backward compatibility. Please use [birdnet_model_tflite()] instead.
-init_model <- function(tflite_num_threads = NULL, language = "en_us") {
-  .Deprecated("birdnet_model_tflite", package = "birdnetR")
-  birdnet_model_tflite(
-    version = "v2.4",
-    language = language,
-    tflite_num_threads = tflite_num_threads
-  )
-}
-
-
-
 #' Get Available Languages for BirdNET Model
 #'
 #' Retrieve the available languages supported by a specific version of BirdNET.
@@ -276,8 +277,8 @@ init_model <- function(tflite_num_threads = NULL, language = "en_us") {
 #' @param version character. The version of BirdNET to use (default is "v2.4", no other versions are currently supported).
 #'
 #' @return A sorted character vector containing the available language codes.
-#' @examplesIf interactive()
-#' available_languages("v2.4")
+#' @examples
+#' \dontrun{available_languages("v2.4")}
 #' @export
 available_languages <- function(version) {
   module_map <- create_module_map(version = version, "py_birdnet_models")
@@ -298,9 +299,11 @@ available_languages <- function(version) {
 #'                 The language must be one of the available languages supported by the BirdNET model.
 #' @param ... Additional arguments passed to the method dispatch function.
 #' @return A character string representing the file path to the labels file for the specified language.
-#' @examplesIf interactive()
+#' @examples
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4")
 #' labels_path(model, "fr")
+#' }
 #' @note The `language` parameter must be one of the available languages returned by `available_languages()`.
 #' @seealso [available_languages()] [read_labels()]
 #' @export
@@ -322,10 +325,12 @@ labels_path <- function(model, ...) {
 #' @param subfolder Character. The subfolder in which the language files are stored (e.g., "TFLite", "Protobuf").
 #'
 #' @return A character string representing the path to the language file.
-#' @keywords internal
-#' @examplesIf interactive()
-#' model <- birdnetR::birdnet_model_tflite(version = "v2.4", language = "en_us")
-#' language_path <- birdnetR:::get_language_path(model, "en_us", "downloader_tflite", "TFLite")
+#' @noRd
+#' @examples
+#' \dontrun{
+#' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
+#' language_path <- get_language_path(model, "en_us", "downloader_tflite", "TFLite")
+#' }
 get_language_path <- function(model,
                               language,
                               downloader_key,
@@ -392,10 +397,13 @@ labels_path.birdnet_model_protobuf <- function(model, language, ...) {
 #'
 #' # To access all class labels that are supported in your language,
 #' # you can read in the respective label file
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' labels_path <- labels_path(model, "fr")
 #' species_list <- read_labels(labels_path)
 #' head(species_list)
+#' }
+#'
 read_labels <- function(species_file) {
   species_file_path <- py_pathlib$Path(species_file)$expanduser()$resolve(TRUE)
   py_species_list <- py_birdnet_utils$get_species_from_file(species_file_path)
@@ -459,12 +467,13 @@ read_labels <- function(species_file) {
 #' @seealso [`read_labels()`] for more details on species filtering.
 #' @seealso [`birdnet_model_tflite()`], [`birdnet_model_protobuf()`], [`birdnet_model_custom()`]
 #' @export
-#' @examplesIf interactive()
-#' library(birdnetR)
-#'
+#' @examples
+#' \dontrun{
 #' model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 #' predictions <- predict_species_from_audio_file(model, audio_file, min_confidence = 0.1)
+#' }
+#'
 predict_species_from_audio_file <- function(
     model,
     audio_file,
@@ -596,10 +605,12 @@ predict_species_from_audio_file.birdnet_model <- function(
 #'
 #' @return A data frame with columns: `label`, `confidence`. Each row represents a predicted species, with the `confidence` indicating the likelihood of the species being present at the specified location and time.
 #' @export
-#' @examplesIf interactive()
+#' @examples
 #' # Predict species in Chemnitz, Germany, that are present all year round
+#' \dontrun{
 #' model <- birdnet_model_meta(language = "de")
 #' predict_species_at_location_and_time(model, latitude = 50.8334, longitude = 12.9231)
+#' }
 predict_species_at_location_and_time <- function(
     model,
     latitude,

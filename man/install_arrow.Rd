@@ -4,10 +4,7 @@
 \alias{install_arrow}
 \title{Install Apache Arrow}
 \usage{
-install_arrow(envname = "r-birdnet")
-}
-\arguments{
-\item{envname}{Name of the virtual environment. Defaults to 'r-birdnet'.}
+install_arrow()
 }
 \value{
 Invisible TRUE if successful, stops with error message if installation fails
@@ -16,8 +13,5 @@ Invisible TRUE if successful, stops with error message if installation fails
 This helper function installs Apache Arrow for both R and Python.
 }
 \examples{
-\dontshow{if (interactive()) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
-install_birdnet()
-install_arrow()
-\dontshow{\}) # examplesIf}
+\dontrun{install_arrow()}
 }
