@@ -1,0 +1,1 @@
+Avoid these words: "seamless", "powerful", "leverage", "paramount", "cutting-edge", "revolutionary", "innovative", "transformative", "unprecedented", "pioneering", "groundbreaking", "disruptive", "game-changing", "next-generation"
