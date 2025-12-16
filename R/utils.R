@@ -24,21 +24,25 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
   }
 
   # Pre-calculate total detections (inner list lengths)
-  detection_counts <- vapply(predictions, function(pred) {
-    n <- length(pred)
-    if (n == 0L) {
-      if (keep_empty) 1L else 0L
-    } else {
-      n
-    }
-  }, FUN.VALUE = integer(1))
+  detection_counts <- vapply(
+    predictions,
+    function(pred) {
+      n <- length(pred)
+      if (n == 0L) {
+        if (keep_empty) 1L else 0L
+      } else {
+        n
+      }
+    },
+    FUN.VALUE = integer(1)
+  )
 
   total_detections <- sum(detection_counts)
 
   # Pre-allocate vectors for time values, raw label strings, and confidence scores.
-  starts      <- numeric(total_detections)
-  ends        <- numeric(total_detections)
-  labels_all  <- character(total_detections)
+  starts <- numeric(total_detections)
+  ends <- numeric(total_detections)
+  labels_all <- character(total_detections)
   confidences <- numeric(total_detections)
 
   idx <- 1L
@@ -48,7 +52,9 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
     num_preds <- length(preds)
 
     if (num_preds == 0L) {
-      if (!keep_empty) next
+      if (!keep_empty) {
+        next
+      }
       # If there are no predictions and we want to keep empty entries,
       # insert a placeholder.
       preds <- list("NA_NA" = NA_real_)
@@ -58,16 +64,20 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
     # Parse the time interval (e.g. "(0.0, 3.0)") into numeric start and end.
     time_vals <- as.numeric(strsplit(gsub("[()]", "", interval), ",")[[1]])
     if (length(time_vals) != 2L) {
-      stop("Time interval '", interval, "' does not contain exactly two numeric values.")
+      stop(
+        "Time interval '",
+        interval,
+        "' does not contain exactly two numeric values."
+      )
     }
 
     # Store the labels as they are (e.g., "Poecile atricapillus_Black-capped Chickadee").
     current_labels <- names(preds)
 
     idx_range <- idx:(idx + num_preds - 1L)
-    starts[idx_range]      <- time_vals[1]
-    ends[idx_range]        <- time_vals[2]
-    labels_all[idx_range]  <- current_labels
+    starts[idx_range] <- time_vals[1]
+    ends[idx_range] <- time_vals[2]
+    labels_all[idx_range] <- current_labels
     confidences[idx_range] <- unlist(preds, use.names = FALSE)
 
     idx <- idx + num_preds
@@ -101,7 +111,6 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
 }
 
 
-
 #' Check if an Object is a Valid Species List
 #'
 #' This internal function checks if an object is either a character vector of length greater than 0
@@ -124,7 +133,9 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
 is_valid_species_list <- function(obj) {
   # Check if the object is a character vector of length > 0 and not a list
   is_vector <- is.vector(obj) &&
-    length(obj) > 0 && !is.list(obj) && is.character(obj)
+    length(obj) > 0 &&
+    !is.list(obj) &&
+    is.character(obj)
 
   # Check if the object is a non-empty list where each element is a single character string
   is_list_single_elements <- is.list(obj) &&
@@ -135,4 +146,29 @@ is_valid_species_list <- function(obj) {
 
   # Return TRUE if either condition is met
   return(is_vector || is_list_single_elements)
+}
+
+#' Check if an Object is a Valid Minimum Confidence List
+#' This internal function checks if an object is a named list where each element is a single numeric value.
+#' @param obj The object to check.
+#' @noRd
+#' @return A logical value indicating whether the object is a valid minimum confidence list
+#' @examples
+#' is_valid_min_confidence_list(list(species1 = 0.5, species2 = 0.7)) # TRUE
+#' is_valid_min_confidence_list(list(species1 = c(0.5, 0.7))) # FALSE
+#' is_valid_min_confidence_list(list(species1 = "0.5")) # FALSE
+#' is_valid_min_confidence_list(list()) # FALSE
+#' is_valid_min_confidence_list(c(0.5, 0.7)) # FALSE
+#' is_valid_min_confidence_list("species1") # FALSE
+#' is_valid_min_confidence_list(NULL) # FALSE
+#' is_valid_min_confidence_list(0.5) # FALSE
+#' is_valid_min_confidence_list(NA) # FALSE
+
+is_valid_min_confidence_list <- function(obj) {
+  is_named_list <- is.list(obj) &&
+    !is.null(names(obj)) &&
+    length(obj) > 0 &&
+    all(sapply(obj, function(x) is.numeric(x) && length(x) == 1))
+
+  return(is_named_list)
 }

@@ -15,11 +15,8 @@
 ## usethis namespace: end
 
 # Import the necessary Python modules layzily in .onLoad
-py_birdnet_models <- NULL
-py_birdnet_utils <- NULL
-py_birdnet_audio_based_prediction <- NULL
-py_birdnet_location_based_prediction <- NULL
-py_birdnet_types <- NULL
+py_birdnet <- NULL
+py_birdnet_globals <- NULL
 py_pathlib <- NULL
 py_builtins <- NULL
 
@@ -33,7 +30,6 @@ py_builtins <- NULL
 #' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
-
   # set the KERAS_HOME environment variable (dont't write to user home)
   Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
 
@@ -45,17 +41,19 @@ py_builtins <- NULL
   reticulate::py_require(
     c(
       "numpy>=1.23.5,<2.0.0",
-      "birdnet==0.1.7"
+      # "birdnet==0.1.7"
+      "git+https://github.com/birdnet-team/birdnet@v0.2.0a0",
+      "ai_edge_litert==1.4.0"
     ),
-    python_version = ">=3.9,<3.12"
+    python_version = ">=3.11,<3.12"
   )
 
   # Use superassignment to update global reference to the Python packages
-  py_birdnet_models <<- reticulate::import("birdnet.models", delay_load = TRUE) # list(before_load = .check_birdnet_version()
-  py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
-  py_birdnet_audio_based_prediction <<- reticulate::import("birdnet.audio_based_prediction", delay_load = TRUE)
-  py_birdnet_location_based_prediction <<- reticulate::import("birdnet.location_based_prediction", delay_load = TRUE)
-  py_birdnet_types <<- reticulate::import("birdnet.types", delay_load = TRUE)
+  py_birdnet <<- reticulate::import("birdnet", delay_load = TRUE)
+  py_birdnet_globals <<- reticulate::import(
+    "birdnet.globals",
+    delay_load = TRUE
+  )
   py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- reticulate::import_builtins(delay_load = TRUE)
 }
