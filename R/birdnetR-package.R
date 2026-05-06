@@ -40,12 +40,12 @@ py_builtins <- NULL
   # To prevent conflicts, we specify a version range according to `birdnet`python.
   reticulate::py_require(
     c(
-      "numpy>=1.23.5,<2.0.0",
-      # "birdnet==0.1.7"
-      "git+https://github.com/birdnet-team/birdnet@v0.2.0a0",
-      "ai_edge_litert==1.4.0"
+      # "numpy>=1.23.5,<2.0.0",
+      # "git+https://github.com/birdnet-team/birdnet@v0.2.0a0",
+      #"ai_edge_litert==1.4.0",
+      "birdnet==0.2.15"
     ),
-    python_version = ">=3.11,<3.12"
+    python_version = ">=3.11, <3.14"
   )
 
   # Use superassignment to update global reference to the Python packages

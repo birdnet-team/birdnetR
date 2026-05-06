@@ -77,7 +77,7 @@ construct_model_class <- function(
 #'
 #' The argument `library` is only used for the TensorFlow backend and specifies the library to use:
 #' * `"litert"`: The LiteRT library for running TensorFlow Lite models.
-#' * `"tf"`: The standard TensorFlow library.
+#' * `"tflite"`: The standard TensorFlow Lite library.
 #'
 #' The argument `precision` specifies the precision of the model:
 #' * `"int8"`: 8-bit integer precision, which is the most efficient in terms of speed and memory usage.
@@ -161,8 +161,10 @@ load_model <- function(
 
 #' @rdname load_birdnet_model
 #' @param model If backend is "tf", path to custom model file. If backend is "pb", path to model directory.
-#' @param labels Path to the labels file.
+#' @param species_list Path to the species list file.
 #' @param check_validity Checks if the model is loadable by loading the model twice.
+#' @param classifier_type Advanced option for custom TensorFlow models. Controls how the custom classifier head is interpreted.
+#' @param is_raven Advanced option for custom protobuf models. Indicates whether the model uses the Raven protobuf layout.
 #' @export
 
 load_custom <- function(
@@ -172,21 +174,24 @@ load_custom <- function(
   library = NULL,
   precision = "fp32",
   model = NULL,
-  labels = NULL,
-  check_validity = TRUE
+  species_list = NULL,
+  check_validity = TRUE,
+  classifier_type = NULL,
+  is_raven = NULL
 ) {
   args <- list(
     type,
     version,
     backend,
     model,
-    labels,
-    precision = precision
+    species_list,
+    precision = precision,
+    check_validity = check_validity
   )
 
   # Most of the arguments are validated in the Python function
-  if (is.null(model) || is.null(labels)) {
-    stop("Both `model` and `labels` must be provided.")
+  if (is.null(model) || is.null(species_list)) {
+    stop("Both `model` and `species_list` must be provided.")
   }
 
   if (!is.null(library) && backend != "tf") {
@@ -200,6 +205,14 @@ load_custom <- function(
     args$library <- library
   }
 
+  if (!is.null(classifier_type)) {
+    args$classifier_type <- classifier_type
+  }
+
+  if (!is.null(is_raven)) {
+    args$is_raven <- is_raven
+  }
+
   py_model <- do.call(py_birdnet$load_custom, args)
 
   construct_model_class(
@@ -209,7 +222,7 @@ load_custom <- function(
     version = version,
     custom = TRUE,
     model_path = model,
-    labels_path = labels,
+    species_list_path = species_list,
     # this excludes positional (unnamed) arguments and NULL values.
     args[names(args) != "" & sapply(args, Negate(is.null))]
   )

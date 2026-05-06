@@ -2,19 +2,24 @@
 % Please edit documentation in R/save.R
 \name{save_birdnet}
 \alias{save_birdnet}
-\alias{save_birdnet.birdnet_prediction_v2_4}
+\alias{save_birdnet.birdnet_prediction_geo}
+\alias{save_birdnet.birdnet_prediction}
 \title{Save BirdNET prediction results to file}
 \usage{
-save_birdnet(x, file, format = c("csv", "parquet", "npz"), ...)
+save_birdnet(x, file, format = NULL, ...)
 
-\method{save_birdnet}{birdnet_prediction_v2_4}(x, file, format = c("csv", "parquet", "npz"), ...)
+\method{save_birdnet}{birdnet_prediction_geo}(x, file, format = NULL, ...)
+
+\method{save_birdnet}{birdnet_prediction}(x, file, format = NULL, ...)
 }
 \arguments{
 \item{x}{A BirdNET prediction object (as returned by \code{predict()}).}
 
 \item{file}{Output file path.}
 
-\item{format}{Output file format, one of \code{"csv"}, \code{"parquet"}, \code{"npz"}.}
+\item{format}{Output file format. If \code{NULL} (default), inferred from
+the file extension. Explicit values: \code{"csv"}, \code{"parquet"},
+\code{"npz"}.}
 
 \item{...}{Additional arguments passed to the underlying Python method.}
 }
@@ -22,12 +27,21 @@ save_birdnet(x, file, format = c("csv", "parquet", "npz"), ...)
 Invisibly returns the output file path.
 }
 \description{
-Save prediction results to disk in various formats (e.g., CSV, parquet, npz)
-using the underlying Python object. Supported formats are: 'csv', 'parquet', 'npz'.
+Save prediction results to disk using the underlying Python result object.
+The format can be inferred from the file extension or specified explicitly.
+}
+\details{
+Supported formats by prediction type:
+\itemize{
+\item \strong{Acoustic predictions}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
+\item \strong{Geo predictions}: CSV (\code{.csv}), NumPy (\code{.npz})
+}
 }
 \examples{
 \dontrun{
-save_birdnet(pred, "results.csv", format = "csv")
-save_birdnet(pred, "results.parquet", format = "parquet")
+save_birdnet(pred, "results.csv")
+save_birdnet(pred, "results.parquet")
+save_birdnet(pred, "results.npz")
+save_birdnet(pred, "output.csv", format = "csv")
 }
 }

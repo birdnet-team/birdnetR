@@ -22,8 +22,10 @@ load_custom(
   library = NULL,
   precision = "fp32",
   model = NULL,
-  labels = NULL,
-  check_validity = TRUE
+  species_list = NULL,
+  check_validity = TRUE,
+  classifier_type = NULL,
+  is_raven = NULL
 )
 }
 \arguments{
@@ -32,9 +34,13 @@ Common species names are returned in the specified language if available. Use \c
 
 \item{model}{If backend is "tf", path to custom model file. If backend is "pb", path to model directory.}
 
-\item{labels}{Path to the labels file.}
+\item{species_list}{Path to the species list file.}
 
 \item{check_validity}{Checks if the model is loadable by loading the model twice.}
+
+\item{classifier_type}{Advanced option for custom TensorFlow models. Controls how the custom classifier head is interpreted.}
+
+\item{is_raven}{Advanced option for custom protobuf models. Indicates whether the model uses the Raven protobuf layout.}
 }
 \value{
 A BirdNET model object, which is an S3 object of class \code{birdnet_model} and specific subclasses (e.g., \code{birdnet_model_tflite}, \code{birdnet_model_v2_4}). This object is a list containing:
@@ -82,7 +88,7 @@ The argument \code{backend} specifies the backend to use:
 The argument \code{library} is only used for the TensorFlow backend and specifies the library to use:
 \itemize{
 \item \code{"litert"}: The LiteRT library for running TensorFlow Lite models.
-\item \code{"tf"}: The standard TensorFlow library.
+\item \code{"tflite"}: The standard TensorFlow Lite library.
 }
 
 The argument \code{precision} specifies the precision of the model:
