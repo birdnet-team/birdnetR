@@ -39,13 +39,8 @@ py_builtins <- NULL
   # Versions of Python and BirdNET; numpy is automatically installed by `reticulate`.
   # To prevent conflicts, we specify a version range according to `birdnet`python.
   reticulate::py_require(
-    c(
-      # "numpy>=1.23.5,<2.0.0",
-      # "git+https://github.com/birdnet-team/birdnet@v0.2.0a0",
-      #"ai_edge_litert==1.4.0",
-      "birdnet==0.2.15"
-    ),
-    python_version = ">=3.11, <3.14"
+    "birdnet==0.2.15",
+    python_version = ">=3.11,<3.14"
   )
 
   # Use superassignment to update global reference to the Python packages
