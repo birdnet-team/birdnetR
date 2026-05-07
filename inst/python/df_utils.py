@@ -37,10 +37,15 @@ def predictions_to_dict(py_predictions: Any, **kwargs: Any) -> dict[str, Any]:
 
     for name in dtype_names:
         column = structured[name]
-        # Multi-dimensional columns or object/string dtypes: materialise as
-        # plain Python lists so reticulate converts element-wise.
-        if column.ndim > 1 or column.dtype.kind in ("U", "O"):
+        if column.ndim > 1:
+            # Multi-dimensional columns: materialise as plain Python lists
+            # so reticulate converts element-wise.
             result[name] = column.tolist()
+        elif column.dtype.kind in ("U", "O"):
+            # String / object dtypes: ensure every element is a plain str
+            # (not np.str_ or pathlib.Path) so reticulate maps them to
+            # R character vectors.
+            result[name] = [str(v) for v in column.tolist()]
         else:
             result[name] = column
 
