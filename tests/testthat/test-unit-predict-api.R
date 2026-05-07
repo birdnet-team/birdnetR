@@ -110,21 +110,53 @@ test_that("predict.birdnet_model_geo forwards arguments to Python", {
   expect_equal(captured_args$min_confidence, 0.05)
 })
 
-test_that("as.data.frame converts prediction to data frame", {
-  mock_df <- data.frame(
+test_that("as.data.frame converts acoustic prediction to data frame", {
+  mock_dict <- list(
     species_name = "Blue Jay",
-    confidence = 0.85,
-    stringsAsFactors = FALSE
+    confidence = 0.85
   )
+
+  mock_helper <- list(
+    predictions_to_dict = function(py_predictions, ...) mock_dict
+  )
+  testthat::local_mocked_bindings(get_df_helper = function() mock_helper)
+
   pred <- structure(
-    list(py_predictions = list(to_dataframe = function(...) mock_df)),
+    list(py_predictions = list()),
     class = c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
 
   result <- as.data.frame(pred)
-  expect_true(is.data.frame(result))
+  expect_s3_class(result, "data.frame")
   expect_equal(nrow(result), 1)
   expect_equal(result$species_name, "Blue Jay")
+})
+
+test_that("as.data.frame converts geo prediction to data frame", {
+  mock_dict <- list(
+    species_name = c("Blue Jay", "House Sparrow"),
+    confidence = c(0.85, 0.50)
+  )
+
+  captured_kwargs <- NULL
+  mock_helper <- list(
+    predictions_to_dict = function(py_predictions, ...) {
+      captured_kwargs <<- list(...)
+      mock_dict
+    }
+  )
+  testthat::local_mocked_bindings(get_df_helper = function() mock_helper)
+
+  pred <- structure(
+    list(py_predictions = list()),
+    class = c("birdnet_prediction_geo", "birdnet_prediction")
+  )
+
+  result <- as.data.frame(pred)
+  expect_s3_class(result, "data.frame")
+  expect_equal(nrow(result), 2)
+  # Verify sort_by = NULL was passed (not the Python default "species")
+  expect_null(captured_kwargs$sort_by)
 })
 
 test_that("as.data.frame errors when no predictions available", {
@@ -134,4 +166,49 @@ test_that("as.data.frame errors when no predictions available", {
   )
 
   expect_error(as.data.frame(pred), "No prediction results available")
+})
+
+test_that("df_utils.predictions_to_dict converts structured array to R-friendly dict", {
+  skip_if_not_installed("reticulate")
+  skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
+
+  # Build a numpy structured array matching birdnet's geo format
+  mock_pred <- reticulate::py_run_string("
+import numpy as np
+
+class MockGeoPred:
+    def to_structured_array(self, **kwargs):
+        dtype = [('species_name', '<U20'), ('confidence', np.float32)]
+        arr = np.empty(2, dtype=dtype)
+        arr['species_name'] = ['Blue Jay', 'House Sparrow']
+        arr['confidence'] = [0.85, 0.50]
+        return arr
+", convert = FALSE)
+
+  helper <- reticulate::import_from_path(
+    "df_utils",
+    system.file("python", package = "birdnetR")
+  )
+
+  result <- helper$predictions_to_dict(mock_pred$MockGeoPred())
+
+  # Result should be a plain R list
+  expect_type(result, "list")
+  expect_named(result, c("species_name", "confidence"))
+
+  # String column must be character vector of correct length
+  expect_type(result$species_name, "character")
+  expect_length(result$species_name, 2)
+  expect_equal(result$species_name, c("Blue Jay", "House Sparrow"))
+
+  # Numeric column
+  expect_type(result$confidence, "double")
+  expect_length(result$confidence, 2)
+  expect_equal(as.numeric(result$confidence), c(0.85, 0.50), tolerance = 1e-4)
+
+  # Must produce a valid data.frame
+  df <- as.data.frame(result, stringsAsFactors = FALSE)
+  expect_s3_class(df, "data.frame")
+  expect_equal(nrow(df), 2)
+  expect_true(all(sapply(df, length) == nrow(df)))
 })
