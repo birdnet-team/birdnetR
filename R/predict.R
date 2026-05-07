@@ -41,7 +41,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #'
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
-#' @param model A BirdNET model object of class `birdnet_model_acoustic` created with [load_model(type = "acoustic")].
+#' @param object A BirdNET model object of class `birdnet_model_acoustic` created with [load_model()].
 #' @param files A character vector of file paths to audio files.
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
 #' @param min_confidence_custom A named list where each element is a single numeric value to set custom minimum confidence thresholds for specific species. A custom threshold will override the default one.
@@ -52,6 +52,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #' @param bandpass_fmin,bandpass_fmax A integer value to set minimum and maximum frequencies for the bandpass filter (in Hz).
 #' @param species_list A character vector or list of species names to filter the predictions. If `NULL`, all species are considered.
 #' @param progress A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".
+#' @param ... Additional arguments passed to the generic (currently unused).
 #'
 #' @return An S3 object of class `birdnet_prediction_acoustic` and `birdnet_prediction` containing the prediction results.
 #' @export
@@ -67,7 +68,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #' }
 #'
 predict.birdnet_model_acoustic <- function(
-  model,
+  object,
   files,
   min_confidence = 0.1,
   min_confidence_custom = NULL,
@@ -78,8 +79,10 @@ predict.birdnet_model_acoustic <- function(
   bandpass_fmin = 0L,
   bandpass_fmax = 15000L,
   species_list = NULL,
-  progress = c("minimal", "progress", "benchmark")
+  progress = c("minimal", "progress", "benchmark"),
+  ...
 ) {
+  model <- object
   progress <- match.arg(progress)
 
   # Check argument types for better error messages
@@ -142,11 +145,12 @@ predict.birdnet_model_acoustic <- function(
 #'
 #' This function predicts species occurence for a location and week of the year using a BirdNET geo model.
 #'
-#' @param model A BirdNET model object of class `birdnet_model_geo` created with [load_model(type = "geo")].
+#' @param object A BirdNET model object of class `birdnet_model_geo` created with [load_model()].
 #' @param latitude A numeric value representing the latitude of the location.
 #' @param longitude A numeric value representing the longitude of the location.
 #' @param week An integer value representing the week of the year (1-52).
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
+#' @param ... Additional arguments passed to the generic (currently unused).
 #'
 #' @return An S3 object of class `birdnet_prediction_geo` and `birdnet_prediction` containing the prediction results.
 #' @export
@@ -161,12 +165,14 @@ predict.birdnet_model_acoustic <- function(
 #'}
 #'
 predict.birdnet_model_geo <- function(
-  model,
+  object,
   latitude,
   longitude,
   week = NULL,
-  min_confidence = 0.1
+  min_confidence = 0.1,
+  ...
 ) {
+  model <- object
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.numeric(latitude))
@@ -192,9 +198,14 @@ predict.birdnet_model_geo <- function(
 #' Convert predictions from a geo or acoustic model to a data frame.
 #'
 #' @param x A BirdNET prediction object (as returned by `predict()`).
+#' @param row.names `NULL` or a character vector giving the row names for the
+#'   data frame. Not used.
+#' @param optional logical. Not used.
+#' @param ... Additional arguments (ignored).
 #'
 #' @return A data frame containing the prediction results.
 #' @export
+#' @rdname as.data.frame.birdnet_prediction
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET acoustic model
@@ -205,20 +216,43 @@ predict.birdnet_model_geo <- function(
 #' # Convert predictions to a data frame
 #' as.data.frame(predictions)
 #' }
-
-as.data.frame.birdnet_prediction <- function(x) {
+as.data.frame.birdnet_prediction <- function(x, row.names = NULL, optional = FALSE, ...) {
   py_result <- x$py_predictions
   if (is.null(py_result)) {
     stop("No prediction results available.")
   }
 
-  # Convert the Python DataFrame to an R data frame
-  df <- x$py_predictions$to_dataframe()
+  # Convert via structured array → dict (bypasses pandas entirely)
+  dict_data <- get_df_helper()$predictions_to_dict(py_result)
+  as.data.frame(dict_data, stringsAsFactors = FALSE)
+}
 
-  # Ensure the data frame has the correct structure
-  if (!is.data.frame(df)) {
-    stop("The prediction results could not be converted to a data frame.")
+#' @rdname as.data.frame.birdnet_prediction
+#' @method as.data.frame birdnet_prediction_geo
+#' @export
+as.data.frame.birdnet_prediction_geo <- function(x, row.names = NULL, optional = FALSE, ...) {
+  py_result <- x$py_predictions
+  if (is.null(py_result)) {
+    stop("No prediction results available.")
   }
 
-  return(df)
+  # Geo predictions: pass sort_by = NULL so Python does not sort
+  dict_data <- get_df_helper()$predictions_to_dict(py_result, sort_by = NULL)
+  as.data.frame(dict_data, stringsAsFactors = FALSE)
+}
+
+
+# Lazily loaded Python helper for structured array → dict conversion.
+# Bypasses pandas entirely to avoid Arrow-backed StringDtype issues
+# with reticulate.
+.df_cache <- new.env(parent = emptyenv())
+
+get_df_helper <- function() {
+  if (is.null(.df_cache$py_df_utils)) {
+    .df_cache$py_df_utils <- reticulate::import_from_path(
+      "df_utils",
+      system.file("python", package = "birdnetR")
+    )
+  }
+  .df_cache$py_df_utils
 }

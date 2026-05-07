@@ -2,12 +2,22 @@
 % Please edit documentation in R/predict.R
 \name{as.data.frame.birdnet_prediction}
 \alias{as.data.frame.birdnet_prediction}
+\alias{as.data.frame.birdnet_prediction_geo}
 \title{Convert BirdNET prediction results to a data frame}
 \usage{
-\method{as.data.frame}{birdnet_prediction}(x)
+\method{as.data.frame}{birdnet_prediction}(x, row.names = NULL, optional = FALSE, ...)
+
+\method{as.data.frame}{birdnet_prediction_geo}(x, row.names = NULL, optional = FALSE, ...)
 }
 \arguments{
 \item{x}{A BirdNET prediction object (as returned by \code{predict()}).}
+
+\item{row.names}{\code{NULL} or a character vector giving the row names for the
+data frame. Not used.}
+
+\item{optional}{logical. Not used.}
+
+\item{...}{Additional arguments (ignored).}
 }
 \value{
 A data frame containing the prediction results.

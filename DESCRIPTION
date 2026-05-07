@@ -16,7 +16,7 @@ URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/b
 Depends:
     R (>= 4.0)
 Imports:
-    reticulate (>= 1.41)
+    reticulate (>= 1.46)
 Suggests:
     arrow,
     curl,
