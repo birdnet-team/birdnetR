@@ -28,7 +28,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #'
 #' This function predicts species from audio files using a BirdNET acoustic model.
 #'
-#' #' @details
+#' @details
 #' ### Sigmoid Activation
 #' When `apply_sigmoid = TRUE`, the raw logit scores from the linear classifier are passed
 #' through a sigmoid function, scaling them into the range \[0, 1\]. This unitless confidence
@@ -42,7 +42,11 @@ construct_prediction_class <- function(py_predictions, type) {
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
 #' @param object A BirdNET model object of class `birdnet_model_acoustic` created with [load_model()].
-#' @param files A character vector of file paths to audio files.
+#' @param files A character vector of one or more file paths to audio
+#'   files. When multiple files are provided, the returned prediction
+#'   object will contain results for all files; the resulting data frame
+#'   (via [as.data.frame()]) includes an `input` column identifying the
+#'   source file for each prediction row.
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
 #' @param min_confidence_custom A named list where each element is a single numeric value to set custom minimum confidence thresholds for specific species. A custom threshold will override the default one.
 #' @param top_k An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold.
@@ -88,6 +92,21 @@ predict.birdnet_model_acoustic <- function(
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is.character(files) || is.list(files))
+
+  # Validate that all files exist
+  missing <- files[!file.exists(files)]
+  if (length(missing) > 0L) {
+    stop(
+      "The following audio file(s) do not exist:\n",
+      paste0("  - ", missing, collapse = "\n"),
+      call. = FALSE
+    )
+  }
+
+  # Coerce to unnamed list so reticulate passes a Python list[str]
+  # to the positional-only `inp` parameter, regardless of vector length.
+  files <- unname(as.list(files))
+
   stopifnot(is.numeric(min_confidence))
   stopifnot(is.integer(top_k))
   stopifnot(is.numeric(overlap))
