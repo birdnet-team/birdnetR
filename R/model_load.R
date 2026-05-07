@@ -87,24 +87,33 @@ construct_model_class <- function(
 #'
 #' To get an overview of all valid model option combinations use [model_options()].
 #'
+#' @param type character. The type of model to load: `"acoustic"` or `"geo"`.
+#' @param version character. The version of the model to load, e.g., `"2.4"`.
+#' @param backend character. The backend to use: `"tf"` (TensorFlow) or `"pb"` (Protobuf).
+#' @param library character or `NULL`. The TensorFlow library to use: `"litert"` or `"tflite"`. Only applies when `backend = "tf"`.
+#' @param precision character. The precision of the model: `"int8"`, `"fp16"`, or `"fp32"`.
+#'
 #' @return A BirdNET model object, which is an S3 object of class `birdnet_model` and specific subclasses (e.g., `birdnet_model_tflite`, `birdnet_model_v2_4`). This object is a list containing:
 #' \describe{
 #'   \item{`py_model`}{The underlying Python BirdNET model object.}
 #'   \item{`model_type`}{The type of the model, either "acoustic" or "geo".}
 #'   \item{`model_version`}{The version string of the model (e.g., "v2.4").}
 #'   \item{`precision`}{The precision of the model, e.g., "int8", "fp16", "fp32".}
-#'   \item{...}{Additional elements specific to the model type:}
-#'   \itemize{
-#'     \item **For pretrained acoustic and geo models**:
-#'       \itemize{
-#'         \item `lang`: The language code used (e.g., "en_us").
-#'         \item `library`: The library used for the model, if applicable.
-#'       }
-#'     \item **For custom models**:
-#'       \itemize{
-#'         \item `model_path`: Path to custom model file (TensorFlow backend) or directory with model files (Protobuf backend).
-#'         \item `labels_path`: Path to the labels file.
-#'       }
+#'   \item{...}{Additional elements specific to the model type:
+#'     \itemize{
+#'       \item \strong{For pretrained acoustic and geo models}:
+#'         \itemize{
+#'           \item `lang`: The language code used (e.g., "en_us").
+#'           \item `library`: The library used for the model, if applicable.
+#'         }
+#'       \item \strong{For custom models}:
+#'         \itemize{
+#'           \item `model_path`: Path to custom model file (TensorFlow backend) or directory with model files (Protobuf backend).
+#'           \item `labels_path`: Path to the labels file.
+#'         }
+#'     }
+#'   }
+#' }
 #'
 #' @examples
 #' # Load a pre-trained acoustic model
