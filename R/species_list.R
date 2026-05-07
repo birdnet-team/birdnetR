@@ -16,5 +16,7 @@ get_species_list <- function(model) {
   if (!inherits(model, "birdnet_model")) {
     stop("`model` must be a BirdNET model object.")
   }
-  as.character(model$py_model$species_list)
+  # Convert OrderedSet to Python list first so reticulate returns a character
+  # vector instead of the repr string.
+  as.character(py_builtins$list(model$py_model$species_list))
 }
