@@ -57,6 +57,7 @@ format_model_options <- function(
 #' @param compact Logical. If \code{TRUE}, returns a compacted version of the options table.
 #'
 #' @return A data frame of valid model option combinations. Each row represents a supported configuration.
+#' @importFrom stats aggregate na.omit
 #' @details
 #' Not all combinations of arguments are valid. For example, the \code{library} argument is only relevant for TensorFlow backends,
 #' and some backends or model types only support specific precisions. Use the output to guide valid choices for loading models.
