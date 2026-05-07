@@ -147,6 +147,66 @@ get_test_meta_model <- function(skip_if_not_available = TRUE) {
   return(get("meta", envir = .test_models))
 }
 
+#' Get a new-API acoustic model for integration testing
+#'
+#' Returns a cached acoustic model loaded via load_model(), or initializes
+#' a new one. Skips the test if the model cannot be loaded.
+#' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
+#' @return An acoustic model or skips the test
+get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
+  if (!exists("acoustic_new", envir = .test_models)) {
+    if (is_full_test_env()) {
+      tryCatch({
+        model <- load_model(
+          type = "acoustic", version = "2.4", backend = "tf"
+        )
+        assign("acoustic_new", model, envir = .test_models)
+      }, error = function(e) {
+        if (skip_if_not_available) {
+          skip(paste("Failed to load acoustic model:", e$message))
+        }
+        return(NULL)
+      })
+    } else {
+      if (skip_if_not_available) {
+        skip("Not in a full test environment - acoustic model not available")
+      }
+      return(NULL)
+    }
+  }
+  get("acoustic_new", envir = .test_models)
+}
+
+#' Get a new-API geo model for integration testing
+#'
+#' Returns a cached geo model loaded via load_model(), or initializes
+#' a new one. Skips the test if the model cannot be loaded.
+#' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
+#' @return A geo model or skips the test
+get_test_geo_model <- function(skip_if_not_available = TRUE) {
+  if (!exists("geo_new", envir = .test_models)) {
+    if (is_full_test_env()) {
+      tryCatch({
+        model <- load_model(
+          type = "geo", version = "2.4", backend = "tf"
+        )
+        assign("geo_new", model, envir = .test_models)
+      }, error = function(e) {
+        if (skip_if_not_available) {
+          skip(paste("Failed to load geo model:", e$message))
+        }
+        return(NULL)
+      })
+    } else {
+      if (skip_if_not_available) {
+        skip("Not in a full test environment - geo model not available")
+      }
+      return(NULL)
+    }
+  }
+  get("geo_new", envir = .test_models)
+}
+
 #' Get standard test audio file path
 #'
 #' @return Path to the test audio file or skips the test if not found
