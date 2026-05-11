@@ -36,23 +36,26 @@ pak::pak("birdnet-team/birdnetR")
 
 ## Example use
 
-This is a simple example using the `tflite` BirdNET model to predict species in an audio file.
+This is a simple example using BirdNET to predict species in an audio file.
 
 ```r
 # Load the package
 library(birdnetR)
 
-# Initialize a BirdNET model
-model <- birdnet_model_tflite()
+# Load a BirdNET acoustic model
+model <- load_model()
 
 # Path to the audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
 # Predict species within the audio file
-predictions <- predict_species_from_audio_file(model, audio_path)
+predictions <- predict(model, audio_path)
+
+# Convert predictions to a data frame
+df <- as.data.frame(predictions)
 
 # Get most probable prediction within each time interval
-get_top_prediction(predictions)
+get_top_prediction(df)
 
 ```
 
@@ -81,13 +84,11 @@ Feel free to use `birdnetR` for your acoustic analyses and research. If you do, 
 
 Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
 
-
 ## Funding
 
-This project is supported by Jake Holshuh (Cornell class of '69) and The Arthur Vining Davis Foundations. Our work in the K. Lisa Yang Center for Conservation Bioacoustics is made possible by the generosity of K. Lisa Yang to advance innovative conservation technologies to inspire and inform the conservation of wildlife and habitats.
+Our work in the K. Lisa Yang Center for Conservation Bioacoustics is made possible by the generosity of K. Lisa Yang to advance innovative conservation technologies to inspire and inform the conservation of wildlife and habitats.
 
-The development of BirdNET is supported by the German Federal Ministry of Education and Research through the project “BirdNET+” (FKZ 01|S22072). The German Federal Ministry for the Environment, Nature Conservation and Nuclear Safety contributes through the “DeepBirdDetect” project (FKZ 67KI31040E). In addition, the Deutsche Bundesstiftung Umwelt supports BirdNET through the project “RangerSound” (project 39263/01).
-
+The development of BirdNET is supported by the German Federal Ministry of Research, Technology and Space (FKZ 01|S22072), the German Federal Ministry for the Environment, Climate Action, Nature Conservation and Nuclear Safety (FKZ 67KI31040E), the German Federal Ministry of Economic Affairs and Energy (FKZ 16KN095550), the Deutsche Bundesstiftung Umwelt (project 39263/01) and the European Social Fund.
 
 ## Partners
 
