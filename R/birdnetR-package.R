@@ -20,6 +20,40 @@ py_birdnet_globals <- NULL
 py_builtins <- NULL
 
 
+#' Build the birdnet Python package requirement spec for py_require()
+#'
+#' Returns a pip-compatible version specifier string for the birdnet Python
+#' package. By default this is a bounded range (e.g. `"birdnet>=0.2.16,<0.3"`).
+#'
+#' If the environment variable `BIRDNETR_BIRDNET_VERSION` is set to a valid
+#' exact pin (e.g. `"==0.2.16"`), that pin is used instead. Invalid values
+#' produce a warning and fall back to the default range.
+#'
+#' @return A single character string suitable for `reticulate::py_require()`.
+#' @noRd
+.birdnet_py_spec <- function() {
+  default_spec <- "birdnet>=0.2.16,<0.3"
+
+  override <- trimws(Sys.getenv("BIRDNETR_BIRDNET_VERSION", unset = ""))
+  if (nchar(override) == 0L) {
+    return(default_spec)
+  }
+
+  # Accept only a simple exact pin like "==X.Y.Z"
+  if (!grepl("^==[0-9]+\\.[0-9]+\\.[0-9]+$", override)) {
+    warning(
+      "Ignoring invalid BIRDNETR_BIRDNET_VERSION='", override, "'. ",
+      "Expected a simple exact pin like '==0.2.16'. ",
+      "Falling back to default: '", default_spec, "'.",
+      call. = FALSE
+    )
+    return(default_spec)
+  }
+
+  paste0("birdnet", override)
+}
+
+
 #' Initialize birdnetR Package
 #'
 #' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
@@ -36,9 +70,11 @@ py_builtins <- NULL
   Sys.setenv(RETICULATE_PYTHON = "managed")
 
   # Versions of Python and BirdNET; numpy is automatically installed by `reticulate`.
-  # To prevent conflicts, we specify a version range according to `birdnet`python.
+  # The default spec uses a bounded range (>=0.2.16,<0.3) so that upstream
+  # bugfix releases are picked up without a CRAN re-submission.
+  # Set BIRDNETR_BIRDNET_VERSION (e.g. "==0.2.16") to override.
   reticulate::py_require(
-    "birdnet==0.2.15",
+    .birdnet_py_spec(),
     python_version = ">=3.11,<3.14"
   )
 

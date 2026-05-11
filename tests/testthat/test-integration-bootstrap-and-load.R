@@ -11,11 +11,14 @@ test_that("Python environment is bootstrapped and birdnet is importable", {
   expect_true(reticulate::py_module_available("birdnet.globals"))
 })
 
-test_that("birdnet package version matches the pinned version", {
+test_that("birdnet package version is within the supported range", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
-  pkg_version <- reticulate::import("importlib.metadata")$version("birdnet")
-  expect_equal(pkg_version, "0.2.15")
+  pkg_version <- package_version(
+    reticulate::import("importlib.metadata")$version("birdnet")
+  )
+  expect_true(pkg_version >= "0.2.16")
+  expect_true(pkg_version < "0.3.0")
 })
 
 # -- Discovery helpers ----------------------------------------------------

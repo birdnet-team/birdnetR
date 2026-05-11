@@ -1,3 +1,65 @@
+#' Report Python and birdnet Version Information
+#'
+#' Returns the Python executable path, Python version, and installed
+#' `birdnet` Python package version as a named list. Useful for
+#' debugging environment issues.
+#'
+#' @return A named list with elements:
+#' \describe{
+#'   \item{python_version}{Character string with the Python version
+#'     (e.g. `"3.12.3"`), or `NA` if Python is not available.}
+#'   \item{python_executable}{Character string with the path to the
+#'     Python executable, or `NA` if Python is not available.}
+#'   \item{birdnet_version}{Character string with the installed
+#'     `birdnet` package version (e.g. `"0.2.16"`), or `NA` if the
+#'     package is not installed.}
+#' }
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' birdnet_version()
+#' }
+birdnet_version <- function() {
+  py_version <- NA_character_
+  py_executable <- NA_character_
+  bn_version <- NA_character_
+
+  tryCatch(
+    {
+      cfg <- reticulate::py_config()
+      py_version <- cfg$version
+      py_executable <- cfg$python
+    },
+    error = \(e) {
+      warning(
+        "Could not determine Python version: ", conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+
+  tryCatch(
+    {
+      importlib <- reticulate::import("importlib.metadata", delay_load = FALSE)
+      bn_version <- importlib$version("birdnet")
+    },
+    error = \(e) {
+      warning(
+        "Could not determine birdnet version: ", conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
+
+  list(
+    python_version = py_version,
+    python_executable = py_executable,
+    birdnet_version = bn_version
+  )
+}
+
+
 #' Check if an Object is a Valid Species List
 #'
 #' This internal function checks if an object is either a character vector of length greater than 0
