@@ -93,7 +93,7 @@ construct_model_class <- function(
 #' @param library character or `NULL`. The TensorFlow library to use: `"litert"` or `"tflite"`. Only applies when `backend = "tf"`.
 #' @param precision character. The precision of the model: `"int8"`, `"fp16"`, or `"fp32"`.
 #'
-#' @return A BirdNET model object, which is an S3 object of class `birdnet_model` and specific subclasses (e.g., `birdnet_model_tflite`, `birdnet_model_v2_4`). This object is a list containing:
+#' @return A BirdNET model object, which is an S3 object of class `birdnet_model` and specific subclasses (e.g., `birdnet_model_acoustic_v2_4`, `birdnet_model_v2_4`). This object is a list containing:
 #' \describe{
 #'   \item{`py_model`}{The underlying Python BirdNET model object.}
 #'   \item{`model_type`}{The type of the model, either "acoustic" or "geo".}
@@ -109,7 +109,7 @@ construct_model_class <- function(
 #'       \item \strong{For custom models}:
 #'         \itemize{
 #'           \item `model_path`: Path to custom model file (TensorFlow backend) or directory with model files (Protobuf backend).
-#'           \item `labels_path`: Path to the labels file.
+#'           \item `species_list_path`: Path to the species list file.
 #'         }
 #'     }
 #'   }

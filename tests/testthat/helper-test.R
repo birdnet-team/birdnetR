@@ -37,46 +37,23 @@ mock_is_py_object <- function() {
 #'
 #' @param version Version string
 #' @param language Language code
-#' @param model_type Type of model (tflite, protobuf, meta, etc.)
+#' @param model_type Type of model (acoustic, geo, etc.)
 #' @return A mock model object that can be used for testing
-create_mock_model <- function(version = "v2.4", language = "en_us", model_type = "tflite") {
-  # Create a mock Python object
-  mock_py_obj <- create_mock_py_object(list(
-    language = language,
-    predict = function(...) {
-      # Return a mock prediction structure that matches what the real model would return
-      list(
-        "(0.0, 3.0)" = list(
-          "Cyanocitta cristata_Blue Jay" = 0.85,
-          "Zenaida macroura_Mourning Dove" = 0.65
-        ),
-        "(3.0, 6.0)" = list(
-          "Poecile atricapillus_Black-capped Chickadee" = 0.75
-        )
-      )
-    }
-  ))
+create_mock_model <- function(version = "2.4", language = "en_us", model_type = "acoustic") {
+  mock_py_obj <- create_mock_py_object()
 
-  # Temporarily override reticulate::is_py_object to recognize our mock objects
-  old_is_py_object <- reticulate::is_py_object
-
-  tryCatch({
-    # Assign the mocked function
-    assignInNamespace("is_py_object", mock_is_py_object(), ns = "reticulate")
-
-    # Now create the model using the package function
-    model <- new_birdnet_model(
-      mock_py_obj,
+  structure(
+    list(
+      py_model = mock_py_obj,
+      model_type = model_type,
       model_version = version,
-      language = language,
-      subclass = model_type
+      language = language
+    ),
+    class = c(
+      paste0("birdnet_model_", model_type),
+      "birdnet_model"
     )
-
-    return(model)
-  }, finally = {
-    # Always restore the original function to prevent side effects
-    assignInNamespace("is_py_object", old_is_py_object, ns = "reticulate")
-  })
+  )
 }
 
 #' SECTION 2: SHARED TEST RESOURCES
@@ -85,72 +62,10 @@ create_mock_model <- function(version = "v2.4", language = "en_us", model_type =
 # Lazy-loaded models - only initialized when needed
 .test_models <- new.env()
 
-#' Get a TFLite model for integration testing
+#' Get an acoustic model for integration testing
 #'
-#' This function returns a cached model or initializes a new one
-#' @param skip_if_not_available If TRUE, skips the test if model can't be initialized
-#' @return A TFLite model or skips the test
-get_test_tflite_model <- function(skip_if_not_available = TRUE) {
-  if (!exists("tflite", envir = .test_models)) {
-    # First check if we should even attempt model initialization
-    if (is_full_test_env()) {
-      tryCatch({
-        message("Initializing TFLite model for tests...")
-        model <- birdnet_model_tflite(version = "v2.4", language = "en_us")
-        assign("tflite", model, envir = .test_models)
-      }, error = function(e) {
-        if (skip_if_not_available) {
-          skip(paste("Failed to initialize TFLite model:", e$message))
-        } else {
-          NULL
-        }
-      })
-    } else {
-      if (skip_if_not_available) {
-        skip("Not in a full test environment - TFLite model not available")
-      }
-      return(NULL)
-    }
-  }
-
-  return(get("tflite", envir = .test_models))
-}
-
-#' Get a Meta model for integration testing
-#' 
-#' This function returns a cached model or initializes a new one
-#' @param skip_if_not_available If TRUE, skips the test if model can't be initialized
-#' @return A Meta model or skips the test
-get_test_meta_model <- function(skip_if_not_available = TRUE) {
-  if (!exists("meta", envir = .test_models)) {
-    # First check if we should even attempt model initialization
-    if (is_full_test_env()) {
-      tryCatch({
-        message("Initializing Meta model for tests...")
-        model <- birdnet_model_meta(version = "v2.4", language = "en_us")
-        assign("meta", model, envir = .test_models)
-      }, error = function(e) {
-        if (skip_if_not_available) {
-          skip(paste("Failed to initialize Meta model:", e$message))
-        } else {
-          NULL
-        }
-      })
-    } else {
-      if (skip_if_not_available) {
-        skip("Not in a full test environment - Meta model not available")
-      }
-      return(NULL)
-    }
-  }
-
-  return(get("meta", envir = .test_models))
-}
-
-#' Get a new-API acoustic model for integration testing
-#'
-#' Returns a cached acoustic model loaded via load_model(), or initializes
-#' a new one. Skips the test if the model cannot be loaded.
+#' Returns a cached acoustic model loaded via load_model(), or initializes a
+#' new one. Skips the test if the model cannot be loaded.
 #' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
 #' @return An acoustic model or skips the test
 get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
@@ -177,10 +92,10 @@ get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
   get("acoustic_new", envir = .test_models)
 }
 
-#' Get a new-API geo model for integration testing
+#' Get a geo model for integration testing
 #'
-#' Returns a cached geo model loaded via load_model(), or initializes
-#' a new one. Skips the test if the model cannot be loaded.
+#' Returns a cached geo model loaded via load_model(), or initializes a
+#' new one. Skips the test if the model cannot be loaded.
 #' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
 #' @return A geo model or skips the test
 get_test_geo_model <- function(skip_if_not_available = TRUE) {

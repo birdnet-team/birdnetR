@@ -9,7 +9,7 @@
 #' It can also limit the results to a specific time interval if specified.
 #'
 #' @param data A data frame with columns 'start', 'end', 'scientific_name', 'common_name', and 'confidence'.
-#'             This data frame is typically the output from `predictions_to_df`.
+#'             This data frame is typically the output from `as.data.frame()` on a prediction object.
 #' @param filter A list containing 'start' and 'end' values to filter the data before calculation.
 #'               If `NULL`, the function processes all time intervals.
 #' @return A data frame containing the rows with the highest confidence per group or for the specified interval.
