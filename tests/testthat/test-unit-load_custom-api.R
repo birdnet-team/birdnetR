@@ -78,6 +78,15 @@ test_that("load_custom forwards species_list and advanced custom loader argument
   expect_s3_class(model, c("birdnet_model_custom", "birdnet_model"))
   expect_equal(model$model_type, "acoustic")
   expect_equal(model$model_version, "2.4")
+  expect_equal(model$model_path, "custom_model.tflite")
+  expect_equal(model$species_list_path, "species.txt")
+  expect_equal(model$precision, "fp32")
+
+  # Transient loader args must NOT leak into the wrapper
+
+  expect_null(model$check_validity)
+  expect_null(model$classifier_type)
+  expect_null(model$is_raven)
 
   expect_equal(captured[[1]], "acoustic")
   expect_equal(captured[[2]], "2.4")

@@ -20,10 +20,10 @@ test_that("birdnet package version matches the pinned version", {
 
 # -- Discovery helpers ----------------------------------------------------
 
-test_that("model_options() returns a valid options table from Python globals", {
+test_that("supported_model_configurations() returns a valid configurations table from Python globals", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
-  opts <- model_options()
+  opts <- supported_model_configurations()
   expect_s3_class(opts, "data.frame")
   expect_true(nrow(opts) > 0)
   expect_true(
@@ -34,10 +34,10 @@ test_that("model_options() returns a valid options table from Python globals", {
   expect_true("2.4" %in% opts$version)
 })
 
-test_that("available_languages() returns language codes including en_us", {
+test_that("supported_languages() returns language codes including en_us", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
-  langs <- available_languages()
+  langs <- supported_languages()
   expect_type(langs, "character")
   expect_true(length(langs) > 0)
   expect_true("en_us" %in% langs)
