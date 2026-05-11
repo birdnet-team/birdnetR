@@ -85,7 +85,7 @@ construct_model_class <- function(
 #' * `"fp32"`: 32-bit floating point precision, which is the most accurate but also the slowest and most memory-intensive.
 #' Protobuf and geographic models only support `"fp32"` precision.
 #'
-#' To get an overview of all valid model option combinations use [model_options()].
+#' To get an overview of all valid model configuration combinations use [supported_model_configurations()].
 #'
 #' @param type character. The type of model to load: `"acoustic"` or `"geo"`.
 #' @param version character. The version of the model to load, e.g., `"2.4"`.
@@ -125,7 +125,7 @@ NULL
 
 #' @rdname load_birdnet_model
 #' @param language character. Language code for the model to use e.g., "en_us".
-#' Common species names are returned in the specified language if available. Use [available_languages()] to see all available languages.
+#' Common species names are returned in the specified language if available. Use [supported_languages()] to see all available languages.
 #' @export
 load_model <- function(
   type = "acoustic",
@@ -224,6 +224,12 @@ load_custom <- function(
 
   py_model <- do.call(py_birdnet$load_custom, args)
 
+  # Only keep metadata fields relevant for dispatch and user inspection
+  wrapper_meta <- list(precision = precision)
+  if (!is.null(library) && backend == "tf") {
+    wrapper_meta$library <- library
+  }
+
   construct_model_class(
     py_model = py_model,
     type = type,
@@ -232,7 +238,6 @@ load_custom <- function(
     custom = TRUE,
     model_path = model,
     species_list_path = species_list,
-    # this excludes positional (unnamed) arguments and NULL values.
-    args[names(args) != "" & sapply(args, Negate(is.null))]
+    wrapper_meta
   )
 }

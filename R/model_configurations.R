@@ -1,9 +1,9 @@
-#' Collapse and compact model options data frame (internal)
+#' Collapse and compact model configurations data frame (internal)
 #'
-#' Groups and collapses specified columns of a model options data frame, combining all unique values in
+#' Groups and collapses specified columns of a model configurations data frame, combining all unique values in
 #' \code{collapse_cols} for each group into a single string, separated by colons.
 #'
-#' @param opts_df A data frame of model options (as returned by \code{model_options()}).
+#' @param opts_df A data frame of model configurations (as returned by \code{supported_model_configurations()}).
 #' @param collapse_cols Character vector of column names to collapse (default: \code{c("precision", "library")}).
 #' @param na_string String to use for replacing \code{NA} values during grouping (default: \code{"<NA>"}).
 #'
@@ -48,25 +48,25 @@ format_model_options <- function(
 }
 
 
-#' List available BirdNET model options
+#' List supported BirdNET model configurations
 #'
 #' Returns a data frame of valid combinations of model types, versions, backends, libraries, and precisions
 #' supported by the underlying BirdNET Python backend. Use this to explore which model settings are available
 #' for use in \code{load_model()} and related functions.
 #'
-#' @param compact Logical. If \code{TRUE}, returns a compacted version of the options table.
+#' @param compact Logical. If \code{TRUE}, returns a compacted version of the configurations table.
 #'
-#' @return A data frame of valid model option combinations. Each row represents a supported configuration.
+#' @return A data frame of valid model configuration combinations. Each row represents a supported configuration.
 #' @importFrom stats aggregate na.omit
 #' @details
 #' Not all combinations of arguments are valid. For example, the \code{library} argument is only relevant for TensorFlow backends,
 #' and some backends or model types only support specific precisions. Use the output to guide valid choices for loading models.
 #'
 #' @examples
-#' model_options()                     # Show all supported combinations
-#' model_options(compact = TRUE)       # Show compacted version
+#' supported_model_configurations()                     # Show all supported combinations
+#' supported_model_configurations(compact = TRUE)       # Show compacted version
 #' @export
-model_options <- function(
+supported_model_configurations <- function(
   compact = FALSE
 ) {
   # Extract valid options from Python
@@ -121,14 +121,14 @@ model_options <- function(
 }
 
 
-#' List available BirdNET model languages
+#' List supported BirdNET model languages
 #'
 #' Returns a character vector of supported language codes for BirdNET models, as provided by the Python backend.
 #'
 #' @return Character vector of supported language codes (e.g., \code{"en_us"}, \code{"de"}, \code{"es"}).
 #' @examples
-#' available_languages()
+#' supported_languages()
 #' @export
-available_languages <- function() {
+supported_languages <- function() {
   py_birdnet_globals$VALID_MODEL_LANGUAGES
 }
