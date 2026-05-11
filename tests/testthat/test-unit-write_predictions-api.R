@@ -17,7 +17,7 @@ test_that("resolve_save_format errors on unsupported explicit format", {
   expect_error(resolve_save_format("out.csv", "json"), "Unsupported format")
 })
 
-test_that("save_birdnet dispatches to correct Python method for each format", {
+test_that("write_predictions dispatches to correct Python method for each format", {
   called <- NULL
   mock_result <- list(
     to_csv = function(path, ...) {
@@ -39,17 +39,17 @@ test_that("save_birdnet dispatches to correct Python method for each format", {
     class = c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
 
-  save_birdnet(pred, "out.csv")
+  write_predictions(pred, "out.csv")
   expect_equal(called, "csv")
 
-  save_birdnet(pred, "out.parquet")
+  write_predictions(pred, "out.parquet")
   expect_equal(called, "parquet")
 
-  save_birdnet(pred, "out.npz")
+  write_predictions(pred, "out.npz")
   expect_equal(called, "npz")
 })
 
-test_that("save_birdnet rejects parquet for geo predictions", {
+test_that("write_predictions rejects parquet for geo predictions", {
   mock_result <- list(
     to_csv = function(path, ...) invisible(NULL),
     save = function(path, ...) invisible(NULL)
@@ -61,12 +61,12 @@ test_that("save_birdnet rejects parquet for geo predictions", {
   )
 
   expect_error(
-    save_birdnet(pred, "out.parquet"),
+    write_predictions(pred, "out.parquet"),
     "Parquet format is not supported for geo predictions"
   )
 })
 
-test_that("save_birdnet allows csv and npz for geo predictions", {
+test_that("write_predictions allows csv and npz for geo predictions", {
   called <- NULL
   mock_result <- list(
     to_csv = function(path, ...) {
@@ -84,14 +84,14 @@ test_that("save_birdnet allows csv and npz for geo predictions", {
     class = c("birdnet_prediction_geo", "birdnet_prediction")
   )
 
-  save_birdnet(pred, "out.csv")
+  write_predictions(pred, "out.csv")
   expect_equal(called, "csv")
 
-  save_birdnet(pred, "out.npz")
+  write_predictions(pred, "out.npz")
   expect_equal(called, "npz")
 })
 
-test_that("save_birdnet returns file path invisibly", {
+test_that("write_predictions returns file path invisibly", {
   mock_result <- list(
     to_csv = function(path, ...) invisible(NULL)
   )
@@ -101,15 +101,15 @@ test_that("save_birdnet returns file path invisibly", {
     class = c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
 
-  result <- save_birdnet(pred, "results.csv")
+  result <- write_predictions(pred, "results.csv")
   expect_equal(result, "results.csv")
 })
 
-test_that("save_birdnet errors when predictions are NULL", {
+test_that("write_predictions errors when predictions are NULL", {
   pred <- structure(
     list(py_predictions = NULL),
     class = c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
 
-  expect_error(save_birdnet(pred, "out.csv"), "No prediction results available")
+  expect_error(write_predictions(pred, "out.csv"), "No prediction results available")
 })

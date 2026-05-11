@@ -1,6 +1,6 @@
-#' Save BirdNET prediction results to file
+#' Write BirdNET prediction results to file
 #'
-#' Save prediction results to disk using the underlying Python result object.
+#' Write prediction results to disk using the underlying Python result object.
 #' The format can be inferred from the file extension or specified explicitly.
 #'
 #' Supported formats by prediction type:
@@ -18,21 +18,21 @@
 #' @return Invisibly returns the output file path.
 #' @examples
 #' \dontrun{
-#' save_birdnet(pred, "results.csv")
-#' save_birdnet(pred, "results.parquet")
-#' save_birdnet(pred, "results.npz")
-#' save_birdnet(pred, "output.csv", format = "csv")
+#' write_predictions(pred, "results.csv")
+#' write_predictions(pred, "results.parquet")
+#' write_predictions(pred, "results.npz")
+#' write_predictions(pred, "output.csv", format = "csv")
 #' }
 #' @export
-#' @rdname save_birdnet
-save_birdnet <- function(x, file, format = NULL, ...) {
-  UseMethod("save_birdnet")
+#' @rdname write_predictions
+write_predictions <- function(x, file, format = NULL, ...) {
+  UseMethod("write_predictions")
 }
 
-#' @rdname save_birdnet
-#' @method save_birdnet birdnet_prediction_geo
+#' @rdname write_predictions
+#' @method write_predictions birdnet_prediction_geo
 #' @export
-save_birdnet.birdnet_prediction_geo <- function(
+write_predictions.birdnet_prediction_geo <- function(
   x,
   file,
   format = NULL,
@@ -44,13 +44,13 @@ save_birdnet.birdnet_prediction_geo <- function(
       "Parquet format is not supported for geo predictions. Use 'csv' or 'npz'."
     )
   }
-  save_birdnet.birdnet_prediction(x, file, format = format, ...)
+  write_predictions.birdnet_prediction(x, file, format = format, ...)
 }
 
-#' @rdname save_birdnet
-#' @method save_birdnet birdnet_prediction
+#' @rdname write_predictions
+#' @method write_predictions birdnet_prediction
 #' @export
-save_birdnet.birdnet_prediction <- function(
+write_predictions.birdnet_prediction <- function(
   x,
   file,
   format = NULL,
