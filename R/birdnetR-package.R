@@ -17,7 +17,6 @@
 # Import the necessary Python modules layzily in .onLoad
 py_birdnet <- NULL
 py_birdnet_globals <- NULL
-py_pathlib <- NULL
 py_builtins <- NULL
 
 
@@ -49,6 +48,5 @@ py_builtins <- NULL
     "birdnet.globals",
     delay_load = TRUE
   )
-  py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
   py_builtins <<- reticulate::import_builtins(delay_load = TRUE)
 }
