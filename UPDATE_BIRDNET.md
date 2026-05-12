@@ -1,4 +1,4 @@
-# birdnetR 1.0 update plan for birdnet 0.2.15
+# birdnetR 1.0 update plan (upstream: birdnet >=0.2.16,<0.3)
 
 This document translates the migration guidance in
 `dev/architecture/birdnet-python-architecture.md` into a concrete,
@@ -11,7 +11,7 @@ without a deprecation cycle. The upgrade path for users is documented in
 
 ## Target
 
-- Upstream target: `birdnet` `0.2.15`
+- Upstream target: `birdnet` `>=0.2.16,<0.3`
 - R package version: `1.0.0` (breaking release)
 - R strategy: API-first, test-driven migration
 - Scope:
@@ -38,14 +38,13 @@ The intended primary API is:
 - `load_custom()`
 - `predict()` via S3 methods
 - `as.data.frame()` for prediction objects
-- `save_birdnet()`
-- `model_options()`
-- `available_languages()`
+- `write_predictions()`
+- `supported_model_configurations()`
+- `supported_languages()`
 - `get_species_list()`
 
 Also exported but not part of the core migration:
 
-- `get_top_prediction()` — pure R helper, no Python dependency, low maintenance
 - `install_arrow()` — de-emphasized; upstream `birdnet` depends on `pyarrow`
 
 ## Removed legacy surface
@@ -64,7 +63,8 @@ for users in `NEWS.md`.
 | `labels_path(model, ...)` | `get_species_list(model)` |
 | `read_labels(path)` | `get_species_list(model)` on a loaded model |
 | `labels =` in `load_custom()` | `species_list =` |
-| `available_languages(version)` (old signature) | `available_languages()` (no args) |
+| `available_languages(version)` (old signature) | `supported_languages()` (no args) |
+| `get_top_prediction()` | Removed; use `dplyr` or `birdnetTools` |
 
 Also removed (internal or supporting code):
 
@@ -139,7 +139,7 @@ Execution model:
   requests conversion
 - there is no streaming or lazy evaluation; for very large datasets (e.g.
   100 GB of audio), users should chunk input files and call `predict()` +
-  `save_birdnet()` per chunk
+  `write_predictions()` per chunk
 
 ### 4. Result conversion
 
@@ -152,16 +152,29 @@ Expected user contract:
 
 Conversion mechanics:
 
-- `as.data.frame()` calls Python `to_dataframe()`, which materializes species
-  names into a pandas DataFrame, then `reticulate` converts to an R data frame
+- `as.data.frame()` calls the Python helper `inst/python/df_utils.py`
+  (`predictions_to_dict()`), which calls `to_structured_array()` on the
+  prediction object to materialise results as a structured numpy array
+- each dtype field is extracted individually:
+  - string / object columns (`U`, `O` dtypes) → plain Python lists via `.tolist()`
+  - numeric columns → raw numpy arrays
+  - multi-dimensional columns → Python lists
+- the resulting plain Python `dict` is returned to R and passed to `as.data.frame()`;
+  `reticulate` converts each value to an R vector without involving pandas
+- this bypasses `pandas.to_dataframe()` entirely, avoiding Arrow-backed
+  `StringDtype` conversion issues that arise with `pandas >= 2` + `pyarrow`
+- the helper module is loaded lazily via `get_df_helper()` in `R/predict.R`
+  and cached in `.df_cache` for the session lifetime
+- geo predictions pass `sort_by = NULL` to suppress Python-side sorting;
+  acoustic predictions use the Python default
 - this is the step where memory grows: the compact numpy tensor is expanded
   into full string columns
-- for large results, prefer `save_birdnet()` to write directly from Python
+- for large results, prefer `write_predictions()` to write directly from Python
   without crossing the R boundary
 
 ### 5. Saving/export
 
-`save_birdnet()` remains the canonical persistence helper.
+`write_predictions()` remains the canonical persistence helper.
 
 Expected user contract:
 
@@ -180,8 +193,8 @@ Supported formats by result type:
 
 Dispatch:
 
-- `save_birdnet()` dispatches on `birdnet_prediction` (the shared parent class)
-- `save_birdnet.birdnet_prediction_geo()` intercepts parquet requests with a
+- `write_predictions()` dispatches on `birdnet_prediction` (the shared parent class)
+- `write_predictions().birdnet_prediction_geo()` intercepts parquet requests with a
   clear error before delegating to the parent method
 - the R wrapper accesses the Python object via `x$py_predictions` (not the
   legacy `x$py_result`)
@@ -246,11 +259,10 @@ Candidate names:
 | `load_custom()` | keep | canonical custom loader |
 | `predict()` | keep | canonical prediction API |
 | `as.data.frame()` | keep | explicit R conversion boundary |
-| `save_birdnet()` | keep | Python-side export; dispatches on `birdnet_prediction` |
-| `model_options()` | keep | Python-backed discovery helper |
-| `available_languages()` | keep | Python-backed discovery helper |
+| `write_predictions()` | keep | Python-side export; dispatches on `birdnet_prediction` |
+| `supported_model_configurations()` | keep | Python-backed discovery helper (renamed from `model_options()`) |
+| `supported_languages()` | keep | Python-backed discovery helper (renamed from `available_languages()`) |
 | `get_species_list()` | add | model-backed species list exploration |
-| `get_top_prediction()` | keep | pure R helper, no Python dependency |
 | `install_arrow()` | keep | de-emphasized; not part of core migration |
 
 ### Removed from API
@@ -265,6 +277,7 @@ Candidate names:
 | `predict_species_at_location_and_time()` | replaced by `predict()` |
 | `labels_path()` | replaced by `get_species_list()` |
 | `read_labels()` | replaced by `get_species_list()` |
+| `get_top_prediction()` | removed; use `dplyr` or `birdnetTools` |
 
 ## Object contracts for the future API
 
@@ -292,7 +305,7 @@ Stable, user-relevant contract:
 
 - wraps prediction results produced by the loaded Python model
 - supports `as.data.frame()`
-- supports `save_birdnet()`
+- supports `write_predictions()`
 
 The future contract is behavioral rather than structural. Internal list fields
 or wrapper names should not be treated as user-facing guarantees unless they are
@@ -388,9 +401,9 @@ These define the intended stable surface.
 | `predict()` acoustic | accepted inputs, argument mapping, returned wrapper contract |
 | `predict()` geo | accepted inputs, argument mapping, returned wrapper contract |
 | `as.data.frame()` | explicit conversion behavior and expected tabular shape |
-| `save_birdnet()` | supported formats, extension inference, early error behavior |
-| `model_options()` | machine-readable options and compact view |
-| `available_languages()` | Python-backed discovery contract |
+| `write_predictions()` | supported formats, extension inference, early error behavior |
+| `supported_model_configurations()` | machine-readable configurations and compact view |
+| `supported_languages()` | Python-backed discovery contract |
 | `get_species_list()` | model-backed species list exploration contract |
 
 ### B. Integration tests
@@ -425,9 +438,9 @@ These confirm real Python interoperability.
 - [x] Add API contract tests for acoustic `predict()`
 - [x] Add API contract tests for geo `predict()`
 - [x] Add API contract tests for `as.data.frame()`
-- [x] Add API contract tests for `save_birdnet()`
-- [ ] Add API contract tests for `model_options()`
-- [ ] Add API contract tests for `available_languages()`
+- [x] Add API contract tests for `write_predictions()`
+- [x] Add API contract tests for `supported_model_configurations()`
+- [x] Add API contract tests for `supported_languages()`
 - [x] Add API contract tests for `get_species_list()`
 
 Test rule:
@@ -437,20 +450,23 @@ Test rule:
 
 ### Phase 2: align the runtime bootstrap
 
-- [ ] Update dependency pinning in `R/birdnetR-package.R` to target `birdnet`
-      `0.2.15`
-- [ ] Reassess Python version range against upstream package requirements
-      (currently `>=3.11,<3.12`; upstream supports `>=3.11,<3.14`)
-- [ ] Reassess whether explicit `ai_edge_litert` pinning is still needed
-- [ ] Reassess `numpy` version ceiling (`<2.0.0`) against upstream requirements
-- [ ] Ensure imported Python modules match the retained R API surface
+- [x] Update dependency pinning in `R/birdnetR-package.R` to target `birdnet`
+      `>=0.2.16,<0.3`
+- [x] Reassess Python version range against upstream package requirements
+      (now `>=3.11,<3.14`, matching upstream)
+- [x] Reassess whether explicit `ai_edge_litert` pinning is still needed
+      (removed; no longer required)
+- [x] Reassess `numpy` version ceiling (`<2.0.0`) against upstream requirements
+      (removed; no ceiling needed)
+- [x] Remove orphaned `py_pathlib` import from `.onLoad` in
+      `R/birdnetR-package.R` (removed)
 
 ### Phase 3: implement the core API contract
 
 - [x] Align `load_model()` argument handling with upstream Python loader
 - [x] Use `species_list` as the argument name in `load_custom()` (no alias)
 - [x] Add advanced custom-model arguments `classifier_type` and `is_raven`
-- [ ] Ensure model wrapper objects carry only the metadata needed for dispatch
+- [x] Ensure model wrapper objects carry only the metadata needed for dispatch
       and documentation
 
 ### Phase 4: implement prediction and result behavior
@@ -460,45 +476,61 @@ Test rule:
 - [x] Standardize the prediction wrapper shape in `R/predict.R`
 - [x] Implement `get_species_list()` backed by the Python model's
       `species_list` property
-- [x] Align `save_birdnet()` dispatch to use `birdnet_prediction` as the
+- [x] Align `write_predictions()` dispatch to use `birdnet_prediction` as the
       dispatch class
 - [x] Implement format inference from file extension
 - [x] Validate supported writers per prediction/result type
 
 ### Phase 5: remove legacy code
 
-- [ ] Delete `R/birdnet_interface.R`
-- [ ] Delete `R/module_map.R`
-- [ ] Remove `predictions_to_df()` from `R/utils.R`
-- [ ] Remove all legacy exports from `NAMESPACE`
-- [ ] Remove legacy unit and integration tests that exercise old entry points
-- [ ] Confirm no retained code path references stale Python module handles
+- [x] Delete `R/birdnet_interface.R`
+- [x] Delete `R/module_map.R`
+- [x] Remove `predictions_to_df()` from `R/utils.R`
+- [x] Remove all legacy exports from `NAMESPACE`
+- [x] Remove legacy unit and integration tests that exercise old entry points
+- [x] Confirm no retained code path references stale Python module handles
       (`py_birdnet_models`, `py_birdnet_audio_based_prediction`, etc.)
 
-### Phase 6: documentation and namespace cleanup
 
-- [ ] Update `README.md` to use only the new API in primary examples
-- [ ] Add an upgrade guide section mapping old entry points to new ones
-- [ ] Update vignettes to use `load_model()` / `load_custom()` + `predict()`
-- [ ] Update roxygen docs for all exported functions
-- [ ] Regenerate `NAMESPACE`
-- [ ] Regenerate `.Rd` files
-- [ ] Update `NEWS.md` with breaking changes and upgrade instructions
+### Phase 6a: end-to-end integration tests
+
+These tests run against a real Python environment with `birdnet` installed and
+use `skip_if_not(is_full_test_env())`. They live in
+`tests/testthat/test-integration-*.R`.
+
+- [x] Bootstrap: Python importable, version within supported range
+- [x] Model loading: acoustic and geo via `load_model()`
+- [x] Model wrapper: S3 class vector, species list access
+- [x] Acoustic predict: `predict()` on bundled `soundscape.mp3`, returns prediction object
+- [x] Geo predict: `predict()` on a location/week, returns prediction object
+- [x] Result conversion: `as.data.frame()` on acoustic and geo predictions
+- [x] Result saving: `write_predictions()` round-trip for CSV (acoustic and geo)
+
+### Phase 6b: documentation and namespace cleanup
+
+- [x] Update `README.md` to use only the new API in primary examples
+- [x] Add an upgrade guide section mapping old entry points to new ones
+- [x] Update vignettes to use `load_model()` / `load_custom()` + `predict()`
+- [x] Update roxygen docs for all exported functions
+- [x] Regenerate `NAMESPACE`
+- [x] Regenerate `.Rd` files
+- [x] Update `NEWS.md` with breaking changes and upgrade instructions
+
 
 ### Phase 7: release-readiness checks
 
-- [ ] Confirm all exported functions work correctly
-- [ ] Confirm no retained code path relies on stale Python module layout
-- [ ] Confirm docs/examples match the exported API
-- [ ] Confirm integration tests cover the supported loading/prediction paths
-- [ ] Run `R CMD check` with no errors or warnings
+- [x] Confirm all exported functions work correctly
+- [x] Confirm no retained code path relies on stale Python module layout
+- [x] Confirm docs/examples match the exported API
+- [x] Confirm integration tests cover the supported loading/prediction paths
+- [x] Run `R CMD check` with no errors or warnings
 
 ## Initial implementation order
 
 1. tests for the new API contract
 2. runtime bootstrap alignment
 3. `load_model()` / `load_custom()` alignment
-4. `predict()` / `save_birdnet()` alignment
+4. `predict()` / `write_predictions()` alignment
 5. legacy code removal
 6. docs and namespace regeneration
 

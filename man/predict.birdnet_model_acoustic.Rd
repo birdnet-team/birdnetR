@@ -5,7 +5,7 @@
 \title{Predict species from audio files using a BirdNET acoustic model}
 \usage{
 \method{predict}{birdnet_model_acoustic}(
-  model,
+  object,
   files,
   min_confidence = 0.1,
   min_confidence_custom = NULL,
@@ -16,13 +16,18 @@
   bandpass_fmin = 0L,
   bandpass_fmax = 15000L,
   species_list = NULL,
-  progress = c("minimal", "progress", "benchmark")
+  progress = c("minimal", "progress", "benchmark"),
+  ...
 )
 }
 \arguments{
-\item{model}{A BirdNET model object of class \code{birdnet_model_acoustic} created with \link{load_model(type = "acoustic")}.}
+\item{object}{A BirdNET model object of class \code{birdnet_model_acoustic} created with \code{\link[=load_model]{load_model()}}.}
 
-\item{files}{A character vector of file paths to audio files.}
+\item{files}{A character vector of one or more file paths to audio
+files. When multiple files are provided, the returned prediction
+object will contain results for all files; the resulting data frame
+(via \code{\link[=as.data.frame]{as.data.frame()}}) includes an \code{input} column identifying the
+source file for each prediction row.}
 
 \item{min_confidence}{A numeric value to set the minimum confidence threshold for predictions.}
 
@@ -41,6 +46,8 @@
 \item{species_list}{A character vector or list of species names to filter the predictions. If \code{NULL}, all species are considered.}
 
 \item{progress}{A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".}
+
+\item{...}{Additional arguments passed to the generic (currently unused).}
 }
 \value{
 An S3 object of class \code{birdnet_prediction_acoustic} and \code{birdnet_prediction} containing the prediction results.
@@ -49,7 +56,6 @@ An S3 object of class \code{birdnet_prediction_acoustic} and \code{birdnet_predi
 This function predicts species from audio files using a BirdNET acoustic model.
 }
 \details{
-#' @details
 \subsection{Sigmoid Activation}{
 
 When \code{apply_sigmoid = TRUE}, the raw logit scores from the linear classifier are passed

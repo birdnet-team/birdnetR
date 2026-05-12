@@ -13,7 +13,7 @@
 #' @param custom Logical indicating if the model is a custom model
 #' @param ... Additional arguments to be included in the model object
 #'
-#' @return An S3 object of class `birdnet_model` (and addtional subclass) containing the Python model object
+#' @return An S3 object of class `birdnet_model` (and additional subclasses) containing the Python model object
 #' and additional attributes.
 #'
 #' @noRd
@@ -69,11 +69,11 @@ construct_model_class <- function(
 #' * `"acoustic"`: A model for species identification from audio recordings.
 #' * `"geo"`: A model for species prediction based on geographic location and time.
 #'
-#' The argument `version` specifies the version of the model to load, e.g., `"2.4"`. Find all suported versions
+#' The argument `version` specifies the version of the model to load, e.g., `"2.4"`. Use [supported_model_configurations()] to see all supported versions.
 #'
 #' The argument `backend` specifies the backend to use:
 #' * `"tf"`: TensorFlow backend, which supports different precisions and libraries but is CPU only.
-#' * `"pb"`: Protobuf backend, which can be run on a GPU. TODO describe how to insall GPU backends.
+#' * `"pb"`: Protobuf backend, which can be run on a GPU. GPU support requires additional system dependencies; see the upstream `birdnet` documentation for details.
 #'
 #' The argument `library` is only used for the TensorFlow backend and specifies the library to use:
 #' * `"litert"`: The LiteRT library for running TensorFlow Lite models.
@@ -93,27 +93,13 @@ construct_model_class <- function(
 #' @param library character or `NULL`. The TensorFlow library to use: `"litert"` or `"tflite"`. Only applies when `backend = "tf"`.
 #' @param precision character. The precision of the model: `"int8"`, `"fp16"`, or `"fp32"`.
 #'
-#' @return A BirdNET model object, which is an S3 object of class `birdnet_model` and specific subclasses (e.g., `birdnet_model_acoustic_v2_4`, `birdnet_model_v2_4`). This object is a list containing:
-#' \describe{
-#'   \item{`py_model`}{The underlying Python BirdNET model object.}
-#'   \item{`model_type`}{The type of the model, either "acoustic" or "geo".}
-#'   \item{`model_version`}{The version string of the model (e.g., "v2.4").}
-#'   \item{`precision`}{The precision of the model, e.g., "int8", "fp16", "fp32".}
-#'   \item{...}{Additional elements specific to the model type:
-#'     \itemize{
-#'       \item \strong{For pretrained acoustic and geo models}:
-#'         \itemize{
-#'           \item `lang`: The language code used (e.g., "en_us").
-#'           \item `library`: The library used for the model, if applicable.
-#'         }
-#'       \item \strong{For custom models}:
-#'         \itemize{
-#'           \item `model_path`: Path to custom model file (TensorFlow backend) or directory with model files (Protobuf backend).
-#'           \item `species_list_path`: Path to the species list file.
-#'         }
-#'     }
-#'   }
+#' @return A BirdNET model object (S3 class `birdnet_model` with type- and version-specific subclasses).
+#' The returned object supports:
+#' \itemize{
+#'   \item [predict()] — run inference on audio files or geographic coordinates
+#'   \item [get_species_list()] — retrieve the species list used by the model
 #' }
+#' Internal list fields are implementation details and should not be relied upon.
 #'
 #' @examples
 #' # Load a pre-trained acoustic model

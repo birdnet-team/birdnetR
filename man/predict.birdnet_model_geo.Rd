@@ -4,10 +4,10 @@
 \alias{predict.birdnet_model_geo}
 \title{Predict species using a BirdNET geo model}
 \usage{
-\method{predict}{birdnet_model_geo}(model, latitude, longitude, week = NULL, min_confidence = 0.1)
+\method{predict}{birdnet_model_geo}(object, latitude, longitude, week = NULL, min_confidence = 0.1, ...)
 }
 \arguments{
-\item{model}{A BirdNET model object of class \code{birdnet_model_geo} created with \link{load_model(type = "geo")}.}
+\item{object}{A BirdNET model object of class \code{birdnet_model_geo} created with \code{\link[=load_model]{load_model()}}.}
 
 \item{latitude}{A numeric value representing the latitude of the location.}
 
@@ -16,6 +16,8 @@
 \item{week}{An integer value representing the week of the year (1-52).}
 
 \item{min_confidence}{A numeric value to set the minimum confidence threshold for predictions.}
+
+\item{...}{Additional arguments passed to the generic (currently unused).}
 }
 \value{
 An S3 object of class \code{birdnet_prediction_geo} and \code{birdnet_prediction} containing the prediction results.

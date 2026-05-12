@@ -12,3 +12,8 @@
 ^CRAN-SUBMISSION$
 ^doc$
 ^Meta$
+^UPDATE_BIRDNET\.md$
+^TODO$
+^test\.npz$
+^test\.parquet$
+^test\.csv$

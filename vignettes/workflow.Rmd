@@ -1,0 +1,88 @@
+---
+title: "The BirdNET ecosystem: a workflow overview"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The BirdNET ecosystem: a workflow overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+`birdnetR` sits within an ecosystem of tools that cover the full arc from
+optional custom training through species detection to post-processing and
+validation. This article gives a high-level map of that ecosystem so you can
+find the right tool for each stage of your analysis.
+
+## Stage 1 — Custom training (optional): BirdNET-Analyzer
+
+[BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) is the
+upstream desktop and command-line application. For most users it is **not
+required**: birdnetR ships with the pre-trained BirdNET acoustic model and can
+run predictions out of the box.
+
+Consider BirdNET-Analyzer when you need to:
+
+- train a custom species classifier on your own recordings,
+- use advanced configuration options not yet exposed in birdnetR,
+- run batch analyses through a graphical interface.
+
+Custom classifiers trained in BirdNET-Analyzer can be loaded in birdnetR with
+`load_custom()`.
+
+## Stage 2 — Species detection: birdnetR
+
+birdnetR wraps the `birdnet` Python package and exposes the two main model
+types in R:
+
+- **Acoustic model** — detects species from audio files.
+  Load with `load_model()`, run with `predict()`, and write results with
+  `write_predictions()`.
+- **Geo model** — estimates expected species for a location and time of year.
+  Load with `load_model(type = "geo")` and run with `predict()`.
+
+`as.data.frame()` converts any prediction object to a plain R data frame for
+downstream use.
+
+Acoustic predictions can be saved as CSV, Parquet, or NPZ. Parquet is
+efficient for large datasets and is the recommended format for acoustic results
+when continuing the workflow in R. Geo predictions support CSV or NPZ only.
+
+## Stage 3 — Post-processing and validation: birdnetTools
+
+[birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html) is a
+separate R package designed to work with tabular BirdNET output — the kind
+produced by `as.data.frame()` or `write_predictions()` in birdnetR.
+
+It provides functions for:
+
+- combining outputs from multiple files or recording sessions,
+- filtering detections by species, confidence score, date, or time of day,
+- visualising temporal detection patterns as heatmaps,
+- running an interactive Shiny app to review and label detections,
+- calculating species-specific confidence thresholds to achieve a target
+  precision.
+
+birdnetTools does not call Python and has no dependency on birdnetR; it works
+with any BirdNET-style data frame.
+
+## Putting it together
+
+A typical R workflow looks like this:
+
+1. *(Optional)* Train a custom classifier in **BirdNET-Analyzer** and export
+   it as a model package.
+2. Load the model in **birdnetR** with `load_model()` or `load_custom()`.
+3. Run `predict()` on your audio files and save results with
+   `write_predictions()`.
+4. Read the results into **birdnetTools** for filtering, visualisation, and
+   validation.
+
+For code examples, see the
+[Get started with birdnetR](birdnetR.html) vignette and the
+[birdnetTools documentation](https://birdnet-team.github.io/birdnetTools/index.html).

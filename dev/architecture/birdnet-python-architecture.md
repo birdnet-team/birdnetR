@@ -18,10 +18,9 @@ The architecture has three practical layers:
    filtering, threshold selection, visualization, and manual validation.
 
 This document is a snapshot of the code as of May 2026. It should be read as an
-architecture guide, not as a promise that all wrapper paths in `birdnetR` are
-fully aligned. In particular, `birdnetR` currently contains both a newer
-wrapper path based on `birdnet.load()` and older wrapper code that still assumes
-legacy `birdnet.models` module layouts.
+architecture guide. As of the 1.0 migration, `birdnetR` uses only the newer
+wrapper path based on `birdnet.load()`. The older wrapper code that assumed
+legacy `birdnet.models` module layouts was removed in Phase 5.
 
 ## Scope and boundaries
 
@@ -31,7 +30,7 @@ In scope:
 - Backend and inference runtime structure in `birdnet`
 - `birdnetR` package bootstrap, model wrapping, prediction dispatch, and result
   conversion
-- Current transition hotspots between old and new wrapper code in `birdnetR`
+- Resolved transition hotspots in `birdnetR` (historical context)
 
 Out of scope:
 
@@ -274,7 +273,6 @@ Imported global handles include:
 
 - `py_birdnet`
 - `py_birdnet_globals`
-- `py_pathlib`
 - `py_builtins`
 
 Architecturally, `birdnetR` does not vendor the Python implementation. It
@@ -329,8 +327,10 @@ Geo prediction path:
 
 Result conversion:
 
-- `as.data.frame.birdnet_prediction()` calls Python `to_dataframe()` and relies
-  on `reticulate` conversion
+- `as.data.frame.birdnet_prediction()` calls `get_df_helper()$predictions_to_dict()`
+  which uses `to_structured_array()` on the Python prediction object, extracts
+  columns into a plain Python dict, and returns it to R for `reticulate` conversion
+- this bypasses pandas entirely to avoid Arrow-backed `StringDtype` issues
 
 This is a much thinner bridge than older `birdnetR` code because the Python
 model objects now expose the main inference API directly.
@@ -353,19 +353,21 @@ current source of truth for:
 That design reduces drift, although some pruning logic still exists in R to
 construct a user-facing options table.
 
-### Optional Arrow conversion path
+### Result conversion and export
 
-`birdnetR/R/install.R` and legacy code in `birdnetR/R/birdnet_interface.R`
-introduce an optional Arrow-based conversion path.
+`birdnetR` provides two paths for getting prediction results out of Python:
 
-The idea is to reduce R/Python conversion cost for large prediction results by:
+1. `as.data.frame()` — calls `inst/python/df_utils.py` to convert Python
+   prediction objects to plain dicts via structured numpy arrays, then
+   `reticulate` converts each value to an R vector. This bypasses pandas
+   entirely.
+2. `write_predictions()` — writes results directly from Python to CSV, Parquet, or
+   NumPy files without crossing the R boundary. This is the recommended path
+   for large datasets.
 
-- checking availability of R `arrow`
-- ensuring Python `pyarrow` is available
-- converting predictions to an Arrow table in Python before bringing them back
-  into R
-
-This is a boundary optimization, not part of the core model-loading design.
+`birdnetR/R/install.R` retains an `install_arrow()` helper, but Arrow-based
+conversion is de-emphasized in the 1.0 API. The primary large-result
+recommendation is `write_predictions()`.
 
 ## Interface to `birdnetTools`
 
@@ -404,8 +406,8 @@ helper is `birdnetTools/R/utils_column_editing.R`, especially
 - `confidence`
 - `filepath`
 
-This flexibility is important because `birdnetR` is still in transition between
-older and newer result conventions. In practice, `birdnetTools` acts as a loose
+This flexibility is important because `birdnetTools` needs to support tables
+from multiple sources. In practice, `birdnetTools` acts as a loose
 consumer of BirdNET-compatible tables rather than a strict API client.
 
 ### Main downstream workflows
@@ -468,8 +470,8 @@ thresholds from validated detections. This establishes a feedback loop with
 
 The `birdnetTools` interface affects `birdnetR` design in a few ways.
 
-1. Result export matters as much as in-memory wrappers. Even if `birdnetR`
-   modernizes its internal bridge to Python, downstream compatibility still
+1. Result export matters as much as in-memory wrappers. Even as `birdnetR`
+   has modernized its internal bridge to Python, downstream compatibility still
    depends on stable or at least detectable tabular columns.
 2. The `filepath` column is operationally important. `birdnetTools` uses it for
    datetime extraction and to reconnect detections to source audio.
@@ -499,15 +501,23 @@ This is a file-and-table boundary, not an object boundary.
 
 ## Transition hotspots and inconsistencies
 
-This section is the main reason this note exists.
+> **Note (May 2026):** The legacy wrapper path described below was removed in
+> Phase 5 of the 1.0 migration. The files `R/birdnet_interface.R` and
+> `R/module_map.R` have been deleted. All legacy entry points
+> (`birdnet_model_tflite()`, `birdnet_model_protobuf()`, `birdnet_model_meta()`,
+> `predict_species_from_audio_file()`, `predict_species_at_location_and_time()`,
+> `labels_path()`, `read_labels()`) have been removed from the NAMESPACE. The
+> bootstrap requires `birdnet>=0.2.16,<0.3` via `py_require()`. The sections below
+> are retained for historical context only.
 
 ### New wrapper path vs old wrapper path
 
-`birdnetR` currently contains two different integration styles.
+`birdnetR` previously contained two different integration styles. As of 1.0,
+only the newer path remains.
 
-#### Newer path
+#### Newer path (current)
 
-The newer path is based on the current public Python API:
+The current path is based on the public Python API:
 
 - `birdnetR/R/model_load.R`
 - `birdnetR/R/predict.R`
@@ -521,16 +531,16 @@ This path assumes:
 
 This is the path that best matches the current structure of `birdnet`.
 
-#### Older path
+#### Older path (removed in 1.0)
 
-Older wrapper code remains in:
+The following wrapper code was removed in Phase 5 of the 1.0 migration:
 
-- `birdnetR/R/birdnet_interface.R`
-- `birdnetR/R/module_map.R`
+- `birdnetR/R/birdnet_interface.R` (deleted)
+- `birdnetR/R/module_map.R` (deleted)
 
-This older path assumes a different Python layout, including direct traversal of
+This older path assumed a different Python layout, including direct traversal of
 `birdnet.models` submodules and constructors such as version-specific
-`AudioModel...` classes. It also exposes older R entry points such as:
+`AudioModel...` classes. It exposed older R entry points such as:
 
 - `birdnet_model_tflite()`
 - `birdnet_model_protobuf()`
@@ -538,50 +548,36 @@ This older path assumes a different Python layout, including direct traversal of
 - `predict_species_from_audio_file()`
 - `predict_species_at_location_and_time()`
 
-Those functions are still exported and documented, which means maintainers need
-to treat them as compatibility surface during the migration.
+These functions have been removed from the exported API.
 
-### Bootstrap version mismatch
+### Bootstrap version pinning
 
-The dependency declaration in `birdnetR/R/birdnetR-package.R` still pins a GitHub
-reference:
+The dependency declaration in `birdnetR/R/birdnetR-package.R` pins
+`birdnet>=0.2.16,<0.3` via `reticulate::py_require()`. Python version range is
+`>=3.11,<3.14`.
 
-- `git+https://github.com/birdnet-team/birdnet@v0.2.0a0`
+### Public API in `birdnetR`
 
-That is a transition risk if the intended target is newer `birdnet` behavior.
-Any architecture or migration work should treat `.onLoad()` as part of the
-integration contract, not just package setup boilerplate.
+The NAMESPACE now exports only the new API surface:
 
-### Mixed public API in `birdnetR`
+- `load_model()`, `load_custom()`
+- `predict()` S3 methods for acoustic and geo models
+- `as.data.frame()` S3 methods for prediction objects
+- `write_predictions()`
+- `supported_model_configurations()`, `supported_languages()`, `get_species_list()`
+- `install_arrow()`
 
-The current `NAMESPACE` exports both old and new loading/prediction APIs.
-Examples:
+### Result conversion design
 
-- newer: `load_model()`, `load_custom()`, `predict()` methods
-- older: `birdnet_model_tflite()`, `predict_species_from_audio_file()`
+As of 1.0, `birdnetR/R/predict.R` converts prediction results via a custom
+Python helper (`inst/python/df_utils.py`) that calls `to_structured_array()`
+on the prediction object and extracts columns into a plain Python dict. This
+dict is returned to R where `reticulate` converts each value to an R vector.
 
-This means the R package is currently serving as both:
-
-- a forward-looking wrapper around the newer Python package design
-- a compatibility layer for older `birdnetR` user code
-
-Any refactor should decide whether the architecture is meant to keep both layers
-or collapse them onto one source of truth.
-
-### Naming and result-shape drift
-
-The package TODO and current wrappers suggest open questions around output
-column naming and result conventions. The old API in
-`birdnetR/R/birdnet_interface.R` performs more manual conversion and naming,
-while the new API in `birdnetR/R/predict.R` delegates conversion to Python's
-`to_dataframe()`.
-
-This is an architectural choice point:
-
-- either Python owns the result schema and R accepts it
-- or R normalizes result schemas into a stable R-facing contract
-
-The current codebase appears to be in between these positions.
+This design means Python owns the result schema at the structured-array level,
+and R accepts the column names produced by the helper. The column contract is
+not yet formally guaranteed as stable API, but is expected to align with the
+upstream `birdnet` result objects.
 
 ## Recommended source-of-truth files
 
@@ -606,11 +602,11 @@ When updating the bridge, start with these files first.
 | Area | File | Why it matters |
 |------|------|----------------|
 | Runtime bootstrap | `birdnetR/R/birdnetR-package.R` | Defines Python dependency resolution and imported module handles |
-| Preferred model wrappers | `birdnetR/R/model_load.R` | Main R entry points for the newer Python API |
-| Preferred prediction wrappers | `birdnetR/R/predict.R` | Main R dispatch path into Python model methods |
+| Model wrappers | `birdnetR/R/model_load.R` | Main R entry points for loading models |
+| Prediction wrappers | `birdnetR/R/predict.R` | Main R dispatch path into Python model methods |
 | Option introspection | `birdnetR/R/model_options.R` | Uses Python globals to expose valid configurations |
-| Legacy compatibility path | `birdnetR/R/birdnet_interface.R` | Older wrapper API still exported to users |
-| Legacy module mapping | `birdnetR/R/module_map.R` | Encodes assumptions about a pre-current Python module layout |
+| Result saving | `birdnetR/R/save.R` | Python-side export dispatch |
+| Species list | `birdnetR/R/species_list.R` | Model-backed species list exploration |
 | Optional conversion support | `birdnetR/R/install.R` | Manages Arrow support at the R/Python boundary |
 
 ### `birdnetTools` downstream interface
@@ -623,25 +619,22 @@ When updating the bridge, start with these files first.
 | Validation app | `birdnetTools/R/birdnet_launch_validation.R` | Uses detection rows plus source audio files for manual review |
 | Threshold estimation | `birdnetTools/R/birdnet_calc_threshold.R` | Turns validated detections into species-specific thresholds |
 
-## Maintainer guidance for the current migration
+## Maintainer guidance (post-migration)
 
-If `birdnetR` is being updated toward the newer `birdnet` API, the most likely
-migration strategy is:
+The 1.0 migration removed all legacy entry points. Going forward:
 
 1. treat `birdnet/src/birdnet/model_loader.py` as the Python source of truth
-2. treat `birdnetR/R/model_load.R` and `birdnetR/R/predict.R` as the preferred
-   R façade
-3. drive the transition with TDD: define the intended R API contract in tests
-   before refactoring implementation details
-4. keep the legacy compatibility surface for one release only and issue
-   lifecycle warnings from wrapper functions and deprecated argument aliases
-5. align `.onLoad()` dependency pinning with the actual Python version targeted
-   by the wrapper code
-6. minimize Python-to-R conversion and prefer Python-side export methods where
-   the upstream result objects already provide them
+2. treat `birdnetR/R/model_load.R` and `birdnetR/R/predict.R` as the R façade
+3. maintain the API contract defined by tests in `tests/testthat/`
+4. do not reintroduce legacy aliases; the upgrade path is documented in
+   `NEWS.md`
+5. keep `.onLoad()` dependency pinning aligned with the targeted `birdnet`
+   version
+6. prefer Python-side export (`write_predictions()`) over R-side conversion for
+   large results
 
-The concrete migration checklist for this work lives in
-`birdnetR/UPDATE_BIRDNET.md` and should be treated as the execution plan.
+The remaining migration checklist lives in
+`birdnetR/UPDATE_BIRDNET.md`.
 
 ## Glossary
 
@@ -654,7 +647,6 @@ The concrete migration checklist for this work lives in
 | ResourceManager | Acoustic runtime component that allocates shared memory, queues, and synchronization objects |
 | ProcessManager | Acoustic runtime component that starts and coordinates the multi-process inference pipeline |
 | Bridge | The `birdnetR` layer that adapts R calls and objects to the Python `birdnet` package |
-| Compatibility surface | Older exported R functions that still need to work during the API transition |
 
 ## Related package conventions
 

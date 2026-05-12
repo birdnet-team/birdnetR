@@ -122,3 +122,34 @@ test_that("geo model wrapper has the expected S3 class vector", {
   expect_true("birdnet_model_tf" %in% classes)
   expect_true("birdnet_model" %in% classes)
 })
+
+# -- Custom model loading (error paths) -----------------------------------
+
+test_that("load_custom() errors when model path does not exist", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  expect_error(
+    load_custom(
+      model = "/nonexistent/path/model.tflite",
+      species_list = "/nonexistent/path/species.txt"
+    )
+  )
+})
+
+test_that("load_custom() errors when species_list is NULL", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  expect_error(
+    load_custom(model = "/some/path/model.tflite", species_list = NULL),
+    "must be provided"
+  )
+})
+
+test_that("load_custom() errors when model is NULL", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  expect_error(
+    load_custom(model = NULL, species_list = "/some/path/species.txt"),
+    "must be provided"
+  )
+})

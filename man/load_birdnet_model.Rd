@@ -29,8 +29,18 @@ load_custom(
 )
 }
 \arguments{
+\item{type}{character. The type of model to load: \code{"acoustic"} or \code{"geo"}.}
+
+\item{version}{character. The version of the model to load, e.g., \code{"2.4"}.}
+
+\item{backend}{character. The backend to use: \code{"tf"} (TensorFlow) or \code{"pb"} (Protobuf).}
+
+\item{library}{character or \code{NULL}. The TensorFlow library to use: \code{"litert"} or \code{"tflite"}. Only applies when \code{backend = "tf"}.}
+
+\item{precision}{character. The precision of the model: \code{"int8"}, \code{"fp16"}, or \code{"fp32"}.}
+
 \item{language}{character. Language code for the model to use e.g., "en_us".
-Common species names are returned in the specified language if available. Use \code{\link[=available_languages]{available_languages()}} to see all available languages.}
+Common species names are returned in the specified language if available. Use \code{\link[=supported_languages]{supported_languages()}} to see all available languages.}
 
 \item{model}{If backend is "tf", path to custom model file. If backend is "pb", path to model directory.}
 
@@ -43,24 +53,13 @@ Common species names are returned in the specified language if available. Use \c
 \item{is_raven}{Advanced option for custom protobuf models. Indicates whether the model uses the Raven protobuf layout.}
 }
 \value{
-A BirdNET model object, which is an S3 object of class \code{birdnet_model} and specific subclasses (e.g., \code{birdnet_model_tflite}, \code{birdnet_model_v2_4}). This object is a list containing:
-\describe{
-\item{\code{py_model}}{The underlying Python BirdNET model object.}
-\item{\code{model_type}}{The type of the model, either "acoustic" or "geo".}
-\item{\code{model_version}}{The version string of the model (e.g., "v2.4").}
-\item{\code{precision}}{The precision of the model, e.g., "int8", "fp16", "fp32".}
-\item{...}{Additional elements specific to the model type:}
+A BirdNET model object (S3 class \code{birdnet_model} with type- and version-specific subclasses).
+The returned object supports:
 \itemize{
-\item \strong{For pretrained acoustic and geo models}:
-\itemize{
-\item \code{lang}: The language code used (e.g., "en_us").
-\item \code{library}: The library used for the model, if applicable.
+\item \code{\link[=predict]{predict()}} — run inference on audio files or geographic coordinates
+\item \code{\link[=get_species_list]{get_species_list()}} — retrieve the species list used by the model
 }
-\item \strong{For custom models}:
-\itemize{
-\item \code{model_path}: Path to custom model file (TensorFlow backend) or directory with model files (Protobuf backend).
-\item \code{labels_path}: Path to the labels file.
-}
+Internal list fields are implementation details and should not be relied upon.
 }
 \description{
 Functions to load BirdNET models for sound identification or species prediction from location and time.
@@ -77,12 +76,12 @@ The argument \code{type} specifies the type of model to load:
 \item \code{"geo"}: A model for species prediction based on geographic location and time.
 }
 
-The argument \code{version} specifies the version of the model to load, e.g., \code{"2.4"}. Find all suported versions
+The argument \code{version} specifies the version of the model to load, e.g., \code{"2.4"}. Use \code{\link[=supported_model_configurations]{supported_model_configurations()}} to see all supported versions.
 
 The argument \code{backend} specifies the backend to use:
 \itemize{
 \item \code{"tf"}: TensorFlow backend, which supports different precisions and libraries but is CPU only.
-\item \code{"pb"}: Protobuf backend, which can be run on a GPU. TODO describe how to insall GPU backends.
+\item \code{"pb"}: Protobuf backend, which can be run on a GPU. GPU support requires additional system dependencies; see the upstream \code{birdnet} documentation for details.
 }
 
 The argument \code{library} is only used for the TensorFlow backend and specifies the library to use:
@@ -99,7 +98,7 @@ The argument \code{precision} specifies the precision of the model:
 Protobuf and geographic models only support \code{"fp32"} precision.
 }
 
-To get an overview of all valid model option combinations use \code{\link[=model_options]{model_options()}}.
+To get an overview of all valid model configuration combinations use \code{\link[=supported_model_configurations]{supported_model_configurations()}}.
 }
 \examples{
 # Load a pre-trained acoustic model

@@ -1,6 +1,8 @@
 .lintr
 __pycache__/
 .DS_Store
+man/
+UPDATE_BIRDNET.md
 
 # History files
 .Rhistory

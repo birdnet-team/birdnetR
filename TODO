@@ -1,5 +1,0 @@
-- [ ] Test if Birdnet 2.3 is working (even if not allowed by `load()` function). If it does, Stefan should relax the validation for custom models.
-- [ ] install GPU backends and describe how to use them in the documentation
-- [ ] tie available languages to model version
-- [ ] add column with file to detetcions results
-- [ ] figure out column names in detections results: start_time -> start, end_time -> end, species_name -> class/label?
