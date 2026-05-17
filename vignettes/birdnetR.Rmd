@@ -177,13 +177,13 @@ your downstream workflow:
 directly from Python and does not require the `arrow` R package.
 
 If you want to **read** Parquet files back into R (e.g. with
-`arrow::read_parquet()`), you need the `arrow` package installed. On Linux
-this may require compilation and can take several minutes. Use
-`install_arrow()` as a convenience wrapper, or install `arrow` directly:
+`arrow::read_parquet()`), you need the `arrow` package installed:
 
 ```r
 install.packages("arrow")
 ```
+
+On Linux this may require compilation and can take several minutes.
 
 
 ### Predict species occurrence with the geo model

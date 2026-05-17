@@ -4,6 +4,16 @@ Bypasses pandas entirely to avoid Arrow-backed StringDtype issues with
 reticulate.  Calls ``to_structured_array()`` directly and builds a plain
 Python dict whose values are numpy arrays or Python lists — both of which
 reticulate converts to R vectors correctly.
+
+Background: On pandas >= 3.0 (where ``future.infer_string`` defaults to
+``True``), ``pd.DataFrame()`` infers string columns as Arrow-backed
+``StringDtype`` when pyarrow is installed.  Since birdnet requires pyarrow,
+this always triggers.  reticulate cannot convert ``StringDtype`` Series to R
+vectors, causing ``"names() applied to a non-vector"`` errors.
+
+Tracking upstream fix: https://github.com/rstudio/reticulate/issues/1889
+Once reticulate handles pandas ``StringDtype``, this module can be replaced
+with a direct call to ``predictions.to_dataframe()``.
 """
 
 from __future__ import annotations

@@ -14,9 +14,6 @@ articles:
   - workflow
   - Troubleshoot
 reference:
-- title: Installation
-- contents:
-  - starts_with("install_")
 - title: Model Loading
 - contents:
   - load_model
