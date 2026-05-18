@@ -111,5 +111,8 @@ test_that("write_predictions errors when predictions are NULL", {
     class = c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
 
-  expect_error(write_predictions(pred, "out.csv"), "No prediction results available")
+  expect_error(
+    write_predictions(pred, "out.csv"),
+    "No prediction results available"
+  )
 })

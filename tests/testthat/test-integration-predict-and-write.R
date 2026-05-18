@@ -46,7 +46,10 @@ test_that("as.data.frame() on acoustic prediction returns expected columns", {
 
   expect_s3_class(df, "data.frame")
   expect_true(nrow(df) > 0)
-  expect_true(all(c("input", "start_time", "end_time", "species_name", "confidence") %in% names(df)))
+  expect_true(all(
+    c("input", "start_time", "end_time", "species_name", "confidence") %in%
+      names(df)
+  ))
   expect_type(df$species_name, "character")
   expect_type(df$confidence, "double")
 })
@@ -86,7 +89,9 @@ test_that("write_predictions() saves acoustic predictions to CSV", {
   expect_true(file.exists(tmp))
   saved <- read.csv(tmp)
   expect_true(nrow(saved) > 0)
-  expect_true(all(c("start_time", "end_time", "species_name", "confidence") %in% names(saved)))
+  expect_true(all(
+    c("start_time", "end_time", "species_name", "confidence") %in% names(saved)
+  ))
 })
 
 # -- Result saving: geo CSV -----------------------------------------------

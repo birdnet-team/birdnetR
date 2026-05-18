@@ -17,6 +17,13 @@
   bandpass_fmax = 15000L,
   species_list = NULL,
   progress = c("minimal", "progress", "benchmark"),
+  n_producers = NULL,
+  n_workers = NULL,
+  batch_size = NULL,
+  prefetch_ratio = NULL,
+  speed = NULL,
+  half_precision = NULL,
+  max_audio_duration_min = NULL,
   ...
 )
 }
@@ -46,6 +53,20 @@ source file for each prediction row.}
 \item{species_list}{A character vector or list of species names to filter the predictions. If \code{NULL}, all species are considered.}
 
 \item{progress}{A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".}
+
+\item{n_producers}{An integer specifying the number of threads for producing audio batches. Must be >= 1. If \code{NULL} (default), the Python backend default is used.}
+
+\item{n_workers}{An integer specifying the number of backend workers for parallel inference. If \code{NULL} (default), the Python backend auto-detects based on available CPU cores.}
+
+\item{batch_size}{An integer specifying the number of audio segments evaluated per inference call. Must be >= 1. If \code{NULL} (default), the Python backend default is used.}
+
+\item{prefetch_ratio}{An integer specifying how many batches to decode ahead of processing. Must be >= 0. If \code{NULL} (default), the Python backend default is used.}
+
+\item{speed}{A numeric value for the resampling multiplier to accommodate different recording speeds. Must be in the interval [0.01, 100]. If \code{NULL} (default), the Python backend default is used.}
+
+\item{half_precision}{A logical value indicating whether to use float16 where supported for inference. If \code{NULL} (default), the Python backend default is used.}
+
+\item{max_audio_duration_min}{A numeric value specifying the maximum total audio duration per call in minutes. Must be > 0. If \code{NULL} (default), no limit is applied.}
 
 \item{...}{Additional arguments passed to the generic (currently unused).}
 }

@@ -34,6 +34,7 @@ The table below maps removed functions to their replacements:
 - `get_top_prediction()` is removed. Use `dplyr::slice_max()` or the
   `birdnetTools` package for post-processing.
 - The `labels` argument in `load_custom()` is replaced by `species_list`.
+- `predict()` for geo models now defaults `min_confidence` to `0.03` to match the upstream Python `birdnet` default.
 
 ## New features
 
@@ -49,6 +50,8 @@ The table below maps removed functions to their replacements:
   Parquet, or NumPy format without crossing the R boundary.
 - `birdnet_version()` returns the installed Python version, executable path,
   and `birdnet` package version.
+- `predict()` for acoustic models now exposes performance parameters `n_producers`, `n_workers`, `batch_size`, `prefetch_ratio`, `speed`, `half_precision`, and `max_audio_duration_min`; these default to `NULL` so the Python backend defaults are used unless explicitly set.
+- `predict()` for geo models now exposes `half_precision`, defaulting to `NULL` so the Python backend default is used unless explicitly set.
 
 ## Python dependency
 

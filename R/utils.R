@@ -33,7 +33,8 @@ birdnet_version <- function() {
     },
     error = \(e) {
       warning(
-        "Could not determine Python version: ", conditionMessage(e),
+        "Could not determine Python version: ",
+        conditionMessage(e),
         call. = FALSE
       )
     }
@@ -46,7 +47,8 @@ birdnet_version <- function() {
     },
     error = \(e) {
       warning(
-        "Could not determine birdnet version: ", conditionMessage(e),
+        "Could not determine birdnet version: ",
+        conditionMessage(e),
         call. = FALSE
       )
     }
@@ -57,6 +59,30 @@ birdnet_version <- function() {
     python_executable = py_executable,
     birdnet_version = bn_version
   )
+}
+
+
+# Remove NULL elements from a list.
+compact_nulls <- function(x) {
+  x[!vapply(x, is.null, logical(1))]
+}
+
+
+# Check whether an object is a single non-missing integer.
+is_scalar_integer <- function(x) {
+  is.integer(x) && length(x) == 1L && !is.na(x)
+}
+
+
+# Check whether an object is a single non-missing numeric value.
+is_scalar_number <- function(x) {
+  is.numeric(x) && length(x) == 1L && !is.na(x)
+}
+
+
+# Check whether an object is a single non-missing logical value.
+is_scalar_logical <- function(x) {
+  is.logical(x) && length(x) == 1L && !is.na(x)
 }
 
 

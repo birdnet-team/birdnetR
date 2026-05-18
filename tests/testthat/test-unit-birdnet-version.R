@@ -14,7 +14,10 @@ test_that("birdnet_version() returns correct structure when Python is available"
   result <- birdnet_version()
 
   expect_type(result, "list")
-  expect_named(result, c("python_version", "python_executable", "birdnet_version"))
+  expect_named(
+    result,
+    c("python_version", "python_executable", "birdnet_version")
+  )
   expect_equal(result$python_version, "3.12.3")
   expect_equal(result$python_executable, "/usr/bin/python3")
   expect_equal(result$birdnet_version, "0.2.16")
@@ -36,7 +39,10 @@ test_that("birdnet_version() returns NA with warning when Python is unavailable"
   )
 
   expect_type(result, "list")
-  expect_named(result, c("python_version", "python_executable", "birdnet_version"))
+  expect_named(
+    result,
+    c("python_version", "python_executable", "birdnet_version")
+  )
   expect_true(is.na(result$python_version))
   expect_true(is.na(result$python_executable))
   expect_true(is.na(result$birdnet_version))

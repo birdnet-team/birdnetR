@@ -265,12 +265,241 @@ test_that("predict.birdnet_model_acoustic strips names from files vector", {
   expect_null(names(captured_args[[1]]))
 })
 
+test_that("predict.birdnet_model_acoustic omits NULL power-user params from Python call", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "acoustic",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+
+  # Call with all power-user params at NULL (default)
+  predict(model, files = tmp)
+
+  # Power-user params should NOT appear in captured args
+  expect_false("n_producers" %in% names(captured_args))
+  expect_false("n_workers" %in% names(captured_args))
+  expect_false("batch_size" %in% names(captured_args))
+  expect_false("prefetch_ratio" %in% names(captured_args))
+  expect_false("speed" %in% names(captured_args))
+  expect_false("half_precision" %in% names(captured_args))
+  expect_false("max_audio_duration_min" %in% names(captured_args))
+
+  # Required params should still be present
+  expect_false(is.null(captured_args$top_k))
+  expect_false(is.null(captured_args$apply_sigmoid))
+})
+
+test_that("predict.birdnet_model_acoustic forwards non-NULL power-user params", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "acoustic",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+
+  predict(
+    model,
+    files = tmp,
+    n_producers = 2L,
+    n_workers = 4L,
+    batch_size = 8L,
+    prefetch_ratio = 2L,
+    speed = 1.5,
+    half_precision = TRUE,
+    max_audio_duration_min = 30
+  )
+
+  expect_equal(captured_args$n_producers, 2L)
+  expect_equal(captured_args$n_workers, 4L)
+  expect_equal(captured_args$batch_size, 8L)
+  expect_equal(captured_args$prefetch_ratio, 2L)
+  expect_equal(captured_args$speed, 1.5)
+  expect_true(captured_args$half_precision)
+  expect_equal(captured_args$max_audio_duration_min, 30)
+})
+
+test_that("predict.birdnet_model_acoustic validates power-user params", {
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) mock_py_predictions),
+      model_type = "acoustic",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+
+  # n_producers must be integer >= 1
+
+  expect_error(predict(model, files = tmp, n_producers = 0L))
+  expect_error(predict(model, files = tmp, n_producers = 1.5))
+  expect_error(predict(model, files = tmp, n_producers = c(1L, 2L)))
+  expect_error(predict(model, files = tmp, n_producers = NA_integer_))
+
+  # batch_size must be integer >= 1
+  expect_error(predict(model, files = tmp, batch_size = 0L))
+  expect_error(predict(model, files = tmp, batch_size = c(1L, 2L)))
+
+  # prefetch_ratio must be integer >= 0
+  expect_error(predict(model, files = tmp, prefetch_ratio = -1L))
+
+  # speed must be numeric in [0.01, 100]
+  expect_error(predict(model, files = tmp, speed = 0))
+  expect_error(predict(model, files = tmp, speed = 101))
+  expect_error(predict(model, files = tmp, speed = c(1, 2)))
+  expect_error(predict(model, files = tmp, speed = NA_real_))
+
+  # half_precision must be logical
+  expect_error(predict(model, files = tmp, half_precision = 1L))
+  expect_error(predict(model, files = tmp, half_precision = c(TRUE, FALSE)))
+  expect_error(predict(model, files = tmp, half_precision = NA))
+
+  # max_audio_duration_min must be > 0
+  expect_error(predict(model, files = tmp, max_audio_duration_min = 0))
+  expect_error(predict(model, files = tmp, max_audio_duration_min = -5))
+})
+
+test_that("predict.birdnet_model_geo uses min_confidence = 0.03 by default", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "geo",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_geo", "birdnet_model")
+  )
+
+  predict(model, latitude = 50.8, longitude = 12.9)
+  expect_equal(captured_args$min_confidence, 0.03)
+})
+
+test_that("predict.birdnet_model_geo forwards half_precision when non-NULL", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "geo",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_geo", "birdnet_model")
+  )
+
+  # Default: half_precision should NOT be forwarded
+  predict(model, latitude = 50.8, longitude = 12.9)
+  expect_false("half_precision" %in% names(captured_args))
+
+  # Explicit: half_precision should be forwarded
+  predict(model, latitude = 50.8, longitude = 12.9, half_precision = TRUE)
+  expect_true(captured_args$half_precision)
+})
+
+test_that("predict.birdnet_model_geo validates half_precision", {
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) mock_py_predictions),
+      model_type = "geo",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_geo", "birdnet_model")
+  )
+
+  expect_error(predict(
+    model,
+    latitude = 50.8,
+    longitude = 12.9,
+    half_precision = 1L
+  ))
+  expect_error(predict(
+    model,
+    latitude = 50.8,
+    longitude = 12.9,
+    half_precision = c(TRUE, FALSE)
+  ))
+  expect_error(predict(
+    model,
+    latitude = 50.8,
+    longitude = 12.9,
+    half_precision = NA
+  ))
+})
+
 test_that("df_utils.predictions_to_dict converts structured array to R-friendly dict", {
   skip_if_not_installed("reticulate")
   skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
 
   # Build a numpy structured array matching birdnet's geo format
-  mock_pred <- reticulate::py_run_string("
+  mock_pred <- reticulate::py_run_string(
+    "
 import numpy as np
 
 class MockGeoPred:
@@ -280,7 +509,9 @@ class MockGeoPred:
         arr['species_name'] = ['Blue Jay', 'House Sparrow']
         arr['confidence'] = [0.85, 0.50]
         return arr
-", convert = FALSE)
+",
+    convert = FALSE
+  )
 
   helper <- reticulate::import_from_path(
     "df_utils",
@@ -316,7 +547,8 @@ test_that("df_utils.predictions_to_dict handles multi-file object-dtype input co
 
   # Build a structured array with object-dtype "input" column (as
   # AcousticFilePredictionResult produces) containing two distinct file paths
-  mock_pred <- reticulate::py_run_string("
+  mock_pred <- reticulate::py_run_string(
+    "
 import numpy as np
 
 class MockMultiFilePred:
@@ -335,7 +567,9 @@ class MockMultiFilePred:
         arr['species_name'] = ['Blue Jay', 'House Sparrow', 'Blue Jay']
         arr['confidence'] = [0.85, 0.50, 0.70]
         return arr
-", convert = FALSE)
+",
+    convert = FALSE
+  )
 
   helper <- reticulate::import_from_path(
     "df_utils",

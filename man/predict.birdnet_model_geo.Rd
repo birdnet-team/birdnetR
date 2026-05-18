@@ -4,7 +4,15 @@
 \alias{predict.birdnet_model_geo}
 \title{Predict species using a BirdNET geo model}
 \usage{
-\method{predict}{birdnet_model_geo}(object, latitude, longitude, week = NULL, min_confidence = 0.1, ...)
+\method{predict}{birdnet_model_geo}(
+  object,
+  latitude,
+  longitude,
+  week = NULL,
+  min_confidence = 0.03,
+  half_precision = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{A BirdNET model object of class \code{birdnet_model_geo} created with \code{\link[=load_model]{load_model()}}.}
@@ -16,6 +24,8 @@
 \item{week}{An integer value representing the week of the year (1-52).}
 
 \item{min_confidence}{A numeric value to set the minimum confidence threshold for predictions.}
+
+\item{half_precision}{A logical value indicating whether to use float16 where supported for inference. If \code{NULL} (default), the Python backend default is used.}
 
 \item{...}{Additional arguments passed to the generic (currently unused).}
 }

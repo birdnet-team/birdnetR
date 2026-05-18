@@ -42,9 +42,13 @@ py_builtins <- NULL
   # Accept only a simple exact pin like "==X.Y.Z"
   if (!grepl("^==[0-9]+\\.[0-9]+\\.[0-9]+$", override)) {
     warning(
-      "Ignoring invalid BIRDNETR_BIRDNET_VERSION='", override, "'. ",
+      "Ignoring invalid BIRDNETR_BIRDNET_VERSION='",
+      override,
+      "'. ",
       "Expected a simple exact pin like '==0.2.16'. ",
-      "Falling back to default: '", default_spec, "'.",
+      "Falling back to default: '",
+      default_spec,
+      "'.",
       call. = FALSE
     )
     return(default_spec)

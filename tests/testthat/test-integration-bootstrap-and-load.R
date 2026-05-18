@@ -30,7 +30,9 @@ test_that("supported_model_configurations() returns a valid configurations table
   expect_s3_class(opts, "data.frame")
   expect_true(nrow(opts) > 0)
   expect_true(
-    all(c("type", "version", "backend", "library", "precision") %in% names(opts))
+    all(
+      c("type", "version", "backend", "library", "precision") %in% names(opts)
+    )
   )
   expect_true("acoustic" %in% opts$type)
   expect_true("geo" %in% opts$type)

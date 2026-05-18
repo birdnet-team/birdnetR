@@ -56,6 +56,13 @@ construct_prediction_class <- function(py_predictions, type) {
 #' @param bandpass_fmin,bandpass_fmax A integer value to set minimum and maximum frequencies for the bandpass filter (in Hz).
 #' @param species_list A character vector or list of species names to filter the predictions. If `NULL`, all species are considered.
 #' @param progress A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".
+#' @param n_producers An integer specifying the number of threads for producing audio batches. Must be >= 1. If `NULL` (default), the Python backend default is used.
+#' @param n_workers An integer specifying the number of backend workers for parallel inference. If `NULL` (default), the Python backend auto-detects based on available CPU cores.
+#' @param batch_size An integer specifying the number of audio segments evaluated per inference call. Must be >= 1. If `NULL` (default), the Python backend default is used.
+#' @param prefetch_ratio An integer specifying how many batches to decode ahead of processing. Must be >= 0. If `NULL` (default), the Python backend default is used.
+#' @param speed A numeric value for the resampling multiplier to accommodate different recording speeds. Must be in the interval \[0.01, 100\]. If `NULL` (default), the Python backend default is used.
+#' @param half_precision A logical value indicating whether to use float16 where supported for inference. If `NULL` (default), the Python backend default is used.
+#' @param max_audio_duration_min A numeric value specifying the maximum total audio duration per call in minutes. Must be > 0. If `NULL` (default), no limit is applied.
 #' @param ... Additional arguments passed to the generic (currently unused).
 #'
 #' @return An S3 object of class `birdnet_prediction_acoustic` and `birdnet_prediction` containing the prediction results.
@@ -84,6 +91,13 @@ predict.birdnet_model_acoustic <- function(
   bandpass_fmax = 15000L,
   species_list = NULL,
   progress = c("minimal", "progress", "benchmark"),
+  n_producers = NULL,
+  n_workers = NULL,
+  batch_size = NULL,
+  prefetch_ratio = NULL,
+  speed = NULL,
+  half_precision = NULL,
+  max_audio_duration_min = NULL,
   ...
 ) {
   model <- object
@@ -107,13 +121,39 @@ predict.birdnet_model_acoustic <- function(
   # to the positional-only `inp` parameter, regardless of vector length.
   files <- unname(as.list(files))
 
-  stopifnot(is.numeric(min_confidence))
-  stopifnot(is.integer(top_k))
-  stopifnot(is.numeric(overlap))
-  stopifnot(is.logical(apply_sigmoid))
-  stopifnot(is.numeric(sigmoid_sensitivity))
-  stopifnot(is.integer(bandpass_fmin))
-  stopifnot(is.integer(bandpass_fmax))
+  stopifnot(is_scalar_number(min_confidence))
+  stopifnot(is_scalar_integer(top_k))
+  stopifnot(is_scalar_number(overlap))
+  stopifnot(is_scalar_logical(apply_sigmoid))
+  stopifnot(is_scalar_number(sigmoid_sensitivity))
+  stopifnot(is_scalar_integer(bandpass_fmin))
+  stopifnot(is_scalar_integer(bandpass_fmax))
+
+  # Validate power-user params (only when non-NULL)
+  if (!is.null(n_producers)) {
+    stopifnot(is_scalar_integer(n_producers), n_producers >= 1L)
+  }
+  if (!is.null(n_workers)) {
+    stopifnot(is_scalar_integer(n_workers), n_workers >= 1L)
+  }
+  if (!is.null(batch_size)) {
+    stopifnot(is_scalar_integer(batch_size), batch_size >= 1L)
+  }
+  if (!is.null(prefetch_ratio)) {
+    stopifnot(is_scalar_integer(prefetch_ratio), prefetch_ratio >= 0L)
+  }
+  if (!is.null(speed)) {
+    stopifnot(is_scalar_number(speed), speed >= 0.01, speed <= 100)
+  }
+  if (!is.null(half_precision)) {
+    stopifnot(is_scalar_logical(half_precision))
+  }
+  if (!is.null(max_audio_duration_min)) {
+    stopifnot(
+      is_scalar_number(max_audio_duration_min),
+      max_audio_duration_min > 0
+    )
+  }
 
   # Handle custom minimum confidence
   if (!is.null(min_confidence_custom)) {
@@ -141,8 +181,19 @@ predict.birdnet_model_acoustic <- function(
     species_list <- py_builtins$set(species_list)
   }
 
-  py_predictions <- model$py_model$predict(
-    files,
+  # Build optional kwargs — NULLs are omitted so Python uses its own defaults
+  optional_kwargs <- compact_nulls(list(
+    n_producers = n_producers,
+    n_workers = n_workers,
+    batch_size = batch_size,
+    prefetch_ratio = prefetch_ratio,
+    speed = speed,
+    half_precision = half_precision,
+    max_audio_duration_min = max_audio_duration_min
+  ))
+
+  # Required kwargs always forwarded
+  required_kwargs <- list(
     top_k = top_k,
     overlap_duration_s = overlap,
     bandpass_fmin = bandpass_fmin,
@@ -153,6 +204,11 @@ predict.birdnet_model_acoustic <- function(
     custom_confidence_thresholds = min_confidence_custom,
     custom_species_list = species_list,
     show_stats = progress
+  )
+
+  py_predictions <- do.call(
+    model$py_model$predict,
+    c(list(files), required_kwargs, optional_kwargs)
   )
 
   # Construct the prediction class
@@ -169,6 +225,7 @@ predict.birdnet_model_acoustic <- function(
 #' @param longitude A numeric value representing the longitude of the location.
 #' @param week An integer value representing the week of the year (1-52).
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
+#' @param half_precision A logical value indicating whether to use float16 where supported for inference. If `NULL` (default), the Python backend default is used.
 #' @param ... Additional arguments passed to the generic (currently unused).
 #'
 #' @return An S3 object of class `birdnet_prediction_geo` and `birdnet_prediction` containing the prediction results.
@@ -188,23 +245,35 @@ predict.birdnet_model_geo <- function(
   latitude,
   longitude,
   week = NULL,
-  min_confidence = 0.1,
+  min_confidence = 0.03,
+  half_precision = NULL,
   ...
 ) {
   model <- object
   # Check argument types for better error messages
   stopifnot(is.list(model))
-  stopifnot(is.numeric(latitude))
-  stopifnot(is.numeric(longitude))
-  stopifnot(is.integer(week) || is.null(week))
-  stopifnot(is.numeric(min_confidence))
+  stopifnot(is_scalar_number(latitude))
+  stopifnot(is_scalar_number(longitude))
+  stopifnot(is_scalar_integer(week) || is.null(week))
+  stopifnot(is_scalar_number(min_confidence))
+  if (!is.null(half_precision)) {
+    stopifnot(is_scalar_logical(half_precision))
+  }
 
-  # Call the Python predict method
-  py_predictions <- model$py_model$predict(
-    latitude,
-    longitude,
+  # Build optional kwargs — NULLs are omitted so Python uses its own defaults
+  optional_kwargs <- compact_nulls(list(
+    half_precision = half_precision
+  ))
+
+  required_kwargs <- list(
     week = week,
     min_confidence = min_confidence
+  )
+
+  # Call the Python predict method
+  py_predictions <- do.call(
+    model$py_model$predict,
+    c(list(latitude, longitude), required_kwargs, optional_kwargs)
   )
 
   # Construct the prediction class
@@ -235,7 +304,12 @@ predict.birdnet_model_geo <- function(
 #' # Convert predictions to a data frame
 #' as.data.frame(predictions)
 #' }
-as.data.frame.birdnet_prediction <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.birdnet_prediction <- function(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  ...
+) {
   py_result <- x$py_predictions
   if (is.null(py_result)) {
     stop("No prediction results available.")
@@ -249,7 +323,12 @@ as.data.frame.birdnet_prediction <- function(x, row.names = NULL, optional = FAL
 #' @rdname as.data.frame.birdnet_prediction
 #' @method as.data.frame birdnet_prediction_geo
 #' @export
-as.data.frame.birdnet_prediction_geo <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame.birdnet_prediction_geo <- function(
+  x,
+  row.names = NULL,
+  optional = FALSE,
+  ...
+) {
   py_result <- x$py_predictions
   if (is.null(py_result)) {
     stop("No prediction results available.")

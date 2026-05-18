@@ -24,7 +24,7 @@ create_mock_py_object <- function(attributes = list()) {
 #' @return Function that returns TRUE for mock objects and real Python objects
 mock_is_py_object <- function() {
   function(object) {
-    inherits(object, "mock_py_object") || 
+    inherits(object, "mock_py_object") ||
       inherits(object, "birdnet_py_mock") ||
       reticulate::py_is_null_xptr(object) == FALSE
   }
@@ -39,7 +39,11 @@ mock_is_py_object <- function() {
 #' @param language Language code
 #' @param model_type Type of model (acoustic, geo, etc.)
 #' @return A mock model object that can be used for testing
-create_mock_model <- function(version = "2.4", language = "en_us", model_type = "acoustic") {
+create_mock_model <- function(
+  version = "2.4",
+  language = "en_us",
+  model_type = "acoustic"
+) {
   mock_py_obj <- create_mock_py_object()
 
   structure(
@@ -71,17 +75,22 @@ create_mock_model <- function(version = "2.4", language = "en_us", model_type = 
 get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
   if (!exists("acoustic_new", envir = .test_models)) {
     if (is_full_test_env()) {
-      tryCatch({
-        model <- load_model(
-          type = "acoustic", version = "2.4", backend = "tf"
-        )
-        assign("acoustic_new", model, envir = .test_models)
-      }, error = function(e) {
-        if (skip_if_not_available) {
-          skip(paste("Failed to load acoustic model:", e$message))
+      tryCatch(
+        {
+          model <- load_model(
+            type = "acoustic",
+            version = "2.4",
+            backend = "tf"
+          )
+          assign("acoustic_new", model, envir = .test_models)
+        },
+        error = function(e) {
+          if (skip_if_not_available) {
+            skip(paste("Failed to load acoustic model:", e$message))
+          }
+          return(NULL)
         }
-        return(NULL)
-      })
+      )
     } else {
       if (skip_if_not_available) {
         skip("Not in a full test environment - acoustic model not available")
@@ -101,17 +110,22 @@ get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
 get_test_geo_model <- function(skip_if_not_available = TRUE) {
   if (!exists("geo_new", envir = .test_models)) {
     if (is_full_test_env()) {
-      tryCatch({
-        model <- load_model(
-          type = "geo", version = "2.4", backend = "tf"
-        )
-        assign("geo_new", model, envir = .test_models)
-      }, error = function(e) {
-        if (skip_if_not_available) {
-          skip(paste("Failed to load geo model:", e$message))
+      tryCatch(
+        {
+          model <- load_model(
+            type = "geo",
+            version = "2.4",
+            backend = "tf"
+          )
+          assign("geo_new", model, envir = .test_models)
+        },
+        error = function(e) {
+          if (skip_if_not_available) {
+            skip(paste("Failed to load geo model:", e$message))
+          }
+          return(NULL)
         }
-        return(NULL)
-      })
+      )
     } else {
       if (skip_if_not_available) {
         skip("Not in a full test environment - geo model not available")
