@@ -48,7 +48,7 @@ This is a simple example using BirdNET to predict species in an audio file.
 library(birdnetR)
 
 # Load a BirdNET acoustic model
-model <- load_model()
+model <- load_birdnet()
 
 # Path to the audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
@@ -87,9 +87,9 @@ their replacements:
 
 | Removed | Replacement |
 |---|---|
-| `birdnet_model_tflite(...)` | `load_model(..., backend = "tf", library = "tflite")` |
-| `birdnet_model_protobuf(...)` | `load_model(..., backend = "pb")` |
-| `birdnet_model_meta(...)` | `load_model(type = "geo")` |
+| `birdnet_model_tflite(...)` | `load_birdnet(..., backend = "tf", library = "tflite")` |
+| `birdnet_model_protobuf(...)` | `load_birdnet(..., backend = "pb")` |
+| `birdnet_model_meta(...)` | `load_birdnet(type = "geo")` |
 | `birdnet_model_custom(...)` | `load_custom(...)` |
 | `predict_species_from_audio_file(model, ...)` | `predict(model, files = ...)` |
 | `predict_species_at_location_and_time(model, ...)` | `predict(model, latitude = ..., longitude = ...)` |

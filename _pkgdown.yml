@@ -16,7 +16,7 @@ articles:
 reference:
 - title: Model Loading
 - contents:
-  - load_model
+  - load_birdnet
   - load_custom
   - supported_model_configurations
 - title: Prediction

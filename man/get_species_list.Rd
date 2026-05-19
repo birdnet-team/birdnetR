@@ -7,7 +7,7 @@
 get_species_list(model)
 }
 \arguments{
-\item{model}{A BirdNET model object returned by \code{\link[=load_model]{load_model()}} or \code{\link[=load_custom]{load_custom()}}.}
+\item{model}{A BirdNET model object returned by \code{\link[=load_birdnet]{load_birdnet()}} or \code{\link[=load_custom]{load_custom()}}.}
 }
 \value{
 A character vector of species names in model order.
@@ -18,7 +18,7 @@ Works for both pretrained and custom models.
 }
 \examples{
 \dontrun{
-model <- load_model(type = "acoustic")
+model <- load_birdnet(type = "acoustic")
 species <- get_species_list(model)
 head(species)
 }

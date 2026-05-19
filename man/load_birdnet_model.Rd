@@ -2,11 +2,11 @@
 % Please edit documentation in R/model_load.R
 \name{load_birdnet_model}
 \alias{load_birdnet_model}
-\alias{load_model}
+\alias{load_birdnet}
 \alias{load_custom}
 \title{Load a BirdNET Model}
 \usage{
-load_model(
+load_birdnet(
   type = "acoustic",
   version = "2.4",
   backend = "tf",
@@ -65,7 +65,7 @@ Internal list fields are implementation details and should not be relied upon.
 Functions to load BirdNET models for sound identification or species prediction from location and time.
 Models will be downloaded if not available locally.
 \itemize{
-\item \code{\link[=load_model]{load_model()}}: load a pre-trained BirdNET model or a geographic model.
+\item \code{\link[=load_birdnet]{load_birdnet()}}: load a pre-trained BirdNET model or a geographic model.
 \item \code{\link[=load_custom]{load_custom()}}: load a custom trained BirdNET model.
 }
 }
@@ -103,6 +103,6 @@ To get an overview of all valid model configuration combinations use \code{\link
 \examples{
 # Load a pre-trained acoustic model
 \dontrun{
-model  <- load_model(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
+model  <- load_birdnet(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
 }
 }

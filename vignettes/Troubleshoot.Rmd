@@ -28,7 +28,7 @@ If you notice a significant pause after BirdNET has finished processing your aud
 For large prediction results, prefer `write_predictions()` to write results directly from Python to a file (CSV, Parquet, or NumPy) without crossing the R boundary. This avoids the memory overhead of converting large result sets to R data frames.
 
 ```{r}
-model <- load_model()
+model <- load_birdnet()
 predictions <- predict(model, audio_path)
 
 # Write directly from Python - no R conversion needed

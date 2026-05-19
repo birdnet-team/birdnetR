@@ -1,4 +1,4 @@
-test_that("load_model forwards the canonical pretrained loader arguments", {
+test_that("load_birdnet forwards the canonical pretrained loader arguments", {
   mock_py_obj <- create_mock_py_object()
   captured <- NULL
 
@@ -17,7 +17,7 @@ test_that("load_model forwards the canonical pretrained loader arguments", {
     .package = "birdnetR"
   )
 
-  model <- load_model(
+  model <- load_birdnet(
     type = "acoustic",
     version = "2.4",
     backend = "tf",

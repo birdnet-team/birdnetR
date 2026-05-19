@@ -41,7 +41,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #'
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
-#' @param object A BirdNET model object of class `birdnet_model_acoustic` created with [load_model()].
+#' @param object A BirdNET model object of class `birdnet_model_acoustic` created with [load_birdnet()].
 #' @param files A character vector of one or more file paths to audio
 #'   files. When multiple files are provided, the returned prediction
 #'   object will contain results for all files; the resulting data frame
@@ -70,7 +70,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET acoustic model
-#' model <- load_model(type = "acoustic")
+#' model <- load_birdnet(type = "acoustic")
 #' # Predict species from audio files
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 #' predictions <- predict(model, files = audio_file)
@@ -220,7 +220,7 @@ predict.birdnet_model_acoustic <- function(
 #'
 #' This function predicts species occurence for a location and week of the year using a BirdNET geo model.
 #'
-#' @param object A BirdNET model object of class `birdnet_model_geo` created with [load_model()].
+#' @param object A BirdNET model object of class `birdnet_model_geo` created with [load_birdnet()].
 #' @param latitude A numeric value representing the latitude of the location.
 #' @param longitude A numeric value representing the longitude of the location.
 #' @param week An integer value representing the week of the year (1-52).
@@ -233,7 +233,7 @@ predict.birdnet_model_acoustic <- function(
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET geo model
-#' model <- load_model(type = "geo")
+#' model <- load_birdnet(type = "geo")
 #' # Predict species for a specific location and week
 #' predictions <- predict(model, latitude = 50.8334, longitude = 12.9231, week = 18L)
 #' # Convert predictions to a data frame
@@ -297,7 +297,7 @@ predict.birdnet_model_geo <- function(
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET acoustic model
-#' model <- load_model(type = "acoustic")
+#' model <- load_birdnet(type = "acoustic")
 #' # Predict species from audio files
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 #' predictions <- predict(model, files = audio_file)

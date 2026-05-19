@@ -19,3 +19,25 @@ test_that("is_valid_species_list correctly validates species lists", {
   # NULL
   expect_false(is_valid_species_list(NULL))
 })
+
+test_that("is_scalar_integer accepts integer and whole-number double values", {
+  expect_true(is_scalar_integer(5L))
+  expect_true(is_scalar_integer(5))
+  expect_true(is_scalar_integer(0))
+  expect_true(is_scalar_integer(-3L))
+  expect_true(is_scalar_integer(-3))
+})
+
+test_that("is_scalar_integer rejects non-integer, non-finite, NA, and vector values", {
+  expect_false(is_scalar_integer(5.5))
+  expect_false(is_scalar_integer(NA_integer_))
+  expect_false(is_scalar_integer(NA_real_))
+  expect_false(is_scalar_integer(Inf))
+  expect_false(is_scalar_integer(-Inf))
+  expect_false(is_scalar_integer(NaN))
+  expect_false(is_scalar_integer(c(1L, 2L)))
+  expect_false(is_scalar_integer(c(1, 2)))
+  expect_false(is_scalar_integer("5"))
+  expect_false(is_scalar_integer(NULL))
+  expect_false(is_scalar_integer(TRUE))
+})

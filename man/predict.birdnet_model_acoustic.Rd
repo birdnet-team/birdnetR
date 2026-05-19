@@ -28,7 +28,7 @@
 )
 }
 \arguments{
-\item{object}{A BirdNET model object of class \code{birdnet_model_acoustic} created with \code{\link[=load_model]{load_model()}}.}
+\item{object}{A BirdNET model object of class \code{birdnet_model_acoustic} created with \code{\link[=load_birdnet]{load_birdnet()}}.}
 
 \item{files}{A character vector of one or more file paths to audio
 files. When multiple files are provided, the returned prediction
@@ -94,7 +94,7 @@ For additional details on BirdNET confidence scores and guidelines for convertin
 \examples{
 \dontrun{
 # Load a BirdNET acoustic model
-model <- load_model(type = "acoustic")
+model <- load_birdnet(type = "acoustic")
 # Predict species from audio files
 audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 predictions <- predict(model, files = audio_file)

@@ -60,7 +60,7 @@ construct_model_class <- function(
 #' Functions to load BirdNET models for sound identification or species prediction from location and time.
 #' Models will be downloaded if not available locally.
 #'
-#' * [load_model()]: load a pre-trained BirdNET model or a geographic model.
+#' * [load_birdnet()]: load a pre-trained BirdNET model or a geographic model.
 #' * [load_custom()]: load a custom trained BirdNET model.
 #'
 #' @details
@@ -104,7 +104,7 @@ construct_model_class <- function(
 #' @examples
 #' # Load a pre-trained acoustic model
 #' \dontrun{
-#' model  <- load_model(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
+#' model  <- load_birdnet(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
 #' }
 NULL
 #> NULL
@@ -113,7 +113,7 @@ NULL
 #' @param language character. Language code for the model to use e.g., "en_us".
 #' Common species names are returned in the specified language if available. Use [supported_languages()] to see all available languages.
 #' @export
-load_model <- function(
+load_birdnet <- function(
   type = "acoustic",
   version = "2.4",
   backend = "tf",

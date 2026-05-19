@@ -52,7 +52,7 @@ format_model_options <- function(
 #'
 #' Returns a data frame of valid combinations of model types, versions, backends, libraries, and precisions
 #' supported by the underlying BirdNET Python backend. Use this to explore which model settings are available
-#' for use in \code{load_model()} and related functions.
+#' for use in \code{load_birdnet()} and related functions.
 #'
 #' @param compact Logical. If \code{TRUE}, returns a compacted version of the configurations table.
 #'
@@ -76,6 +76,9 @@ supported_model_configurations <- function(
   valid_model_backends <- py_birdnet_globals$VALID_MODEL_BACKENDS
   valid_library_types <- py_birdnet_globals$VALID_LIBRARY_TYPES
   valid_precisions <- py_birdnet_globals$VALID_MODEL_PRECISIONS
+
+  # Perch v2 is loaded separately and not via load_birdnet(); exclude it
+  valid_model_versions_acoustic <- setdiff(valid_model_versions_acoustic, "2")
 
   # Build grid for each type with the right versions
   grid_acoustic <- expand.grid(

@@ -68,7 +68,7 @@ create_mock_model <- function(
 
 #' Get an acoustic model for integration testing
 #'
-#' Returns a cached acoustic model loaded via load_model(), or initializes a
+#' Returns a cached acoustic model loaded via load_birdnet(), or initializes a
 #' new one. Skips the test if the model cannot be loaded.
 #' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
 #' @return An acoustic model or skips the test
@@ -77,7 +77,7 @@ get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
     if (is_full_test_env()) {
       tryCatch(
         {
-          model <- load_model(
+          model <- load_birdnet(
             type = "acoustic",
             version = "2.4",
             backend = "tf"
@@ -103,7 +103,7 @@ get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
 
 #' Get a geo model for integration testing
 #'
-#' Returns a cached geo model loaded via load_model(), or initializes a
+#' Returns a cached geo model loaded via load_birdnet(), or initializes a
 #' new one. Skips the test if the model cannot be loaded.
 #' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
 #' @return A geo model or skips the test
@@ -112,7 +112,7 @@ get_test_geo_model <- function(skip_if_not_available = TRUE) {
     if (is_full_test_env()) {
       tryCatch(
         {
-          model <- load_model(
+          model <- load_birdnet(
             type = "geo",
             version = "2.4",
             backend = "tf"

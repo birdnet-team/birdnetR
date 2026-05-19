@@ -68,9 +68,11 @@ compact_nulls <- function(x) {
 }
 
 
-# Check whether an object is a single non-missing integer.
+# Check whether an object is a single non-missing integer-valued number.
+# Accepts both integer and whole-number double values (e.g. 5L or 5).
 is_scalar_integer <- function(x) {
-  is.integer(x) && length(x) == 1L && !is.na(x)
+  is.numeric(x) && length(x) == 1L && !is.na(x) && is.finite(x) &&
+    x == trunc(x)
 }
 
 

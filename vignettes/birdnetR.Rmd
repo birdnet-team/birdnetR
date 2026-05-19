@@ -54,10 +54,10 @@ You can also load a custom model if one is available. For information on trainin
 
 ```{r init_model}
 # Load a pre-trained acoustic model (default: TensorFlow backend, fp32 precision)
-model <- load_model()
+model <- load_birdnet()
 
 # Load a model with specific options
-model <- load_model(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
+model <- load_birdnet(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
 
 # See all supported model configurations
 supported_model_configurations()
@@ -81,7 +81,7 @@ With BirdNET, you can identify bird species present in an audio file. The functi
 library(birdnetR)
 
 # Load the BirdNET acoustic model
-model <- load_model()
+model <- load_birdnet()
 
 # Path to an example audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
@@ -142,7 +142,7 @@ pattern is to loop over meaningful chunks (e.g. one folder or one recording
 day) and write one output file per chunk:
 
 ```{r batch_predict}
-model <- load_model()
+model <- load_birdnet()
 
 # Folders of audio recordings, e.g. one folder per site
 audio_folders <- list.dirs("recordings", recursive = FALSE)
@@ -191,7 +191,7 @@ BirdNET includes a geographic model that predicts the likelihood of bird species
 
 ```{r use_geo_model}
 # Load the geo model
-geo_model <- load_model(type = "geo")
+geo_model <- load_birdnet(type = "geo")
 
 # Predict species occurrence in Ithaca, NY in week 4 of the year
 predictions <- predict(geo_model, latitude = 42.5, longitude = -76.45, week = 4L)
@@ -217,7 +217,7 @@ supported_languages()
 
 To output the common names in your preferred language, load the model with the `language` parameter:
 ```{r}
-model_fr <- load_model(language = "fr")
+model_fr <- load_birdnet(language = "fr")
 
 # Get species list in French
 head(get_species_list(model_fr))

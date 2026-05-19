@@ -15,7 +15,7 @@ A data frame of valid model configuration combinations. Each row represents a su
 \description{
 Returns a data frame of valid combinations of model types, versions, backends, libraries, and precisions
 supported by the underlying BirdNET Python backend. Use this to explore which model settings are available
-for use in \code{load_model()} and related functions.
+for use in \code{load_birdnet()} and related functions.
 }
 \details{
 Not all combinations of arguments are valid. For example, the \code{library} argument is only relevant for TensorFlow backends,

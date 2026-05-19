@@ -50,7 +50,7 @@ test_that("supported_languages() returns language codes including en_us", {
 
 # -- Acoustic model loading -----------------------------------------------
 
-test_that("load_model() loads a pretrained acoustic model", {
+test_that("load_birdnet() loads a pretrained acoustic model", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_acoustic_model()
@@ -75,7 +75,7 @@ test_that("loaded acoustic model exposes a species list", {
 
 # -- Geo model loading ----------------------------------------------------
 
-test_that("load_model() loads a pretrained geo model", {
+test_that("load_birdnet() loads a pretrained geo model", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_geo_model()

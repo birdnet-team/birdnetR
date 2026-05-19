@@ -28,7 +28,7 @@ Convert predictions from a geo or acoustic model to a data frame.
 \examples{
 \dontrun{
 # Load a BirdNET acoustic model
-model <- load_model(type = "acoustic")
+model <- load_birdnet(type = "acoustic")
 # Predict species from audio files
 audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 predictions <- predict(model, files = audio_file)

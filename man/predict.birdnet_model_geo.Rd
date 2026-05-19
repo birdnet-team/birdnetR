@@ -15,7 +15,7 @@
 )
 }
 \arguments{
-\item{object}{A BirdNET model object of class \code{birdnet_model_geo} created with \code{\link[=load_model]{load_model()}}.}
+\item{object}{A BirdNET model object of class \code{birdnet_model_geo} created with \code{\link[=load_birdnet]{load_birdnet()}}.}
 
 \item{latitude}{A numeric value representing the latitude of the location.}
 
@@ -38,7 +38,7 @@ This function predicts species occurence for a location and week of the year usi
 \examples{
 \dontrun{
 # Load a BirdNET geo model
-model <- load_model(type = "geo")
+model <- load_birdnet(type = "geo")
 # Predict species for a specific location and week
 predictions <- predict(model, latitude = 50.8334, longitude = 12.9231, week = 18L)
 # Convert predictions to a data frame

@@ -10,9 +10,9 @@ The table below maps removed functions to their replacements:
 
 | Removed | Replacement |
 |---|---|
-| `birdnet_model_tflite(...)` | `load_model(..., backend = "tf", library = "tflite")` |
-| `birdnet_model_protobuf(...)` | `load_model(..., backend = "pb")` |
-| `birdnet_model_meta(...)` | `load_model(type = "geo", ...)` |
+| `birdnet_model_tflite(...)` | `load_birdnet(..., backend = "tf", library = "tflite")` |
+| `birdnet_model_protobuf(...)` | `load_birdnet(..., backend = "pb")` |
+| `birdnet_model_meta(...)` | `load_birdnet(type = "geo", ...)` |
 | `birdnet_model_custom(...)` | `load_custom(...)` |
 | `predict_species_from_audio_file(model, ...)` | `predict(model, files = ...)` |
 | `predict_species_at_location_and_time(model, ...)` | `predict(model, latitude = ..., longitude = ..., ...)` |
@@ -25,7 +25,8 @@ The table below maps removed functions to their replacements:
 
 - All legacy model loaders (`birdnet_model_tflite()`, `birdnet_model_protobuf()`,
   `birdnet_model_meta()`, `birdnet_model_custom()`) are removed.
-  Use `load_model()` or `load_custom()` instead.
+  Use `load_birdnet()` or `load_custom()` instead.
+- `load_model()` has been renamed to `load_birdnet()` to distinguish it from the future `load_perch()` loader (#45).
 - `predict_species_from_audio_file()` and `predict_species_at_location_and_time()`
   are removed. Use `predict()` on a loaded model.
 - `labels_path()` and `read_labels()` are removed.
@@ -38,7 +39,7 @@ The table below maps removed functions to their replacements:
 
 ## New features
 
-- `load_model()` now supports `type`, `version`, `backend`, `library`,
+- `load_birdnet()` now supports `type`, `version`, `backend`, `library`,
   `precision`, and `language` arguments for flexible model loading.
 - `load_custom()` gains advanced arguments `classifier_type` and `is_raven`
   for custom model configurations.
@@ -53,16 +54,10 @@ The table below maps removed functions to their replacements:
 - `predict()` for acoustic models now exposes performance parameters `n_producers`, `n_workers`, `batch_size`, `prefetch_ratio`, `speed`, `half_precision`, and `max_audio_duration_min`; these default to `NULL` so the Python backend defaults are used unless explicitly set.
 - `predict()` for geo models now exposes `half_precision`, defaulting to `NULL` so the Python backend default is used unless explicitly set.
 
-## Python dependency
-
-- The upstream `birdnet` Python package requirement is now a bounded range
-  (`>=0.2.16,<0.3`) instead of an exact pin. This allows upstream bugfix
-  releases to be picked up automatically without requiring a new CRAN
-  submission. Set the environment variable `BIRDNETR_BIRDNET_VERSION`
-  (e.g. `==0.2.16`) before loading the package to override the default range.
-
 ## Bug fixes
-  
+
+- `supported_model_configurations()` no longer advertises acoustic version `"2"` (Perch v2), which is not loadable via `load_birdnet()` (#45).
+- Integer-like parameter validation (`top_k`, `bandpass_fmin`, etc.) now silently accepts whole-number doubles (e.g. `5`) in addition to integer values (e.g. `5L`) (#45).
 - `as.data.frame()` for acoustic and geo prediction objects now converts
   results via a Python dict helper that calls `to_structured_array()` and
   returns plain Python lists and numpy arrays, bypassing `pandas` entirely.
