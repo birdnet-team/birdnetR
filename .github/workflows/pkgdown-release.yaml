@@ -1,0 +1,61 @@
+# Stable (release) docs workflow
+#
+# Deployment strategy:
+#   - Builds pkgdown site from the published release tag (stable version)
+#   - Deploys built docs directly to the gh-pages root
+#   - `clean: false` ensures dev docs under /dev are never deleted
+#   - The package version in DESCRIPTION at the tag determines the displayed
+#     version string; pkgdown will render it as a stable release.
+#
+# Companion workflow: pkgdown-dev.yaml handles development docs at /dev/.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build (e.g. v1.2.0)"
+        required: true
+        type: string
+
+name: pkgdown-release
+
+permissions: read-all
+
+jobs:
+  pkgdown-release:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pkgdown-release-${{ github.run_id }}
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      # Check out the published release tag so DESCRIPTION carries the stable
+      # version string (x.y.z, no .9000 suffix).
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
+
+      - name: Build site
+        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
+        shell: Rscript {0}
+
+      - name: Deploy stable docs to gh-pages root 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        with:
+          clean: false
+          branch: gh-pages
+          folder: docs

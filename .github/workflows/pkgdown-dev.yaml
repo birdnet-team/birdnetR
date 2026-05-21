@@ -1,38 +1,36 @@
-# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
-# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+# Development docs workflow
 #
-# Deployment strategy (requires _pkgdown.yml: development: mode: auto):
-#   main with version x.y.z      -> stable docs at site root
-#   main with version x.y.z.9000 -> development docs at /dev/
+# Deployment strategy:
+#   - Builds pkgdown site from the `main` branch (development version)
+#   - Deploys built docs into gh-pages/dev (i.e. the site root /dev/)
+#   - `clean: false` ensures stable docs at the root are never deleted
+#   - Does NOT deploy on pull_request events (build-only for validation)
 #
-# Only main deploys. Feature/fix branches and release/* branches do not
-# trigger this workflow. pkgdown distinguishes stable vs development docs
-# solely by the package version in DESCRIPTION.
+# Companion workflow: pkgdown-release.yaml handles stable docs at the root.
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  release:
-    types: [published]
   workflow_dispatch:
 
-name: pkgdown
+name: pkgdown-dev
 
 permissions: read-all
 
 jobs:
-  pkgdown:
+  pkgdown-dev:
     runs-on: ubuntu-latest
-    # Only restrict concurrency for non-PR jobs
     concurrency:
-      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+      group: pkgdown-dev-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -49,10 +47,16 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
-      - name: Deploy to GitHub pages 🚀
+      # Stage docs into deploy/dev so only the /dev sub-path is updated
+      - name: Stage dev docs
+        run: |
+          mkdir -p deploy/dev
+          cp -r docs/. deploy/dev/
+
+      - name: Deploy dev docs to gh-pages /dev 🚀
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           clean: false
           branch: gh-pages
-          folder: docs
+          folder: deploy
