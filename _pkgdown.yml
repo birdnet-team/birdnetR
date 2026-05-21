@@ -1,19 +1,31 @@
 url: https://birdnet-team.github.io/birdnetR/
+development:
+  mode: auto
 template:
   bootstrap: 5
+navbar:
+  structure:
+    left: [intro, articles, reference, news]
+articles:
+- title: Get started
+  navbar: ~
+  contents:
+  - birdnetR
+  - workflow
+  - Troubleshoot
 reference:
-- title: Installation
+- title: Model Loading
 - contents:
-  - starts_with("install_")
-- title: Inference
-- subtitle: Models
+  - load_birdnet
+  - load_custom
+  - supported_model_configurations
+- title: Prediction
 - contents:
-  - starts_with("birdnet_")
-- subtitle: Prediction
-- contents:
-  - contains("predict")
+  - starts_with("predict.")
+  - as.data.frame.birdnet_prediction
+  - write_predictions
 - title: Helpers
 - contents:
-  - available_languages
-  - labels_path
-  - read_labels
+  - supported_languages
+  - get_species_list
+  - birdnet_version

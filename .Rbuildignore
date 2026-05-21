@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
+^CONTRIBUTING\.md$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
@@ -12,3 +13,8 @@
 ^CRAN-SUBMISSION$
 ^doc$
 ^Meta$
+^UPDATE_BIRDNET\.md$
+^TODO$
+^test\.npz$
+^test\.parquet$
+^test\.csv$

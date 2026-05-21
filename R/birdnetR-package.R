@@ -15,13 +15,47 @@
 ## usethis namespace: end
 
 # Import the necessary Python modules layzily in .onLoad
-py_birdnet_models <- NULL
-py_birdnet_utils <- NULL
-py_birdnet_audio_based_prediction <- NULL
-py_birdnet_location_based_prediction <- NULL
-py_birdnet_types <- NULL
-py_pathlib <- NULL
+py_birdnet <- NULL
+py_birdnet_globals <- NULL
 py_builtins <- NULL
+
+
+#' Build the birdnet Python package requirement spec for py_require()
+#'
+#' Returns a pip-compatible version specifier string for the birdnet Python
+#' package. By default this is a bounded range (e.g. `"birdnet>=0.2.16,<0.3"`).
+#'
+#' If the environment variable `BIRDNETR_BIRDNET_VERSION` is set to a valid
+#' exact pin (e.g. `"==0.2.16"`), that pin is used instead. Invalid values
+#' produce a warning and fall back to the default range.
+#'
+#' @return A single character string suitable for `reticulate::py_require()`.
+#' @noRd
+.birdnet_py_spec <- function() {
+  default_spec <- "birdnet>=0.2.16,<0.3"
+
+  override <- trimws(Sys.getenv("BIRDNETR_BIRDNET_VERSION", unset = ""))
+  if (nchar(override) == 0L) {
+    return(default_spec)
+  }
+
+  # Accept only a simple exact pin like "==X.Y.Z"
+  if (!grepl("^==[0-9]+\\.[0-9]+\\.[0-9]+$", override)) {
+    warning(
+      "Ignoring invalid BIRDNETR_BIRDNET_VERSION='",
+      override,
+      "'. ",
+      "Expected a simple exact pin like '==0.2.16'. ",
+      "Falling back to default: '",
+      default_spec,
+      "'.",
+      call. = FALSE
+    )
+    return(default_spec)
+  }
+
+  paste0("birdnet", override)
+}
 
 
 #' Initialize birdnetR Package
@@ -33,7 +67,6 @@ py_builtins <- NULL
 #' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
-
   # set the KERAS_HOME environment variable (dont't write to user home)
   Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
 
@@ -41,21 +74,19 @@ py_builtins <- NULL
   Sys.setenv(RETICULATE_PYTHON = "managed")
 
   # Versions of Python and BirdNET; numpy is automatically installed by `reticulate`.
-  # To prevent conflicts, we specify a version range according to `birdnet`python.
+  # The default spec uses a bounded range (>=0.2.16,<0.3) so that upstream
+  # bugfix releases are picked up without a CRAN re-submission.
+  # Set BIRDNETR_BIRDNET_VERSION (e.g. "==0.2.16") to override.
   reticulate::py_require(
-    c(
-      "numpy>=1.23.5,<2.0.0",
-      "birdnet==0.1.7"
-    ),
-    python_version = ">=3.9,<3.12"
+    .birdnet_py_spec(),
+    python_version = ">=3.11,<3.14"
   )
 
   # Use superassignment to update global reference to the Python packages
-  py_birdnet_models <<- reticulate::import("birdnet.models", delay_load = TRUE) # list(before_load = .check_birdnet_version()
-  py_birdnet_utils <<- reticulate::import("birdnet.utils", delay_load = TRUE)
-  py_birdnet_audio_based_prediction <<- reticulate::import("birdnet.audio_based_prediction", delay_load = TRUE)
-  py_birdnet_location_based_prediction <<- reticulate::import("birdnet.location_based_prediction", delay_load = TRUE)
-  py_birdnet_types <<- reticulate::import("birdnet.types", delay_load = TRUE)
-  py_pathlib <<- reticulate::import("pathlib", delay_load = TRUE)
+  py_birdnet <<- reticulate::import("birdnet", delay_load = TRUE)
+  py_birdnet_globals <<- reticulate::import(
+    "birdnet.globals",
+    delay_load = TRUE
+  )
   py_builtins <<- reticulate::import_builtins(delay_load = TRUE)
 }

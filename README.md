@@ -1,17 +1,22 @@
 # birdnetR <a href="https://birdnet-team.github.io/birdnetR/"><img src="man/figures/logo.png" align="right" height="139" alt="birdnetR website" /></a>
 
 <!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![R-CMD-check](https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/birdnet-team/birdnetR/actions/workflows/R-CMD-check.yaml)
 [![CRAN status](https://www.r-pkg.org/badges/version/birdnetR)](https://CRAN.R-project.org/package=birdnetR)
 <!-- badges: end -->
+
+> [!CAUTION]
+> **Version 1.0.0 is currently in development and will be a breaking release.**
+> Several functions have been renamed or removed. If you are upgrading from
+> 0.x, see the [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x)
+> section below.
 
 `birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow.
 This package will simplify the analysis of (large) audio datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
 
 `birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). It provides the core functionality to analyze audio using the pre-trained 'BirdNET' model or a custom classifier, and to predict bird species occurrence based on location and week of the year.
-However, it does not include all the advanced features available in the [BirdNET Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For advanced applications, such as training custom classifiers and validation, users should use the 'BirdNET Analyzer' directly.
-`birdnetR` is under active development, and changes may affect existing workflows.
+However, it does not include all the advanced features available in the [BirdNET Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For advanced applications such as training custom classifiers or accessing the broader BirdNET feature set, refer to the BirdNET Analyzer directly.
 
 
 ## Installation
@@ -36,25 +41,71 @@ pak::pak("birdnet-team/birdnetR")
 
 ## Example use
 
-This is a simple example using the `tflite` BirdNET model to predict species in an audio file.
+This is a simple example using BirdNET to predict species in an audio file.
 
 ```r
 # Load the package
 library(birdnetR)
 
-# Initialize a BirdNET model
-model <- birdnet_model_tflite()
+# Load a BirdNET acoustic model
+model <- load_birdnet()
 
 # Path to the audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
 # Predict species within the audio file
-predictions <- predict_species_from_audio_file(model, audio_path)
+predictions <- predict(model, audio_path)
 
-# Get most probable prediction within each time interval
-get_top_prediction(predictions)
+# Convert predictions to a data frame
+df <- as.data.frame(predictions)
 
 ```
+
+
+## Working with prediction results
+
+`predict()` returns a lightweight Python-backed object — not an R data frame.
+Use `as.data.frame()` when you need the results in R for further analysis.
+For file-based pipelines (especially with large datasets), it is more efficient
+to skip conversion and write results directly:
+
+```r
+predictions <- predict(model, audio_path)
+
+# More efficient for large runs — stays in Python:
+write_predictions(predictions, "results.parquet")
+
+# Only when you need results in R:
+df <- as.data.frame(predictions)
+```
+
+
+## Upgrading from birdnetR 0.x
+
+Version 1.0 is a breaking release. The table below maps removed functions to
+their replacements:
+
+| Removed | Replacement |
+|---|---|
+| `birdnet_model_tflite(...)` | `load_birdnet(..., backend = "tf", library = "tflite")` |
+| `birdnet_model_protobuf(...)` | `load_birdnet(..., backend = "pb")` |
+| `birdnet_model_meta(...)` | `load_birdnet(type = "geo")` |
+| `birdnet_model_custom(...)` | `load_custom(...)` |
+| `predict_species_from_audio_file(model, ...)` | `predict(model, files = ...)` |
+| `predict_species_at_location_and_time(model, ...)` | `predict(model, latitude = ..., longitude = ...)` |
+| `labels_path()` / `read_labels()` | `get_species_list(model)` |
+| `available_languages()` | `supported_languages()` |
+| `get_top_prediction()` | Removed; use `dplyr` or `birdnetTools` |
+
+See `NEWS.md` for the full changelog.
+
+
+## The BirdNET ecosystem
+
+`birdnetR` is part of a set of related tools:
+
+- **[BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer)** — the upstream desktop/CLI application for custom classifier training and advanced BirdNET features.
+- **[birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html)** — an R package for post-processing and validating BirdNET predictions: filtering, visualisation, and interactive threshold setting.
 
 
 ## Citation
@@ -81,13 +132,11 @@ Feel free to use `birdnetR` for your acoustic analyses and research. If you do, 
 
 Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
 
-
 ## Funding
 
-This project is supported by Jake Holshuh (Cornell class of '69) and The Arthur Vining Davis Foundations. Our work in the K. Lisa Yang Center for Conservation Bioacoustics is made possible by the generosity of K. Lisa Yang to advance innovative conservation technologies to inspire and inform the conservation of wildlife and habitats.
+Our work in the K. Lisa Yang Center for Conservation Bioacoustics is made possible by the generosity of K. Lisa Yang to advance innovative conservation technologies to inspire and inform the conservation of wildlife and habitats.
 
-The development of BirdNET is supported by the German Federal Ministry of Education and Research through the project “BirdNET+” (FKZ 01|S22072). The German Federal Ministry for the Environment, Nature Conservation and Nuclear Safety contributes through the “DeepBirdDetect” project (FKZ 67KI31040E). In addition, the Deutsche Bundesstiftung Umwelt supports BirdNET through the project “RangerSound” (project 39263/01).
-
+The development of BirdNET is supported by the German Federal Ministry of Research, Technology and Space (FKZ 01|S22072), the German Federal Ministry for the Environment, Climate Action, Nature Conservation and Nuclear Safety (FKZ 67KI31040E), the German Federal Ministry of Economic Affairs and Energy (FKZ 16KN095550), the Deutsche Bundesstiftung Umwelt (project 39263/01) and the European Social Fund.
 
 ## Partners
 

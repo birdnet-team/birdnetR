@@ -1,105 +1,91 @@
-#' Convert a list of predictions from python to a data frame
+#' Report Python and birdnet Version Information
 #'
-#' This function processes a list of predictions from the python `birdnet` package, each containing time intervals,
-#' scientific names, common names, and confidence levels, and converts them into a structured data frame. It handles
-#' cases where some elements in the list might be empty.
+#' Returns the Python executable path, Python version, and installed
+#' `birdnet` Python package version as a named list. Useful for
+#' debugging environment issues.
 #'
-#' @param predictions A list where each element is expected to be a named list. The names of the
-#'   elements represent time intervals in the format "(start,end)", and each element contains
-#'   another list where the names are of the form "scientificName_commonName" and values are
-#'   confidence scores.
-#' @param keep_empty A logical flag indicating whether to include empty elements as rows in the output
-#'   data frame. If `TRUE`, empty elements are filled with `NA`. If `FALSE`, empty elements are excluded.
-#' @return A data frame with columns: `start`, `end`, `scientific_name`, `common_name`, and `confidence`.
-#'   Each row represents a single prediction.
-#' @noRd
-#' @importFrom stats complete.cases
-predictions_to_df <- function(predictions, keep_empty = FALSE) {
-  # Validate inputs
-  if (!is.list(predictions)) {
-    stop("The 'predictions' argument must be a list.")
-  }
-  if (!is.logical(keep_empty) || length(keep_empty) != 1) {
-    stop("The 'keep_empty' argument must be a single logical value.")
-  }
+#' @return A named list with elements:
+#' \describe{
+#'   \item{python_version}{Character string with the Python version
+#'     (e.g. `"3.12.3"`), or `NA` if Python is not available.}
+#'   \item{python_executable}{Character string with the path to the
+#'     Python executable, or `NA` if Python is not available.}
+#'   \item{birdnet_version}{Character string with the installed
+#'     `birdnet` package version (e.g. `"0.2.16"`), or `NA` if the
+#'     package is not installed.}
+#' }
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' birdnet_version()
+#' }
+birdnet_version <- function() {
+  py_version <- NA_character_
+  py_executable <- NA_character_
+  bn_version <- NA_character_
 
-  # Pre-calculate total detections (inner list lengths)
-  detection_counts <- vapply(predictions, function(pred) {
-    n <- length(pred)
-    if (n == 0L) {
-      if (keep_empty) 1L else 0L
-    } else {
-      n
+  tryCatch(
+    {
+      cfg <- reticulate::py_config()
+      py_version <- cfg$version
+      py_executable <- cfg$python
+    },
+    error = \(e) {
+      warning(
+        "Could not determine Python version: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
     }
-  }, FUN.VALUE = integer(1))
-
-  total_detections <- sum(detection_counts)
-
-  # Pre-allocate vectors for time values, raw label strings, and confidence scores.
-  starts      <- numeric(total_detections)
-  ends        <- numeric(total_detections)
-  labels_all  <- character(total_detections)
-  confidences <- numeric(total_detections)
-
-  idx <- 1L
-  # Iterate over each time interval in predictions
-  for (interval in names(predictions)) {
-    preds <- predictions[[interval]]
-    num_preds <- length(preds)
-
-    if (num_preds == 0L) {
-      if (!keep_empty) next
-      # If there are no predictions and we want to keep empty entries,
-      # insert a placeholder.
-      preds <- list("NA_NA" = NA_real_)
-      num_preds <- 1L
-    }
-
-    # Parse the time interval (e.g. "(0.0, 3.0)") into numeric start and end.
-    time_vals <- as.numeric(strsplit(gsub("[()]", "", interval), ",")[[1]])
-    if (length(time_vals) != 2L) {
-      stop("Time interval '", interval, "' does not contain exactly two numeric values.")
-    }
-
-    # Store the labels as they are (e.g., "Poecile atricapillus_Black-capped Chickadee").
-    current_labels <- names(preds)
-
-    idx_range <- idx:(idx + num_preds - 1L)
-    starts[idx_range]      <- time_vals[1]
-    ends[idx_range]        <- time_vals[2]
-    labels_all[idx_range]  <- current_labels
-    confidences[idx_range] <- unlist(preds, use.names = FALSE)
-
-    idx <- idx + num_preds
-  }
-
-  # Now, vectorized splitting of the full labels vector
-  scientific_name <- sub("_.*", "", labels_all)
-  common_name <- sub("^[^_]+_", "", labels_all)
-
-  # Create a data frame using the collected time values, labels, and confidence scores.
-  df <- data.frame(
-    start = starts,
-    end = ends,
-    scientific_name = scientific_name,
-    common_name = common_name,
-    confidence = confidences,
-    stringsAsFactors = FALSE
   )
 
-  # conbvert NA strings to actual NA values
-  na_rows <- df$scientific_name == "NA"
-  df$scientific_name[na_rows] <- NA_character_
-  df$common_name[na_rows] <- NA_character_
+  tryCatch(
+    {
+      importlib <- reticulate::import("importlib.metadata", delay_load = FALSE)
+      bn_version <- importlib$version("birdnet")
+    },
+    error = \(e) {
+      warning(
+        "Could not determine birdnet version: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
+  )
 
-  # When not keeping empty predictions, remove rows with missing values.
-  if (!keep_empty) {
-    df <- df[complete.cases(df), , drop = FALSE]
-  }
-
-  df
+  list(
+    python_version = py_version,
+    python_executable = py_executable,
+    birdnet_version = bn_version
+  )
 }
 
+
+# Remove NULL elements from a list.
+compact_nulls <- function(x) {
+  x[!vapply(x, is.null, logical(1))]
+}
+
+
+# Check whether an object is a single non-missing integer-valued number.
+# Accepts both integer and whole-number double values (e.g. 5L or 5).
+is_scalar_integer <- function(x) {
+  is.numeric(x) && length(x) == 1L && !is.na(x) && is.finite(x) &&
+    x == trunc(x)
+}
+
+
+# Check whether an object is a single non-missing numeric value.
+is_scalar_number <- function(x) {
+  is.numeric(x) && length(x) == 1L && !is.na(x)
+}
+
+
+# Check whether an object is a single non-missing logical value.
+is_scalar_logical <- function(x) {
+  is.logical(x) && length(x) == 1L && !is.na(x)
+}
 
 
 #' Check if an Object is a Valid Species List
@@ -124,7 +110,9 @@ predictions_to_df <- function(predictions, keep_empty = FALSE) {
 is_valid_species_list <- function(obj) {
   # Check if the object is a character vector of length > 0 and not a list
   is_vector <- is.vector(obj) &&
-    length(obj) > 0 && !is.list(obj) && is.character(obj)
+    length(obj) > 0 &&
+    !is.list(obj) &&
+    is.character(obj)
 
   # Check if the object is a non-empty list where each element is a single character string
   is_list_single_elements <- is.list(obj) &&
@@ -135,4 +123,29 @@ is_valid_species_list <- function(obj) {
 
   # Return TRUE if either condition is met
   return(is_vector || is_list_single_elements)
+}
+
+#' Check if an Object is a Valid Minimum Confidence List
+#' This internal function checks if an object is a named list where each element is a single numeric value.
+#' @param obj The object to check.
+#' @noRd
+#' @return A logical value indicating whether the object is a valid minimum confidence list
+#' @examples
+#' is_valid_min_confidence_list(list(species1 = 0.5, species2 = 0.7)) # TRUE
+#' is_valid_min_confidence_list(list(species1 = c(0.5, 0.7))) # FALSE
+#' is_valid_min_confidence_list(list(species1 = "0.5")) # FALSE
+#' is_valid_min_confidence_list(list()) # FALSE
+#' is_valid_min_confidence_list(c(0.5, 0.7)) # FALSE
+#' is_valid_min_confidence_list("species1") # FALSE
+#' is_valid_min_confidence_list(NULL) # FALSE
+#' is_valid_min_confidence_list(0.5) # FALSE
+#' is_valid_min_confidence_list(NA) # FALSE
+
+is_valid_min_confidence_list <- function(obj) {
+  is_named_list <- is.list(obj) &&
+    !is.null(names(obj)) &&
+    length(obj) > 0 &&
+    all(sapply(obj, function(x) is.numeric(x) && length(x) == 1))
+
+  return(is_named_list)
 }
