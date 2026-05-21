@@ -61,6 +61,7 @@ construct_model_class <- function(
 #' Models will be downloaded if not available locally.
 #'
 #' * [load_birdnet()]: load a pre-trained BirdNET model or a geographic model.
+#' * [load_perch()]: load the Perch v2 acoustic model.
 #' * [load_custom()]: load a custom trained BirdNET model.
 #'
 #' @details
@@ -108,6 +109,28 @@ construct_model_class <- function(
 #' }
 NULL
 #> NULL
+
+#' @rdname load_birdnet_model
+#' @export
+load_perch <- function() {
+  py_model <- py_birdnet$load_perch_v2("CPU")
+  stopifnot(reticulate::is_py_object(py_model))
+
+  structure(
+    list(
+      py_model = py_model,
+      model_type = "acoustic",
+      model_version = "perch_v2"
+    ),
+    class = c(
+      "birdnet_model_perch_v2",
+      "birdnet_model_perch",
+      "birdnet_model_acoustic",
+      "birdnet_model"
+    )
+  )
+}
+
 
 #' @rdname load_birdnet_model
 #' @param language character. Language code for the model to use e.g., "en_us".

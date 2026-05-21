@@ -17,6 +17,7 @@ reference:
 - title: Model Loading
 - contents:
   - load_birdnet
+  - load_perch
   - load_custom
   - supported_model_configurations
 - title: Prediction

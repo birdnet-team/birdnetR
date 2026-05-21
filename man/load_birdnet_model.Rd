@@ -2,10 +2,13 @@
 % Please edit documentation in R/model_load.R
 \name{load_birdnet_model}
 \alias{load_birdnet_model}
+\alias{load_perch}
 \alias{load_birdnet}
 \alias{load_custom}
 \title{Load a BirdNET Model}
 \usage{
+load_perch()
+
 load_birdnet(
   type = "acoustic",
   version = "2.4",
@@ -66,6 +69,7 @@ Functions to load BirdNET models for sound identification or species prediction 
 Models will be downloaded if not available locally.
 \itemize{
 \item \code{\link[=load_birdnet]{load_birdnet()}}: load a pre-trained BirdNET model or a geographic model.
+\item \code{\link[=load_perch]{load_perch()}}: load the Perch v2 acoustic model.
 \item \code{\link[=load_custom]{load_custom()}}: load a custom trained BirdNET model.
 }
 }

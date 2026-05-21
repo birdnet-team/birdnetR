@@ -39,6 +39,7 @@ The table below maps removed functions to their replacements:
 
 ## New features
 
+- `load_perch()` loads the Perch v2 acoustic model (CPU only). The returned model object is compatible with the existing `predict()` and `as.data.frame()` workflows (#46). Device selection is not exposed, consistent with `load_birdnet()`.
 - `load_birdnet()` now supports `type`, `version`, `backend`, `library`,
   `precision`, and `language` arguments for flexible model loading.
 - `load_custom()` gains advanced arguments `classifier_type` and `is_raven`
@@ -56,6 +57,8 @@ The table below maps removed functions to their replacements:
 
 ## Bug fixes
 
+- `load_perch()` internally hardcodes CPU for the upstream Python call; the `device` argument is not exposed to users (#46).
+- `supported_model_configurations()` documentation now explicitly notes that Perch v2 is excluded from the table and directs users to `load_perch()` (#46).
 - `supported_model_configurations()` no longer advertises acoustic version `"2"` (Perch v2), which is not loadable via `load_birdnet()` (#45).
 - Integer-like parameter validation (`top_k`, `bandpass_fmin`, etc.) now silently accepts whole-number doubles (e.g. `5`) in addition to integer values (e.g. `5L`) (#45).
 - `as.data.frame()` for acoustic and geo prediction objects now converts

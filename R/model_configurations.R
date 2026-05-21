@@ -62,6 +62,9 @@ format_model_options <- function(
 #' Not all combinations of arguments are valid. For example, the \code{library} argument is only relevant for TensorFlow backends,
 #' and some backends or model types only support specific precisions. Use the output to guide valid choices for loading models.
 #'
+#' **Perch v2** is not included in this table because it uses a separate loader.
+#' Use \code{\link{load_perch}()} to load the Perch v2 acoustic model.
+#'
 #' @examples
 #' supported_model_configurations()                     # Show all supported combinations
 #' supported_model_configurations(compact = TRUE)       # Show compacted version
@@ -77,7 +80,7 @@ supported_model_configurations <- function(
   valid_library_types <- py_birdnet_globals$VALID_LIBRARY_TYPES
   valid_precisions <- py_birdnet_globals$VALID_MODEL_PRECISIONS
 
-  # Perch v2 is loaded separately and not via load_birdnet(); exclude it
+  # Perch v2 is loaded via load_perch(), not load_birdnet(); exclude it
   valid_model_versions_acoustic <- setdiff(valid_model_versions_acoustic, "2")
 
   # Build grid for each type with the right versions
