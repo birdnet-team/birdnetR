@@ -155,6 +155,16 @@ predict.birdnet_model_acoustic <- function(
     )
   }
 
+  # Coerce integer-like doubles to true R integers so reticulate
+  # forwards them as Python int (not float).
+  top_k <- as.integer(top_k)
+  bandpass_fmin <- as.integer(bandpass_fmin)
+  bandpass_fmax <- as.integer(bandpass_fmax)
+  if (!is.null(n_producers))  n_producers  <- as.integer(n_producers)
+  if (!is.null(n_workers))    n_workers    <- as.integer(n_workers)
+  if (!is.null(batch_size))   batch_size   <- as.integer(batch_size)
+  if (!is.null(prefetch_ratio)) prefetch_ratio <- as.integer(prefetch_ratio)
+
   # Handle custom minimum confidence
   if (!is.null(min_confidence_custom)) {
     stopifnot(
@@ -259,6 +269,10 @@ predict.birdnet_model_geo <- function(
   if (!is.null(half_precision)) {
     stopifnot(is_scalar_logical(half_precision))
   }
+
+  # Coerce integer-like doubles to true R integers so reticulate
+  # forwards them as Python int (not float).
+  if (!is.null(week)) week <- as.integer(week)
 
   # Build optional kwargs — NULLs are omitted so Python uses its own defaults
   optional_kwargs <- compact_nulls(list(

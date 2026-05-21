@@ -590,7 +590,117 @@ class MockMultiFilePred:
   # should produce a valid data.frame
   df <- as.data.frame(result, stringsAsFactors = FALSE)
   expect_s3_class(df, "data.frame")
+
   expect_equal(nrow(df), 3)
   # Both files present
   expect_equal(sort(unique(df$input)), c("/path/a.wav", "/path/b.wav"))
+})
+
+# --- Regression: integer-like doubles must be coerced to R integer ----------
+
+test_that("predict.birdnet_model_acoustic coerces integer-like doubles to integer", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "acoustic",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+
+  # Pass whole-number doubles (not L-suffixed) — the bug scenario
+  predict(
+    model,
+    files = tmp,
+    top_k = 1,
+    bandpass_fmin = 100,
+    bandpass_fmax = 14000,
+    n_producers = 2,
+    n_workers = 4,
+    batch_size = 8,
+    prefetch_ratio = 0
+  )
+
+  # All integer params must arrive as R integer, not double
+
+  expect_type(captured_args$top_k, "integer")
+  expect_type(captured_args$bandpass_fmin, "integer")
+  expect_type(captured_args$bandpass_fmax, "integer")
+  expect_type(captured_args$n_producers, "integer")
+  expect_type(captured_args$n_workers, "integer")
+  expect_type(captured_args$batch_size, "integer")
+  expect_type(captured_args$prefetch_ratio, "integer")
+
+  # Values must be preserved
+  expect_equal(captured_args$top_k, 1L)
+  expect_equal(captured_args$bandpass_fmin, 100L)
+  expect_equal(captured_args$bandpass_fmax, 14000L)
+  expect_equal(captured_args$n_producers, 2L)
+})
+
+test_that("predict.birdnet_model_geo coerces integer-like week to integer", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "geo",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_geo", "birdnet_model")
+  )
+
+  # Pass week as a double, not 18L
+  predict(model, latitude = 50.8, longitude = 12.9, week = 18)
+
+  expect_type(captured_args$week, "integer")
+  expect_equal(captured_args$week, 18L)
+})
+
+test_that("predict.birdnet_model_geo leaves week as NULL when not provided", {
+  captured_args <- NULL
+  mock_py_predictions <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        captured_args <<- list(...)
+        mock_py_predictions
+      }),
+      model_type = "geo",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_geo", "birdnet_model")
+  )
+
+  predict(model, latitude = 50.8, longitude = 12.9)
+  expect_null(captured_args$week)
 })
