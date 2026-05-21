@@ -1,0 +1,262 @@
+# Get started with birdnetR
+
+``` r
+
+library(birdnetR)
+```
+
+The `birdnetR` package provides a comprehensive interface for utilizing
+the `birdnet` Python package within R. This guide will walk you through
+the basic steps of setting up the package, initializing models, and
+using various functions to analyze audio files for (bird) species
+identification.
+
+## Installation
+
+Install the released version from CRAN:
+
+``` r
+
+install.packages("birdnetR")
+```
+
+  
+or install the development version from GitHub with:
+
+``` r
+
+pak::pak("birdnet-team/birdnetR")
+```
+
+  
+
+**Note**  
+`birdnetR` uses
+[`reticulate::py_require()`](https://rstudio.github.io/reticulate/reference/py_require.html)
+to handle Python dependencies. These dependencies are installed only
+when needed, which might result in a longer initial setup.
+
+## Usage
+
+### Initialize a BirdNET model
+
+To begin using the BirdNET model, it must first be initialized. During
+this step, the required model is downloaded if necessary, loaded into
+memory, and prepared for making predictions.
+
+Several model variations are available, including the TensorFlow Lite
+model, which is smaller and more lightweight, and the Protobuf model,
+which is larger but capable of running on GPU hardware for faster
+performance.
+
+You can also load a custom model if one is available. For information on
+training custom models, please refer to the BirdNET-Analyzer repository.
+
+``` r
+
+# The models are defined using the birdnet_model_* family of functions.
+# See ?birdnet_model_load for more details.
+
+# Initialize the TensorFlow Lite model
+birdnet_model_tflite("v2.4")
+
+# Initialize the Protobuf model
+birdnet_model_protobuf("v2.4")
+```
+
+To load a custom model, provide the path to the folder containing the
+model files and the classifier name. Custom classifiers are still based
+on a specific version of the BirdNET model, so you need to specify the
+version as well.
+
+``` r
+
+classifier_folder <- "/path/to/custom/model"
+classifier_name <- "Custom_Classifier"
+
+birdnet_model_custom("v2.4", classifier_folder = classifier_folder, classifier_name = classifier_name)
+```
+
+### Identify species in an audio file
+
+With BirdNET, you can identify bird species present in an audio file.
+The function returns predictions for each 3-second snippet of the audio
+that exceeds the specified min_confidence threshold. Each row in the
+resulting data frame represents a single prediction for a specific
+3-second interval.
+
+``` r
+
+library(birdnetR)
+
+# Initialize the TFLite BirdNET Model
+model <- birdnet_model_tflite("v2.4")
+
+# Path to an example audio file (replace with your own file path)
+audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+
+# Predict species in the audio file
+predictions <- predict_species_from_audio_file(model, audio_path, min_confidence = 0.3, keep_empty = FALSE)
+
+# Example output:
+#   start end      scientific_name            common_name confidence
+#       0   3 Poecile atricapillus Black-capped Chickadee  0.8140557
+#       3   6 Poecile atricapillus Black-capped Chickadee  0.3082857
+#       9  12 Haemorhous mexicanus            House Finch  0.6393781
+#      18  21  Cyanocitta cristata               Blue Jay  0.4352708
+#      18  21  Clamator coromandus Chestnut-winged Cuckoo  0.3225890
+#      21  24  Cyanocitta cristata               Blue Jay  0.3290859
+# ...
+```
+
+If there are multiple predictions above the confidence threshold for the
+same time interval, you will see multiple rows for that interval. To
+keep only the most probable prediction per interval, you can use the
+package’s convenience function.
+
+``` r
+
+# Get the top prediction for each interval
+get_top_prediction(predictions)
+
+# Example output:
+#   start end      scientific_name            common_name confidence
+#       0   3 Poecile atricapillus Black-capped Chickadee  0.8140557
+#       3   6 Poecile atricapillus Black-capped Chickadee  0.3082857
+#       9  12 Haemorhous mexicanus            House Finch  0.6393781
+#      18  21  Cyanocitta cristata               Blue Jay  0.4352708
+#      21  24  Cyanocitta cristata               Blue Jay  0.3290859
+
+# Note: Fewer rows appear for the interval 18-21 as only the top prediction is retained.
+```
+
+### Using a custom species list
+
+In many cases, you may not need to identify all 6,000+ species available
+in the model. To focus on species relevant to your project, you can use
+a custom species list containing only the necessary class labels.
+Providing a custom species list will limit the output to that set of
+species.
+
+Class labels follow a specific format, consisting of the scientific name
+and the common name, separated by an underscore, like this:
+
+``` r
+
+"Accipiter cooperii_Cooper's Hawk"
+"Agelaius phoeniceus_Red-winged Blackbird"
+```
+
+To create a custom species list, ensure each class label is placed on a
+separate line in a .txt file. You can refer to the example included in
+this package or consult the full list of species that BirdNET was
+trained on. The exact labels are model-specific and can be retrieved
+using the `labels_path` function. The `read_labels` function can
+conveniently load the labels from the file.
+
+``` r
+
+# Retrieve the path to the full list of BirdNET classes.
+# Use this as a template for creating your custom species list, but don't modify this file directly.
+labels_path(model, language = "en_us")
+# /.../birdnet/models/v2.4/TFLite/labels/en_us.txt"
+
+# Path to the example custom species list with a reduced number of species
+custom_species_list <- system.file("extdata", "species_list.txt", package = "birdnetR")
+read_labels(custom_species_list)
+
+# [1] "Accipiter cooperii_Cooper's Hawk"              "Agelaius phoeniceus_Red-winged Blackbird"
+# [3] "Anas platyrhynchos_Mallard"                    "Anas rubripes_American Black Duck"
+# [5] "Ardea herodias_Great Blue Heron"               "Baeolophus bicolor_Tufted Titmouse"
+# [7] "Branta canadensis_Canada Goose"                "Bucephala albeola_Bufflehead"
+# [9] "Bucephala clangula_Common Goldeneye"           "Buteo jamaicensis_Red-tailed Hawk"
+# ...
+```
+
+To use the custom species list, pass it as an argument to the
+`predict_species_from_audio_file` function. Since this is just a
+character vector, you can also pass the vector directly to the function.
+
+``` r
+
+predict_species_from_audio_file(model, audio_path, filter_species = c("Cyanocitta cristata_Blue Jay", "Junco hyemalis_Dark-eyed Junco"), min_confidence = 0.3, keep_empty = FALSE)
+
+# Example output:
+#   start end     scientific_name     common_name confidence
+#      18  21 Cyanocitta cristata        Blue Jay  0.4352708
+#      21  24 Cyanocitta cristata        Blue Jay  0.3290859
+#      33  36      Junco hyemalis Dark-eyed Junco  0.4590625
+#      36  39      Junco hyemalis Dark-eyed Junco  0.3536855
+#      42  45      Junco hyemalis Dark-eyed Junco  0.7375432
+```
+
+### Predict species occurence with the meta model
+
+BirdNET includes a Meta Model that predicts the likelihood of bird
+species occurrence at a specific location and time of year. This
+function returns a data frame containing class labels and corresponding
+confidence values, which indicate the probability of species presence.
+These labels can also be used to create a custom species list for
+further analysis.
+
+``` r
+
+# load the meta model
+meta_model <- birdnet_model_meta("v2.4")
+
+# predict species occurrence in Ithaca, NY in week 4 of the year
+predict_species_at_location_and_time(meta_model, latitude = 42.5, longitude = -76.45, week = 4)
+
+# Example output:
+#   label                                       confidence
+#   Cyanocitta cristata_Blue Jay                0.92886776
+#   Poecile atricapillus_Black-capped Chickadee 0.90332001
+#   Sitta carolinensis_White-breasted Nuthatch  0.83232993
+#   Cardinalis cardinalis_Northern Cardinal     0.82705086
+#   Junco hyemalis_Dark-eyed Junco              0.82440305
+#   Zenaida macroura_Mourning Dove              0.80619872
+#   Corvus brachyrhynchos_American Crow         0.80580002
+#   Dryobates pubescens_Downy Woodpecker        0.79495054
+#   Spinus tristis_American Goldfinch           0.72782934
+#   Baeolophus bicolor_Tufted Titmouse          0.63683629
+```
+
+For more detailed information on how the Meta Model works, refer to the
+help file:
+[`?predict_species_at_location_and_time`](https://birdnet-team.github.io/birdnetR/reference/predict_species_at_location_and_time.md).
+
+### Translating common species names
+
+The birdnetR package allows you to translate common bird species names
+into several different languages. To check which languages are
+supported, you can use the following command:
+
+``` r
+
+# supply the version of the BirdNET model you are using
+available_languages("v2.4")
+```
+
+To output the common names in your preferred language, initialize the
+model with the language parameter set to your desired language code:
+
+``` r
+
+birdnet_model_tflite("v2.4", language = "fr")
+```
+
+If you want to view the class labels in a specific language, you can
+retrieve and inspect them using these commands:
+
+``` r
+
+labels_path_lang <- labels_path(model, language = "fr")
+read_labels(labels_path_lang)
+
+# Example output:
+# [1] "Abroscopus albogularis_Bouscarle à moustaches"            "Abroscopus schisticeps_Bouscarle à face noire"            "Abroscopus superciliaris_Bouscarle à sourcils blancs"    
+# [4] "Aburria aburri_Pénélope aburri"                           "Acanthagenys rufogularis_Méliphage à bavette"             "Acanthidops bairdi_Bec-en-cheville gris"                 
+# [7] "Acanthis cabaret_Sizerin cabaret"                         "Acanthis flammea_Sizerin flammé"                          "Acanthis hornemanni_Sizerin blanchâtre"                  
+# [10] "Acanthisitta chloris_Xénique grimpeur"                    "Acanthiza apicalis_Acanthize troglodyte"                  "Acanthiza chrysorrhoa_Acanthize à croupion jaune"        
+# [13] "Acanthiza ewingii_Acanthize de Tasmanie"                  "Acanthiza inornata_Acanthize sobre"                       "Acanthiza lineata_Acanthize ridé"                        
+```
