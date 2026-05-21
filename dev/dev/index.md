@@ -1,0 +1,173 @@
+# birdnetR
+
+> \[!CAUTION\] **Version 1.0.0 is currently in development and will be a
+> breaking release.** Several functions have been renamed or removed. If
+> you are upgrading from 0.x, see the [Upgrading from birdnetR
+> 0.x](#upgrading-from-birdnetr-0x) section below.
+
+`birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a
+state‐of‐the‐art deep learning classifier for automated (bird) sound
+identification, into an R-workflow. This package will simplify the
+analysis of (large) audio datasets from bioacoustic projects, allowing
+researchers to easily apply machine learning techniques—even without a
+background in computer science.
+
+`birdnetR` is an R wrapper around the `birdnet` [Python
+package](https://github.com/birdnet-team/birdnet). It provides the core
+functionality to analyze audio using the pre-trained ‘BirdNET’ model or
+a custom classifier, and to predict bird species occurrence based on
+location and week of the year. However, it does not include all the
+advanced features available in the [BirdNET
+Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For
+advanced applications such as training custom classifiers or accessing
+the broader BirdNET feature set, refer to the BirdNET Analyzer directly.
+
+## Installation
+
+Install the released version from CRAN:
+
+``` r
+
+install.packages("birdnetR")
+```
+
+  
+or install the development version from GitHub with:
+
+``` r
+
+pak::pak("birdnet-team/birdnetR")
+```
+
+**Note**  
+Python dependencies are installed on demand, meaning they are installed
+when you use them for the first time. This will result in longer initial
+setup.
+
+## Example use
+
+This is a simple example using BirdNET to predict species in an audio
+file.
+
+``` r
+
+# Load the package
+library(birdnetR)
+
+# Load a BirdNET acoustic model
+model <- load_birdnet()
+
+# Path to the audio file (replace with your own file path)
+audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+
+# Predict species within the audio file
+predictions <- predict(model, audio_path)
+
+# Convert predictions to a data frame
+df <- as.data.frame(predictions)
+```
+
+## Working with prediction results
+
+[`predict()`](https://rdrr.io/r/stats/predict.html) returns a
+lightweight Python-backed object — not an R data frame. Use
+[`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html) when you
+need the results in R for further analysis. For file-based pipelines
+(especially with large datasets), it is more efficient to skip
+conversion and write results directly:
+
+``` r
+
+predictions <- predict(model, audio_path)
+
+# More efficient for large runs — stays in Python:
+write_predictions(predictions, "results.parquet")
+
+# Only when you need results in R:
+df <- as.data.frame(predictions)
+```
+
+## Upgrading from birdnetR 0.x
+
+Version 1.0 is a breaking release. The table below maps removed
+functions to their replacements:
+
+| Removed | Replacement |
+|----|----|
+| `birdnet_model_tflite(...)` | `load_birdnet(..., backend = "tf", library = "tflite")` |
+| `birdnet_model_protobuf(...)` | `load_birdnet(..., backend = "pb")` |
+| `birdnet_model_meta(...)` | `load_birdnet(type = "geo")` |
+| `birdnet_model_custom(...)` | `load_custom(...)` |
+| `predict_species_from_audio_file(model, ...)` | `predict(model, files = ...)` |
+| `predict_species_at_location_and_time(model, ...)` | `predict(model, latitude = ..., longitude = ...)` |
+| `labels_path()` / `read_labels()` | `get_species_list(model)` |
+| `available_languages()` | [`supported_languages()`](https://birdnet-team.github.io/birdnetR/dev/reference/supported_languages.md) |
+| `get_top_prediction()` | Removed; use `dplyr` or `birdnetTools` |
+
+See `NEWS.md` for the full changelog.
+
+## The BirdNET ecosystem
+
+`birdnetR` is part of a set of related tools:
+
+- **[BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer)**
+  — the upstream desktop/CLI application for custom classifier training
+  and advanced BirdNET features.
+- **[birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html)**
+  — an R package for post-processing and validating BirdNET predictions:
+  filtering, visualisation, and interactive threshold setting.
+
+## Citation
+
+Feel free to use `birdnetR` for your acoustic analyses and research. If
+you do, please cite as:
+
+``` bibtex
+@article{kahl2021birdnet,
+  title={BirdNET: A deep learning solution for avian diversity monitoring},
+  author={Kahl, Stefan and Wood, Connor M and Eibl, Maximilian and Klinck, Holger},
+  journal={Ecological Informatics},
+  volume={61},
+  pages={101236},
+  year={2021},
+  publisher={Elsevier}
+}
+```
+
+## License
+
+- **Source Code**: The source code for this project is licensed under
+  the [MIT License](https://opensource.org/licenses/MIT).
+- **Models**: The models used in this project are licensed under the
+  [Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+  International License (CC BY-NC-SA
+  4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+
+Please ensure you review and adhere to the specific license terms
+provided with each model. Note that educational and research purposes
+are considered non-commercial use cases.
+
+## Funding
+
+Our work in the K. Lisa Yang Center for Conservation Bioacoustics is
+made possible by the generosity of K. Lisa Yang to advance innovative
+conservation technologies to inspire and inform the conservation of
+wildlife and habitats.
+
+The development of BirdNET is supported by the German Federal Ministry
+of Research, Technology and Space (FKZ 01\|S22072), the German Federal
+Ministry for the Environment, Climate Action, Nature Conservation and
+Nuclear Safety (FKZ 67KI31040E), the German Federal Ministry of Economic
+Affairs and Energy (FKZ 16KN095550), the Deutsche Bundesstiftung Umwelt
+(project 39263/01) and the European Social Fund.
+
+## Partners
+
+BirdNET is a joint effort of partners from academia and industry.
+Without these partnerships, this project would not have been possible.
+Thank you!
+
+![Our
+partners](https://tuc.cloud/index.php/s/KSdWfX5CnSRpRgQ/download/box_logos.png)
+
+Our partners
