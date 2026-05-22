@@ -32,6 +32,11 @@ argument is only relevant for TensorFlow backends, and some backends or
 model types only support specific precisions. Use the output to guide
 valid choices for loading models.
 
+**Perch v2** is not included in this table because it uses a separate
+loader. Use
+[`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+to load the Perch v2 acoustic model.
+
 ## Examples
 
 ``` r

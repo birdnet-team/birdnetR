@@ -2,7 +2,8 @@
 
 ## Model Loading
 
-- [`load_birdnet()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+- [`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+  [`load_birdnet()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
   [`load_custom()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
   : Load a BirdNET Model
 - [`supported_model_configurations()`](https://birdnet-team.github.io/birdnetR/dev/reference/supported_model_configurations.md)

@@ -7,11 +7,15 @@ available locally.
 - `load_birdnet()`: load a pre-trained BirdNET model or a geographic
   model.
 
+- `load_perch()`: load the Perch v2 acoustic model.
+
 - `load_custom()`: load a custom trained BirdNET model.
 
 ## Usage
 
 ``` r
+load_perch()
+
 load_birdnet(
   type = "acoustic",
   version = "2.4",

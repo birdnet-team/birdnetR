@@ -77,7 +77,7 @@
 <h3 id="breaking-changes-1-0-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-0-0"></a></h3>
 <ul><li>All legacy model loaders (<code>birdnet_model_tflite()</code>, <code>birdnet_model_protobuf()</code>, <code>birdnet_model_meta()</code>, <code>birdnet_model_custom()</code>) are removed. Use <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code> or <code><a href="../reference/load_birdnet_model.html">load_custom()</a></code> instead.</li>
 <li>
-<code>load_model()</code> has been renamed to <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code> to distinguish it from the future <code>load_perch()</code> loader (<a href="https://github.com/birdnet-team/birdnetR/issues/45" class="external-link">#45</a>).</li>
+<code>load_model()</code> has been renamed to <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code> to distinguish it from the future <code><a href="../reference/load_birdnet_model.html">load_perch()</a></code> loader (<a href="https://github.com/birdnet-team/birdnetR/issues/45" class="external-link">#45</a>).</li>
 <li>
 <code>predict_species_from_audio_file()</code> and <code>predict_species_at_location_and_time()</code> are removed. Use <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> on a loaded model.</li>
 <li>
@@ -93,6 +93,8 @@
 <div class="section level3">
 <h3 id="new-features-1-0-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-0-0"></a></h3>
 <ul><li>
+<code><a href="../reference/load_birdnet_model.html">load_perch()</a></code> loads the Perch v2 acoustic model (CPU only). The returned model object is compatible with the existing <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> workflows (<a href="https://github.com/birdnet-team/birdnetR/issues/46" class="external-link">#46</a>). Device selection is not exposed, consistent with <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code>.</li>
+<li>
 <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code> now supports <code>type</code>, <code>version</code>, <code>backend</code>, <code>library</code>, <code>precision</code>, and <code>language</code> arguments for flexible model loading.</li>
 <li>
 <code><a href="../reference/load_birdnet_model.html">load_custom()</a></code> gains advanced arguments <code>classifier_type</code> and <code>is_raven</code> for custom model configurations.</li>
@@ -114,6 +116,10 @@
 <div class="section level3">
 <h3 id="bug-fixes-1-0-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-0-0"></a></h3>
 <ul><li>
+<code><a href="../reference/load_birdnet_model.html">load_perch()</a></code> internally hardcodes CPU for the upstream Python call; the <code>device</code> argument is not exposed to users (<a href="https://github.com/birdnet-team/birdnetR/issues/46" class="external-link">#46</a>).</li>
+<li>
+<code><a href="../reference/supported_model_configurations.html">supported_model_configurations()</a></code> documentation now explicitly notes that Perch v2 is excluded from the table and directs users to <code><a href="../reference/load_birdnet_model.html">load_perch()</a></code> (<a href="https://github.com/birdnet-team/birdnetR/issues/46" class="external-link">#46</a>).</li>
+<li>
 <code><a href="../reference/supported_model_configurations.html">supported_model_configurations()</a></code> no longer advertises acoustic version <code>"2"</code> (Perch v2), which is not loadable via <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code> (<a href="https://github.com/birdnet-team/birdnetR/issues/45" class="external-link">#45</a>).</li>
 <li>Integer-like parameter validation (<code>top_k</code>, <code>bandpass_fmin</code>, etc.) now silently accepts whole-number doubles (e.g. <code>5</code>) in addition to integer values (e.g. <code>5L</code>) (<a href="https://github.com/birdnet-team/birdnetR/issues/45" class="external-link">#45</a>).</li>
 <li>

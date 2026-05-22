@@ -34,8 +34,9 @@ The table below maps removed functions to their replacements:
   instead.
 - `load_model()` has been renamed to
   [`load_birdnet()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
-  to distinguish it from the future `load_perch()` loader
-  ([\#45](https://github.com/birdnet-team/birdnetR/issues/45)).
+  to distinguish it from the future
+  [`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+  loader ([\#45](https://github.com/birdnet-team/birdnetR/issues/45)).
 - `predict_species_from_audio_file()` and
   `predict_species_at_location_and_time()` are removed. Use
   [`predict()`](https://rdrr.io/r/stats/predict.html) on a loaded model.
@@ -54,6 +55,15 @@ The table below maps removed functions to their replacements:
 
 ### New features
 
+- [`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+  loads the Perch v2 acoustic model (CPU only). The returned model
+  object is compatible with the existing
+  [`predict()`](https://rdrr.io/r/stats/predict.html) and
+  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html)
+  workflows
+  ([\#46](https://github.com/birdnet-team/birdnetR/issues/46)). Device
+  selection is not exposed, consistent with
+  [`load_birdnet()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md).
 - [`load_birdnet()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
   now supports `type`, `version`, `backend`, `library`, `precision`, and
   `language` arguments for flexible model loading.
@@ -83,6 +93,15 @@ The table below maps removed functions to their replacements:
 
 ### Bug fixes
 
+- [`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+  internally hardcodes CPU for the upstream Python call; the `device`
+  argument is not exposed to users
+  ([\#46](https://github.com/birdnet-team/birdnetR/issues/46)).
+- [`supported_model_configurations()`](https://birdnet-team.github.io/birdnetR/dev/reference/supported_model_configurations.md)
+  documentation now explicitly notes that Perch v2 is excluded from the
+  table and directs users to
+  [`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
+  ([\#46](https://github.com/birdnet-team/birdnetR/issues/46)).
 - [`supported_model_configurations()`](https://birdnet-team.github.io/birdnetR/dev/reference/supported_model_configurations.md)
   no longer advertises acoustic version `"2"` (Perch v2), which is not
   loadable via
