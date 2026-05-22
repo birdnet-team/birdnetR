@@ -55,6 +55,13 @@ The table below maps removed functions to their replacements:
 
 ### New features
 
+- [`encode()`](https://birdnet-team.github.io/birdnetR/dev/reference/encode.md)
+  extracts embedding vectors from audio files using a BirdNET acoustic
+  model. Results are wrapped in a `birdnet_encoding` S3 class and can be
+  converted to a data frame via
+  [`as.data.frame()`](https://rdrr.io/r/base/as.data.frame.html), where
+  embeddings are stored as a list column
+  ([\#47](https://github.com/birdnet-team/birdnetR/issues/47)).
 - [`load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/load_birdnet_model.md)
   loads the Perch v2 acoustic model (CPU only). The returned model
   object is compatible with the existing

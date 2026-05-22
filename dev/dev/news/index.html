@@ -93,6 +93,8 @@
 <div class="section level3">
 <h3 id="new-features-1-0-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-0-0"></a></h3>
 <ul><li>
+<code><a href="../reference/encode.html">encode()</a></code> extracts embedding vectors from audio files using a BirdNET acoustic model. Results are wrapped in a <code>birdnet_encoding</code> S3 class and can be converted to a data frame via <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code>, where embeddings are stored as a list column (<a href="https://github.com/birdnet-team/birdnetR/issues/47" class="external-link">#47</a>).</li>
+<li>
 <code><a href="../reference/load_birdnet_model.html">load_perch()</a></code> loads the Perch v2 acoustic model (CPU only). The returned model object is compatible with the existing <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and <code><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame()</a></code> workflows (<a href="https://github.com/birdnet-team/birdnetR/issues/46" class="external-link">#46</a>). Device selection is not exposed, consistent with <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code>.</li>
 <li>
 <code><a href="../reference/load_birdnet_model.html">load_birdnet()</a></code> now supports <code>type</code>, <code>version</code>, <code>backend</code>, <code>library</code>, <code>precision</code>, and <code>language</code> arguments for flexible model loading.</li>

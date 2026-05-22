@@ -195,6 +195,13 @@ Our partners
 - [`write_predictions()`](https://birdnet-team.github.io/birdnetR/dev/reference/write_predictions.md)
   : Write BirdNET prediction results to file
 
+## Encoding
+
+- [`encode()`](https://birdnet-team.github.io/birdnetR/dev/reference/encode.md)
+  : Encode audio files using a BirdNET acoustic model
+- [`as.data.frame(`*`<birdnet_encoding>`*`)`](https://birdnet-team.github.io/birdnetR/dev/reference/as.data.frame.birdnet_encoding.md)
+  : Convert BirdNET encoding results to a data frame
+
 ## Helpers
 
 - [`supported_languages()`](https://birdnet-team.github.io/birdnetR/dev/reference/supported_languages.md)
