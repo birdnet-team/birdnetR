@@ -20,6 +20,9 @@ for use in \code{load_birdnet()} and related functions.
 \details{
 Not all combinations of arguments are valid. For example, the \code{library} argument is only relevant for TensorFlow backends,
 and some backends or model types only support specific precisions. Use the output to guide valid choices for loading models.
+
+\strong{Perch v2} is not included in this table because it uses a separate loader.
+Use \code{\link{load_perch}()} to load the Perch v2 acoustic model.
 }
 \examples{
 supported_model_configurations()                     # Show all supported combinations
