@@ -39,6 +39,7 @@ The table below maps removed functions to their replacements:
 
 ## New features
 
+- `encode()` extracts embedding vectors from audio files using a BirdNET acoustic model. Results are wrapped in a `birdnet_encoding` S3 class and can be converted to a data frame via `as.data.frame()`, where embeddings are stored as a list column (#47).
 - `load_perch()` loads the Perch v2 acoustic model (CPU only). The returned model object is compatible with the existing `predict()` and `as.data.frame()` workflows (#46). Device selection is not exposed, consistent with `load_birdnet()`.
 - `load_birdnet()` now supports `type`, `version`, `backend`, `library`,
   `precision`, and `language` arguments for flexible model loading.

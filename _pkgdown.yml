@@ -34,6 +34,10 @@ reference:
   - starts_with("predict.")
   - as.data.frame.birdnet_prediction
   - write_predictions
+- title: Encoding
+- contents:
+  - encode
+  - as.data.frame.birdnet_encoding
 - title: Helpers
 - contents:
   - supported_languages
