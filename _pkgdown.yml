@@ -5,7 +5,16 @@ template:
   bootstrap: 5
 navbar:
   structure:
-    left: [intro, articles, reference, news]
+    left: [intro, articles, reference, news, version]
+  components:
+    version:
+      text: Versions
+      icon: fas fa-code-branch
+      menu:
+      - text: Release (stable)
+        href: https://birdnet-team.github.io/birdnetR/
+      - text: Development
+        href: https://birdnet-team.github.io/birdnetR/dev/
 articles:
 - title: Get started
   navbar: ~
