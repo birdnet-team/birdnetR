@@ -21,6 +21,43 @@ from __future__ import annotations
 from typing import Any
 
 
+def encodings_to_dict(py_encodings: Any) -> dict[str, Any]:
+    """Convert a birdnet encoding result to an R-friendly dict.
+
+    Parameters
+    ----------
+    py_encodings
+        A birdnet encoding result object (AcousticEncodingResultBase).
+
+    Returns
+    -------
+    dict[str, Any]
+        A dict mapping column names to numpy arrays or Python lists.
+        The ``embedding`` column (2-d in the structured array) is
+        converted to a list of lists so that reticulate maps it to an
+        R list of numeric vectors.
+    """
+    structured = py_encodings.to_structured_array()
+    result: dict[str, Any] = {}
+
+    dtype_names = structured.dtype.names
+    if dtype_names is None:
+        return result
+
+    for name in dtype_names:
+        column = structured[name]
+        if column.ndim > 1:
+            # Multi-dimensional columns (e.g. embedding): materialise as
+            # plain Python lists so reticulate converts element-wise.
+            result[name] = column.tolist()
+        elif column.dtype.kind in ("U", "O"):
+            result[name] = [str(v) for v in column.tolist()]
+        else:
+            result[name] = column
+
+    return result
+
+
 def predictions_to_dict(py_predictions: Any, **kwargs: Any) -> dict[str, Any]:
     """Convert a birdnet prediction result to an R-friendly dict.
 
