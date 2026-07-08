@@ -97,3 +97,6 @@ enc <- encode(model, files = audio_file)
 as.data.frame(enc)
 }
 }
+\seealso{
+\code{\link[=as.data.frame.birdnet_encoding]{as.data.frame.birdnet_encoding()}}
+}

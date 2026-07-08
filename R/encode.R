@@ -67,6 +67,7 @@ construct_encoding_class <- function(py_encodings) {
 #' @return An S3 object of class `birdnet_encoding` containing the
 #'   encoding results. Use [as.data.frame()] to convert to a data
 #'   frame.
+#' @seealso [as.data.frame.birdnet_encoding()]
 #' @export
 #' @examples
 #' \dontrun{
