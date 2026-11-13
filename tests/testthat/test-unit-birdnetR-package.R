@@ -4,28 +4,28 @@
 test_that(".birdnet_py_spec() returns the default bounded range when no env var is set", {
   withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = NA), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
   })
 })
 
 test_that(".birdnet_py_spec() returns the default range for an empty env var", {
   withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = ""), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
   })
 })
 
 test_that(".birdnet_py_spec() returns the default range for whitespace-only env var", {
   withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "   "), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
   })
 })
 
 test_that(".birdnet_py_spec() accepts a valid exact pin", {
-  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "==0.2.16"), {
+  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "==1.4.0"), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet==0.2.16")
+    expect_equal(spec, "birdnet==1.4.0")
   })
 })
 
@@ -35,7 +35,7 @@ test_that(".birdnet_py_spec() warns and falls back for a two-segment version pin
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
   })
 })
 
@@ -45,7 +45,7 @@ test_that(".birdnet_py_spec() warns and falls back for a pin missing the operato
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
   })
 })
 
@@ -55,7 +55,7 @@ test_that(".birdnet_py_spec() warns and falls back for a range specifier", {
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
   })
 })
 
@@ -65,6 +65,55 @@ test_that(".birdnet_py_spec() warns and falls back when package name is included
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=0.2.16,<0.3")
+    expect_equal(spec, "birdnet>=1.4,<2")
+  })
+})
+
+test_that("require_birdnet_extra() adds the extra to the version spec", {
+  captured <- NULL
+  testthat::local_mocked_bindings(
+    py_require = function(packages, ...) captured <<- packages,
+    py_available = function(...) FALSE,
+    .package = "reticulate"
+  )
+  withr::with_envvar(
+    c(BIRDNETR_BIRDNET_VERSION = NA),
+    birdnetR:::require_birdnet_extra("tf")
+  )
+  expect_equal(captured, "birdnet[tf]>=1.4,<2")
+  withr::with_envvar(
+    c(BIRDNETR_BIRDNET_VERSION = "==1.4.0"),
+    birdnetR:::require_birdnet_extra("pt")
+  )
+  expect_equal(captured, "birdnet[pt]==1.4.0")
+})
+
+test_that("require_birdnet_extra() declares the extra's own packages once Python runs", {
+  captured <- NULL
+  testthat::local_mocked_bindings(
+    py_require = function(packages, ...) captured <<- packages,
+    py_available = function(...) TRUE,
+    .package = "reticulate"
+  )
+  testthat::local_mocked_bindings(is_intel_mac = function() FALSE)
+  birdnetR:::require_birdnet_extra("tf")
+  expect_equal(captured, "tensorflow>=2.8.0")
+  birdnetR:::require_birdnet_extra("pt")
+  expect_equal(captured, "torch>=2.0.0")
+
+  testthat::local_mocked_bindings(is_intel_mac = function() TRUE)
+  captured <- NULL
+  expect_error(birdnetR:::require_birdnet_extra("tf"), "Restart R")
+  expect_null(captured)
+})
+
+test_that("use_managed_python() keeps a user's RETICULATE_PYTHON", {
+  withr::with_envvar(c(RETICULATE_PYTHON = "/opt/venv/bin/python"), {
+    birdnetR:::use_managed_python()
+    expect_equal(Sys.getenv("RETICULATE_PYTHON"), "/opt/venv/bin/python")
+  })
+  withr::with_envvar(c(RETICULATE_PYTHON = NA), {
+    birdnetR:::use_managed_python()
+    expect_equal(Sys.getenv("RETICULATE_PYTHON"), "managed")
   })
 })
