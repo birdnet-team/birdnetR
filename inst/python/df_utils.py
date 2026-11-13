@@ -20,6 +20,20 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
+
+
+def _str_column(column: Any) -> Any:
+    """Convert a string/object column to something reticulate maps to character.
+
+    Elements become plain ``str`` (not ``np.str_`` or ``pathlib.Path``). An
+    empty column becomes an empty numpy string array: an empty Python list
+    would reach R as ``list()``, which ``as.data.frame()`` silently drops, so a
+    result without detections would lose its ``input``/``species_name`` columns.
+    """
+    values = [str(v) for v in column.tolist()]
+    return values if values else np.array([], dtype=str)
+
 
 def encodings_to_dict(py_encodings: Any) -> dict[str, Any]:
     """Convert a birdnet encoding result to an R-friendly dict.
@@ -51,7 +65,7 @@ def encodings_to_dict(py_encodings: Any) -> dict[str, Any]:
             # plain Python lists so reticulate converts element-wise.
             result[name] = column.tolist()
         elif column.dtype.kind in ("U", "O"):
-            result[name] = [str(v) for v in column.tolist()]
+            result[name] = _str_column(column)
         else:
             result[name] = column
 
@@ -92,7 +106,7 @@ def predictions_to_dict(py_predictions: Any, **kwargs: Any) -> dict[str, Any]:
             # String / object dtypes: ensure every element is a plain str
             # (not np.str_ or pathlib.Path) so reticulate maps them to
             # R character vectors.
-            result[name] = [str(v) for v in column.tolist()]
+            result[name] = _str_column(column)
         else:
             result[name] = column
 

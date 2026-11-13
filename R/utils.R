@@ -149,3 +149,9 @@ is_valid_min_confidence_list <- function(obj) {
 
   return(is_named_list)
 }
+
+
+# A device spec for the Python backend: "CPU", "GPU", "GPU:1", or several.
+is_valid_device <- function(x) {
+  is.character(x) && length(x) > 0L && !anyNA(x) && all(nzchar(x))
+}

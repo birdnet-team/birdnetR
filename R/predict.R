@@ -24,12 +24,44 @@ construct_prediction_class <- function(py_predictions, type) {
 }
 
 
+#' Predict species with a BirdNET model
+#'
+#' `birdnet_predict()` runs a loaded model. What it predicts depends on the model:
+#' * acoustic models (BirdNET, Perch, custom classifiers) identify species in
+#'   audio files, see [birdnet_predict.birdnet_model_acoustic()];
+#' * geo models predict which species occur at a location and week of the year,
+#'   see [birdnet_predict.birdnet_model_geo()].
+#'
+#' @param model A BirdNET model object, see [birdnet_load()].
+#' @param ... Arguments for the model-specific method.
+#' @return An S3 prediction object; convert it with [as.data.frame()] or save
+#'   it with [birdnet_write()].
+#' @seealso [birdnet_list_models()]
+#' @export
+#' @examples
+#' \dontrun{
+#' model <- birdnet_load()
+#' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+#' predictions <- birdnet_predict(model, files = audio_file)
+#' as.data.frame(predictions)
+#'
+#' geo <- birdnet_load(type = "geo")
+#' as.data.frame(birdnet_predict(geo, latitude = 50.83, longitude = 12.92, week = 18L))
+#' }
+birdnet_predict <- function(model, ...) {
+  UseMethod("birdnet_predict")
+}
+
+
 #' Predict species from audio files using a BirdNET acoustic model
 #'
-#' This function predicts species from audio files using a BirdNET acoustic model.
+#' Identifies species in audio files with an acoustic model (BirdNET 3.0 or
+#' 2.4, Perch v2 or a custom classifier).
 #'
 #' @details
 #' ### Sigmoid Activation
+#' With `apply_sigmoid = NULL` (default) each model uses its own default:
+#' BirdNET and custom models apply the sigmoid, Perch v2 does not.
 #' When `apply_sigmoid = TRUE`, the raw logit scores from the linear classifier are passed
 #' through a sigmoid function, scaling them into the range \[0, 1\]. This unitless confidence
 #' score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
@@ -41,7 +73,7 @@ construct_prediction_class <- function(py_predictions, type) {
 #'
 #' @references Wood, C. M., & Kahl, S. (2024). Guidelines for appropriate use of BirdNET scores and other detector outputs. Journal of Ornithology. https://doi.org/10.1007/s10336-024-02144-5
 #'
-#' @param object A BirdNET model object of class `birdnet_model_acoustic` created with [load_birdnet()].
+#' @param model A BirdNET model object of class `birdnet_model_acoustic`, see [birdnet_load()], [birdnet_load_perch()] and [birdnet_load_custom()].
 #' @param files A character vector of one or more file paths to audio
 #'   files. When multiple files are provided, the returned prediction
 #'   object will contain results for all files; the resulting data frame
@@ -50,9 +82,12 @@ construct_prediction_class <- function(py_predictions, type) {
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
 #' @param min_confidence_custom A named list where each element is a single numeric value to set custom minimum confidence thresholds for specific species. A custom threshold will override the default one.
 #' @param top_k An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold.
-#' @param overlap A numeric value specifying the overlap duration in seconds between consecutive time intervals. Must be in the interval \[0.0, 3.0\].
-#' @param apply_sigmoid A logical value indicating whether to apply a sigmoid function to the confidence scores.
-#' @param sigmoid_sensitivity A numeric value that adjusts the sensitivity of the sigmoid function.  Must be in the interval \[0.5, 1.5\].
+#' @param overlap A numeric value specifying the overlap duration in seconds between consecutive time intervals. Must be smaller than the segment length (3 s for BirdNET 2.4; see `segment_size_s` for 3.0).
+#' @param apply_sigmoid A logical value indicating whether to apply a sigmoid function to the confidence scores. If `NULL` (default), the model's own default is used.
+#' @param sigmoid_sensitivity A numeric value that adjusts the sensitivity of the sigmoid function. Must be in the interval \[0.5, 1.5\]. If `NULL` (default), the model's own default (1.0) is used.
+#' @param apply_softmax A logical value. If `TRUE`, scores become a softmax over the model's logits (e.g. for Perch v2). Not supported by models that apply the sigmoid inside the model (BirdNET 3.0, Raven exports). If `NULL` (default), the model's own default (`FALSE`) is used.
+#' @param segment_size_s A numeric value: length of the analysed segments in seconds (BirdNET 3.0 only; it accepts variable-length input). If `NULL` (default), the model's own default is used.
+#' @param device A character string, `"CPU"` or `"GPU"` (or a vector of devices). If `NULL` (default), the CPU is used. See [birdnet_use_gpu()].
 #' @param bandpass_fmin,bandpass_fmax A integer value to set minimum and maximum frequencies for the bandpass filter (in Hz).
 #' @param species_list A character vector or list of species names to filter the predictions. If `NULL`, all species are considered.
 #' @param progress A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".
@@ -70,23 +105,23 @@ construct_prediction_class <- function(py_predictions, type) {
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET acoustic model
-#' model <- load_birdnet(type = "acoustic")
+#' model <- birdnet_load()
 #' # Predict species from audio files
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
-#' predictions <- predict(model, files = audio_file)
+#' predictions <- birdnet_predict(model, files = audio_file)
 #' # convert predictions to a data frame
 #' as.data.frame(predictions)
 #' }
 #'
-predict.birdnet_model_acoustic <- function(
-  object,
+birdnet_predict.birdnet_model_acoustic <- function(
+  model,
   files,
   min_confidence = 0.1,
   min_confidence_custom = NULL,
   top_k = 5L,
   overlap = 0,
-  apply_sigmoid = TRUE,
-  sigmoid_sensitivity = 1,
+  apply_sigmoid = NULL,
+  sigmoid_sensitivity = NULL,
   bandpass_fmin = 0L,
   bandpass_fmax = 15000L,
   species_list = NULL,
@@ -98,9 +133,11 @@ predict.birdnet_model_acoustic <- function(
   speed = NULL,
   half_precision = NULL,
   max_audio_duration_min = NULL,
+  apply_softmax = NULL,
+  segment_size_s = NULL,
+  device = NULL,
   ...
 ) {
-  model <- object
   progress <- match.arg(progress)
 
   # Check argument types for better error messages
@@ -124,8 +161,15 @@ predict.birdnet_model_acoustic <- function(
   stopifnot(is_scalar_number(min_confidence))
   stopifnot(is_scalar_integer(top_k))
   stopifnot(is_scalar_number(overlap))
-  stopifnot(is_scalar_logical(apply_sigmoid))
-  stopifnot(is_scalar_number(sigmoid_sensitivity))
+  if (!is.null(apply_sigmoid)) stopifnot(is_scalar_logical(apply_sigmoid))
+  if (!is.null(apply_softmax)) stopifnot(is_scalar_logical(apply_softmax))
+  if (!is.null(sigmoid_sensitivity)) {
+    stopifnot(is_scalar_number(sigmoid_sensitivity), sigmoid_sensitivity > 0)
+  }
+  if (!is.null(segment_size_s)) {
+    stopifnot(is_scalar_number(segment_size_s), segment_size_s > 0)
+  }
+  if (!is.null(device)) stopifnot(is_valid_device(device))
   stopifnot(is_scalar_integer(bandpass_fmin))
   stopifnot(is_scalar_integer(bandpass_fmax))
 
@@ -199,7 +243,12 @@ predict.birdnet_model_acoustic <- function(
     prefetch_ratio = prefetch_ratio,
     speed = speed,
     half_precision = half_precision,
-    max_audio_duration_min = max_audio_duration_min
+    max_audio_duration_min = max_audio_duration_min,
+    apply_sigmoid = apply_sigmoid,
+    sigmoid_sensitivity = sigmoid_sensitivity,
+    apply_softmax = apply_softmax,
+    segment_size_s = segment_size_s,
+    device = device
   ))
 
   # Required kwargs always forwarded
@@ -208,8 +257,6 @@ predict.birdnet_model_acoustic <- function(
     overlap_duration_s = overlap,
     bandpass_fmin = bandpass_fmin,
     bandpass_fmax = bandpass_fmax,
-    apply_sigmoid = apply_sigmoid,
-    sigmoid_sensitivity = sigmoid_sensitivity,
     default_confidence_threshold = min_confidence,
     custom_confidence_thresholds = min_confidence_custom,
     custom_species_list = species_list,
@@ -228,12 +275,15 @@ predict.birdnet_model_acoustic <- function(
 
 #' Predict species using a BirdNET geo model
 #'
-#' This function predicts species occurence for a location and week of the year using a BirdNET geo model.
+#' Predicts which species occur at a location and week of the year with a
+#' BirdNET geo model.
 #'
-#' @param object A BirdNET model object of class `birdnet_model_geo` created with [load_birdnet()].
+#' @param model A BirdNET model object of class `birdnet_model_geo`, see [birdnet_load()].
 #' @param latitude A numeric value representing the latitude of the location.
 #' @param longitude A numeric value representing the longitude of the location.
-#' @param week An integer value representing the week of the year (1-52).
+#' @param week An integer value representing the week of the year (1-48). If `NULL` (default), predicts for the whole year.
+#' @param year_round_aggregation `"max"` or `"average"`: how weekly scores are combined when `week = NULL`. If `NULL` (default), the model's own default (`"max"`) is used.
+#' @param device A character string, `"CPU"` or `"GPU"`. If `NULL` (default), the CPU is used.
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
 #' @param half_precision A logical value indicating whether to use float16 where supported for inference. If `NULL` (default), the Python backend default is used.
 #' @param ... Additional arguments passed to the generic (currently unused).
@@ -243,23 +293,24 @@ predict.birdnet_model_acoustic <- function(
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET geo model
-#' model <- load_birdnet(type = "geo")
+#' model <- birdnet_load(type = "geo")
 #' # Predict species for a specific location and week
-#' predictions <- predict(model, latitude = 50.8334, longitude = 12.9231, week = 18L)
+#' predictions <- birdnet_predict(model, latitude = 50.8334, longitude = 12.9231, week = 18L)
 #' # Convert predictions to a data frame
 #' as.data.frame(predictions)
 #'}
 #'
-predict.birdnet_model_geo <- function(
-  object,
+birdnet_predict.birdnet_model_geo <- function(
+  model,
   latitude,
   longitude,
   week = NULL,
   min_confidence = 0.03,
   half_precision = NULL,
+  year_round_aggregation = NULL,
+  device = NULL,
   ...
 ) {
-  model <- object
   # Check argument types for better error messages
   stopifnot(is.list(model))
   stopifnot(is_scalar_number(latitude))
@@ -269,6 +320,10 @@ predict.birdnet_model_geo <- function(
   if (!is.null(half_precision)) {
     stopifnot(is_scalar_logical(half_precision))
   }
+  if (!is.null(year_round_aggregation)) {
+    year_round_aggregation <- match.arg(year_round_aggregation, c("max", "average"))
+  }
+  if (!is.null(device)) stopifnot(is_valid_device(device))
 
   # Coerce integer-like doubles to true R integers so reticulate
   # forwards them as Python int (not float).
@@ -276,7 +331,9 @@ predict.birdnet_model_geo <- function(
 
   # Build optional kwargs — NULLs are omitted so Python uses its own defaults
   optional_kwargs <- compact_nulls(list(
-    half_precision = half_precision
+    half_precision = half_precision,
+    year_round_aggregation = year_round_aggregation,
+    device = device
   ))
 
   required_kwargs <- list(
@@ -299,7 +356,7 @@ predict.birdnet_model_geo <- function(
 #'
 #' Convert predictions from a geo or acoustic model to a data frame.
 #'
-#' @param x A BirdNET prediction object (as returned by `predict()`).
+#' @param x A BirdNET prediction object (as returned by [birdnet_predict()]).
 #' @param row.names `NULL` or a character vector giving the row names for the
 #'   data frame. Not used.
 #' @param optional logical. Not used.
@@ -311,10 +368,10 @@ predict.birdnet_model_geo <- function(
 #' @examples
 #' \dontrun{
 #' # Load a BirdNET acoustic model
-#' model <- load_birdnet(type = "acoustic")
+#' model <- birdnet_load()
 #' # Predict species from audio files
 #' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
-#' predictions <- predict(model, files = audio_file)
+#' predictions <- birdnet_predict(model, files = audio_file)
 #' # Convert predictions to a data frame
 #' as.data.frame(predictions)
 #' }

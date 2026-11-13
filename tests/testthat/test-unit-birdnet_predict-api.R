@@ -18,7 +18,7 @@ test_that("predict.birdnet_model_acoustic wraps result in correct class", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  result <- predict(model, files = tmp)
+  result <- birdnet_predict(model, files = tmp)
   expect_s3_class(
     result,
     c("birdnet_prediction_acoustic", "birdnet_prediction")
@@ -51,7 +51,7 @@ test_that("predict.birdnet_model_acoustic maps R arguments to Python names", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  predict(model, files = tmp, min_confidence = 0.2, overlap = 1.5)
+  birdnet_predict(model, files = tmp, min_confidence = 0.2, overlap = 1.5)
 
   # R `overlap` maps to Python `overlap_duration_s`
   expect_equal(captured_args$overlap_duration_s, 1.5)
@@ -79,7 +79,7 @@ test_that("predict.birdnet_model_geo wraps result in correct class", {
     class = c("birdnet_model_geo", "birdnet_model")
   )
 
-  result <- predict(model, latitude = 50.8, longitude = 12.9)
+  result <- birdnet_predict(model, latitude = 50.8, longitude = 12.9)
   expect_s3_class(result, c("birdnet_prediction_geo", "birdnet_prediction"))
   expect_false(is.null(result$py_predictions))
 })
@@ -105,7 +105,7 @@ test_that("predict.birdnet_model_geo forwards arguments to Python", {
     class = c("birdnet_model_geo", "birdnet_model")
   )
 
-  predict(
+  birdnet_predict(
     model,
     latitude = 50.8,
     longitude = 12.9,
@@ -202,7 +202,7 @@ test_that("predict.birdnet_model_acoustic forwards multi-file vector as list", {
   file.create(tmp1)
   file.create(tmp2)
 
-  predict(model, files = c(tmp1, tmp2))
+  birdnet_predict(model, files = c(tmp1, tmp2))
 
   # First positional arg must be an R list (becomes Python list)
   expect_type(captured_args[[1]], "list")
@@ -229,7 +229,7 @@ test_that("predict.birdnet_model_acoustic errors for missing files", {
   )
 
   expect_error(
-    predict(model, files = "nonexistent_file.wav"),
+    birdnet_predict(model, files = "nonexistent_file.wav"),
     "do not exist"
   )
 })
@@ -259,7 +259,7 @@ test_that("predict.birdnet_model_acoustic strips names from files vector", {
   file.create(tmp)
   named_files <- c(my_file = tmp)
 
-  predict(model, files = named_files)
+  birdnet_predict(model, files = named_files)
 
   # Names must be stripped so reticulate doesn't interpret them as kwargs
   expect_null(names(captured_args[[1]]))
@@ -290,7 +290,7 @@ test_that("predict.birdnet_model_acoustic omits NULL power-user params from Pyth
   file.create(tmp)
 
   # Call with all power-user params at NULL (default)
-  predict(model, files = tmp)
+  birdnet_predict(model, files = tmp)
 
   # Power-user params should NOT appear in captured args
   expect_false("n_producers" %in% names(captured_args))
@@ -301,9 +301,10 @@ test_that("predict.birdnet_model_acoustic omits NULL power-user params from Pyth
   expect_false("half_precision" %in% names(captured_args))
   expect_false("max_audio_duration_min" %in% names(captured_args))
 
-  # Required params should still be present
+  # Required params should still be present; apply_sigmoid now defaults to
+  # the model's own setting and is omitted
   expect_false(is.null(captured_args$top_k))
-  expect_false(is.null(captured_args$apply_sigmoid))
+  expect_null(captured_args$apply_sigmoid)
 })
 
 test_that("predict.birdnet_model_acoustic forwards non-NULL power-user params", {
@@ -330,7 +331,7 @@ test_that("predict.birdnet_model_acoustic forwards non-NULL power-user params", 
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  predict(
+  birdnet_predict(
     model,
     files = tmp,
     n_producers = 2L,
@@ -373,32 +374,32 @@ test_that("predict.birdnet_model_acoustic validates power-user params", {
 
   # n_producers must be integer >= 1
 
-  expect_error(predict(model, files = tmp, n_producers = 0L))
-  expect_error(predict(model, files = tmp, n_producers = 1.5))
-  expect_error(predict(model, files = tmp, n_producers = c(1L, 2L)))
-  expect_error(predict(model, files = tmp, n_producers = NA_integer_))
+  expect_error(birdnet_predict(model, files = tmp, n_producers = 0L))
+  expect_error(birdnet_predict(model, files = tmp, n_producers = 1.5))
+  expect_error(birdnet_predict(model, files = tmp, n_producers = c(1L, 2L)))
+  expect_error(birdnet_predict(model, files = tmp, n_producers = NA_integer_))
 
   # batch_size must be integer >= 1
-  expect_error(predict(model, files = tmp, batch_size = 0L))
-  expect_error(predict(model, files = tmp, batch_size = c(1L, 2L)))
+  expect_error(birdnet_predict(model, files = tmp, batch_size = 0L))
+  expect_error(birdnet_predict(model, files = tmp, batch_size = c(1L, 2L)))
 
   # prefetch_ratio must be integer >= 0
-  expect_error(predict(model, files = tmp, prefetch_ratio = -1L))
+  expect_error(birdnet_predict(model, files = tmp, prefetch_ratio = -1L))
 
   # speed must be numeric in [0.01, 100]
-  expect_error(predict(model, files = tmp, speed = 0))
-  expect_error(predict(model, files = tmp, speed = 101))
-  expect_error(predict(model, files = tmp, speed = c(1, 2)))
-  expect_error(predict(model, files = tmp, speed = NA_real_))
+  expect_error(birdnet_predict(model, files = tmp, speed = 0))
+  expect_error(birdnet_predict(model, files = tmp, speed = 101))
+  expect_error(birdnet_predict(model, files = tmp, speed = c(1, 2)))
+  expect_error(birdnet_predict(model, files = tmp, speed = NA_real_))
 
   # half_precision must be logical
-  expect_error(predict(model, files = tmp, half_precision = 1L))
-  expect_error(predict(model, files = tmp, half_precision = c(TRUE, FALSE)))
-  expect_error(predict(model, files = tmp, half_precision = NA))
+  expect_error(birdnet_predict(model, files = tmp, half_precision = 1L))
+  expect_error(birdnet_predict(model, files = tmp, half_precision = c(TRUE, FALSE)))
+  expect_error(birdnet_predict(model, files = tmp, half_precision = NA))
 
   # max_audio_duration_min must be > 0
-  expect_error(predict(model, files = tmp, max_audio_duration_min = 0))
-  expect_error(predict(model, files = tmp, max_audio_duration_min = -5))
+  expect_error(birdnet_predict(model, files = tmp, max_audio_duration_min = 0))
+  expect_error(birdnet_predict(model, files = tmp, max_audio_duration_min = -5))
 })
 
 test_that("predict.birdnet_model_geo uses min_confidence = 0.03 by default", {
@@ -422,7 +423,7 @@ test_that("predict.birdnet_model_geo uses min_confidence = 0.03 by default", {
     class = c("birdnet_model_geo", "birdnet_model")
   )
 
-  predict(model, latitude = 50.8, longitude = 12.9)
+  birdnet_predict(model, latitude = 50.8, longitude = 12.9)
   expect_equal(captured_args$min_confidence, 0.03)
 })
 
@@ -448,11 +449,11 @@ test_that("predict.birdnet_model_geo forwards half_precision when non-NULL", {
   )
 
   # Default: half_precision should NOT be forwarded
-  predict(model, latitude = 50.8, longitude = 12.9)
+  birdnet_predict(model, latitude = 50.8, longitude = 12.9)
   expect_false("half_precision" %in% names(captured_args))
 
   # Explicit: half_precision should be forwarded
-  predict(model, latitude = 50.8, longitude = 12.9, half_precision = TRUE)
+  birdnet_predict(model, latitude = 50.8, longitude = 12.9, half_precision = TRUE)
   expect_true(captured_args$half_precision)
 })
 
@@ -473,19 +474,19 @@ test_that("predict.birdnet_model_geo validates half_precision", {
     class = c("birdnet_model_geo", "birdnet_model")
   )
 
-  expect_error(predict(
+  expect_error(birdnet_predict(
     model,
     latitude = 50.8,
     longitude = 12.9,
     half_precision = 1L
   ))
-  expect_error(predict(
+  expect_error(birdnet_predict(
     model,
     latitude = 50.8,
     longitude = 12.9,
     half_precision = c(TRUE, FALSE)
   ))
-  expect_error(predict(
+  expect_error(birdnet_predict(
     model,
     latitude = 50.8,
     longitude = 12.9,
@@ -623,7 +624,7 @@ test_that("predict.birdnet_model_acoustic coerces integer-like doubles to intege
   file.create(tmp)
 
   # Pass whole-number doubles (not L-suffixed) — the bug scenario
-  predict(
+  birdnet_predict(
     model,
     files = tmp,
     top_k = 1,
@@ -674,7 +675,7 @@ test_that("predict.birdnet_model_geo coerces integer-like week to integer", {
   )
 
   # Pass week as a double, not 18L
-  predict(model, latitude = 50.8, longitude = 12.9, week = 18)
+  birdnet_predict(model, latitude = 50.8, longitude = 12.9, week = 18)
 
   expect_type(captured_args$week, "integer")
   expect_equal(captured_args$week, 18L)
@@ -701,6 +702,116 @@ test_that("predict.birdnet_model_geo leaves week as NULL when not provided", {
     class = c("birdnet_model_geo", "birdnet_model")
   )
 
-  predict(model, latitude = 50.8, longitude = 12.9)
+  birdnet_predict(model, latitude = 50.8, longitude = 12.9)
   expect_null(captured_args$week)
+})
+
+# --- 1.0: model defaults, new arguments, removed predict() methods ----------
+
+local_capturing_model <- function(type = c("acoustic", "geo"), env = parent.frame()) {
+  type <- match.arg(type)
+  cap <- new.env()
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate",
+    .env = env
+  )
+  model <- structure(
+    list(
+      py_model = list(predict = function(...) {
+        cap$args <- list(...)
+        create_mock_py_object()
+      }),
+      model_type = type,
+      model_version = "3.0"
+    ),
+    class = c(paste0("birdnet_model_", type), "birdnet_model")
+  )
+  list(model = model, cap = cap)
+}
+
+test_that("apply_sigmoid and sigmoid_sensitivity are omitted when NULL (model default applies)", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  birdnet_predict(m$model, files = tmp)
+  expect_false(any(
+    c("apply_sigmoid", "sigmoid_sensitivity", "apply_softmax", "segment_size_s", "device") %in%
+      names(m$cap$args)
+  ))
+})
+
+test_that("new acoustic arguments are forwarded when set", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  birdnet_predict(
+    m$model, files = tmp, apply_sigmoid = FALSE, sigmoid_sensitivity = 1.25,
+    apply_softmax = TRUE, segment_size_s = 5, device = "GPU"
+  )
+  expect_equal(
+    m$cap$args[c("apply_sigmoid", "sigmoid_sensitivity", "apply_softmax", "segment_size_s", "device")],
+    list(
+      apply_sigmoid = FALSE, sigmoid_sensitivity = 1.25, apply_softmax = TRUE,
+      segment_size_s = 5, device = "GPU"
+    )
+  )
+})
+
+test_that("new acoustic arguments are validated", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  expect_error(birdnet_predict(m$model, files = tmp, apply_softmax = "yes"))
+  expect_error(birdnet_predict(m$model, files = tmp, segment_size_s = 0))
+  expect_error(birdnet_predict(m$model, files = tmp, sigmoid_sensitivity = -1))
+  expect_error(birdnet_predict(m$model, files = tmp, device = character()))
+})
+
+test_that("geo forwards year_round_aggregation and device when set, omits them when NULL", {
+  m <- local_capturing_model("geo")
+  birdnet_predict(m$model, latitude = 50.8, longitude = 12.9)
+  expect_false(any(c("year_round_aggregation", "device") %in% names(m$cap$args)))
+  birdnet_predict(
+    m$model, latitude = 50.8, longitude = 12.9,
+    year_round_aggregation = "average", device = "CPU"
+  )
+  expect_equal(m$cap$args$year_round_aggregation, "average")
+  expect_equal(m$cap$args$device, "CPU")
+  expect_error(birdnet_predict(m$model, latitude = 50.8, longitude = 12.9, year_round_aggregation = "median"))
+})
+
+test_that("predict() methods are gone", {
+  ns <- asNamespace("birdnetR")
+  expect_false(exists("predict.birdnet_model_acoustic", envir = ns, inherits = FALSE))
+  expect_false(exists("predict.birdnet_model_geo", envir = ns, inherits = FALSE))
+})
+
+test_that("predictions_to_dict keeps column names for an empty result", {
+  skip_if_not_installed("reticulate")
+  skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
+
+  mock_pred <- reticulate::py_run_string(
+    "
+import numpy as np
+
+class MockEmptyPred:
+    def to_structured_array(self, **kwargs):
+        dtype = [
+            ('input', object),
+            ('start_time', np.float32),
+            ('end_time', np.float32),
+            ('species_name', object),
+            ('confidence', np.float32),
+        ]
+        return np.empty(0, dtype=dtype)
+",
+    convert = FALSE
+  )
+  helper <- reticulate::import_from_path("df_utils", system.file("python", package = "birdnetR"))
+
+  df <- as.data.frame(helper$predictions_to_dict(mock_pred$MockEmptyPred()), stringsAsFactors = FALSE)
+  expect_named(df, c("input", "start_time", "end_time", "species_name", "confidence"))
+  expect_equal(nrow(df), 0L)
+  expect_type(df$input, "character")
 })
