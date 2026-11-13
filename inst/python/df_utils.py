@@ -97,3 +97,35 @@ def predictions_to_dict(py_predictions: Any, **kwargs: Any) -> dict[str, Any]:
             result[name] = column
 
     return result
+
+
+def official_model_rows() -> dict[str, list[str]]:
+    """List birdnet's official model combinations as R-friendly columns.
+
+    Reads the loader's own table (``birdnet.model_loader._OFFICIAL_MODELS``,
+    keyed by ``(type, version, backend)``; each entry's ``backends`` dict is
+    keyed by the supported precisions), so the list never drifts from what
+    ``birdnet.load()`` accepts. The table is private: birdnetR's integration
+    tests fail loudly if it disappears or changes shape.
+
+    Returns
+    -------
+    dict[str, list[str]]
+        Columns ``type``, ``version``, ``backend`` and ``precision``, one entry
+        per model and precision.
+    """
+    from birdnet import model_loader
+
+    rows: dict[str, list[str]] = {
+        "type": [],
+        "version": [],
+        "backend": [],
+        "precision": [],
+    }
+    for (model_type, version, backend), spec in model_loader._OFFICIAL_MODELS.items():
+        for precision in spec.backends:
+            rows["type"].append(str(model_type))
+            rows["version"].append(str(version))
+            rows["backend"].append(str(backend))
+            rows["precision"].append(str(precision))
+    return rows

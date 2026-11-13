@@ -48,77 +48,71 @@ format_model_options <- function(
 }
 
 
-#' List supported BirdNET model configurations
+#' List the available BirdNET models
 #'
-#' Returns a data frame of valid combinations of model types, versions, backends, libraries, and precisions
-#' supported by the underlying BirdNET Python backend. Use this to explore which model settings are available
-#' for use in \code{load_birdnet()} and related functions.
+#' Returns every model combination the installed `birdnet` Python package can
+#' load: model type, version, backend, TFLite library and precision. Use it to
+#' pick arguments for [birdnet_load()].
 #'
-#' @param compact Logical. If \code{TRUE}, returns a compacted version of the configurations table.
+#' @param compact logical. If `TRUE`, precisions and libraries of otherwise
+#'   identical rows are collapsed into one colon-separated string.
 #'
-#' @return A data frame of valid model configuration combinations. Each row represents a supported configuration.
+#' @return A data frame with columns `type`, `version`, `backend`, `library`,
+#'   `precision` and `needs`. `needs` tells what a model requires on top of the
+#'   default installation:
+#'   * `"base"`: nothing, it runs out of the box.
+#'   * `"tf"`: TensorFlow (`birdnet[tf]`), installed automatically on first use.
+#'   * `"pt"`: PyTorch (`birdnet[pt]`), installed automatically on first use.
+#'   * `"tf (2.18-2.19)"`: TensorFlow 2.18 or 2.19 (geo 3.0 on `tf`). The automatic
+#'     install picks the newest TensorFlow, so this combination needs a
+#'     Python environment you manage yourself.
+#'
+#' The `perch_v2` row is loaded with [birdnet_load_perch()], all other rows
+#' with [birdnet_load()].
 #' @importFrom stats aggregate na.omit
-#' @details
-#' Not all combinations of arguments are valid. For example, the \code{library} argument is only relevant for TensorFlow backends,
-#' and some backends or model types only support specific precisions. Use the output to guide valid choices for loading models.
-#'
-#' **Perch v2** is not included in this table because it uses a separate loader.
-#' Use \code{\link{load_perch}()} to load the Perch v2 acoustic model.
-#'
 #' @examples
-#' supported_model_configurations()                     # Show all supported combinations
-#' supported_model_configurations(compact = TRUE)       # Show compacted version
+#' \dontrun{
+#' birdnet_list_models()
+#' birdnet_list_models(compact = TRUE)
+#' }
 #' @export
-supported_model_configurations <- function(
-  compact = FALSE
-) {
-  # Extract valid options from Python
-  valid_model_types <- py_birdnet_globals$VALID_MODEL_TYPES
-  valid_model_versions_acoustic <- py_birdnet_globals$VALID_ACOUSTIC_MODEL_VERSIONS
-  valid_model_versions_geo <- py_birdnet_globals$VALID_GEO_MODEL_VERSIONS
-  valid_model_backends <- py_birdnet_globals$VALID_MODEL_BACKENDS
-  valid_library_types <- py_birdnet_globals$VALID_LIBRARY_TYPES
-  valid_precisions <- py_birdnet_globals$VALID_MODEL_PRECISIONS
-
-  # Perch v2 is loaded via load_perch(), not load_birdnet(); exclude it
-  valid_model_versions_acoustic <- setdiff(valid_model_versions_acoustic, "2")
-
-  # Build grid for each type with the right versions
-  grid_acoustic <- expand.grid(
-    type = "acoustic",
-    version = valid_model_versions_acoustic,
-    backend = valid_model_backends,
-    library = valid_library_types,
-    precision = valid_precisions,
-    stringsAsFactors = FALSE
-  )
-  grid_geo <- expand.grid(
-    type = "geo",
-    version = valid_model_versions_geo,
-    backend = valid_model_backends,
-    library = valid_library_types,
-    precision = valid_precisions,
+birdnet_list_models <- function(compact = FALSE) {
+  rows <- as.data.frame(
+    get_df_helper()$official_model_rows(),
     stringsAsFactors = FALSE
   )
 
-  grid <- rbind(grid_acoustic, grid_geo)
+  is_tf <- rows$backend == "tf"
+  is_geo_30 <- rows$type == "geo" & rows$version == "3.0"
+  # tf rows run on the TFLite interpreter (needs TensorFlow) or on LiteRT
+  # (base install); upstream refuses LiteRT for geo 3.0.
+  litert <- rows[is_tf & !is_geo_30, , drop = FALSE]
+  litert$library <- rep("litert", nrow(litert))
+  rows$library <- ifelse(is_tf, "tflite", NA_character_)
 
-  # Prune: library is only for backend == "tf"
-  grid$library[grid$backend != "tf"] <- NA
+  perch <- data.frame(
+    type = "acoustic", version = "perch_v2", backend = "pb",
+    precision = "fp32", library = NA_character_
+  )
+  grid <- rbind(rows, litert, perch)
 
-  # Prune: pb/geo only supports precision fp32
-  grid$precision[
-    (grid$backend == "pb" | grid$type == "geo")
-  ] <- py_birdnet_globals$MODEL_PRECISION_FP32
+  grid$needs <- ifelse(
+    grid$backend == "onnx" | grid$library %in% "litert", "base",
+    ifelse(
+      grid$backend == "pt", "pt",
+      ifelse(
+        grid$type == "geo" & grid$version == "3.0" & grid$backend == "tf",
+        "tf (2.18-2.19)",
+        "tf"
+      )
+    )
+  )
 
-  # Remove rows with NA in library or precision (where not allowed)
+  grid <- grid[c("type", "version", "backend", "library", "precision", "needs")]
   grid <- grid[
-    is.na(grid$precision) |
-      grid$precision == py_birdnet_globals$MODEL_PRECISION_FP32 |
-      grid$backend == "tf",
+    order(grid$type, grid$version, grid$backend, grid$library, grid$precision),
   ]
-  grid <- grid[order(grid$type, grid$version, grid$backend), ]
-  grid <- unique(grid)
+  rownames(grid) <- NULL
 
   if (compact) {
     grid <- format_model_options(grid)
@@ -127,14 +121,28 @@ supported_model_configurations <- function(
 }
 
 
-#' List supported BirdNET model languages
+#' List the languages of a BirdNET model version
 #'
-#' Returns a character vector of supported language codes for BirdNET models, as provided by the Python backend.
+#' Common species names are available in these languages. Pass one of them as
+#' `language` to [birdnet_load()].
 #'
-#' @return Character vector of supported language codes (e.g., \code{"en_us"}, \code{"de"}, \code{"es"}).
+#' @param version character. `"3.0"` (default) or `"2.4"`. The two versions
+#'   support different languages.
+#' @return Character vector of language codes (e.g. `"en_us"`, `"de"`).
 #' @examples
-#' supported_languages()
+#' \dontrun{
+#' birdnet_list_languages()
+#' birdnet_list_languages("2.4")
+#' }
 #' @export
-supported_languages <- function() {
-  py_birdnet_globals$VALID_MODEL_LANGUAGES
+birdnet_list_languages <- function(version = "3.0") {
+  switch(
+    version,
+    "3.0" = py_birdnet_globals$VALID_MODEL_LANGUAGES_V3_0,
+    "2.4" = py_birdnet_globals$VALID_MODEL_LANGUAGES_V2_4,
+    stop(
+      "Unknown model version '", version, "'. Use \"3.0\" or \"2.4\".",
+      call. = FALSE
+    )
+  )
 }
