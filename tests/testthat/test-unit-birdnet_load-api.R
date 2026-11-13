@@ -4,7 +4,7 @@
 # Mocks the Python loaders and records what birdnetR passes to them.
 # Returns an environment with captured_load / captured_perch / captured_custom /
 # captured_inspect / captured_extra.
-local_loader_mocks <- function(litert = TRUE, env = parent.frame()) {
+local_loader_mocks <- function(litert = TRUE, quiet = TRUE, env = parent.frame()) {
   cap <- new.env()
   cap$captured_extra <- NULL
   py_obj <- create_mock_py_object(list(get_version = function() "2.4", n_species = 3L))
@@ -32,6 +32,13 @@ local_loader_mocks <- function(litert = TRUE, env = parent.frame()) {
     .package = "birdnetR",
     .env = env
   )
+  if (quiet) {
+    testthat::local_mocked_bindings(
+      announce_model = function(model) invisible(model),
+      .package = "birdnetR",
+      .env = env
+    )
+  }
   cap
 }
 
@@ -164,4 +171,11 @@ test_that("old loader names are gone", {
   for (f in c("load_birdnet", "load_perch", "load_custom")) {
     expect_false(exists(f, envir = ns, inherits = FALSE))
   }
+})
+
+test_that("loaders announce the loaded model", {
+  local_loader_mocks(quiet = FALSE)
+  expect_message(birdnet_load(), "BirdNET acoustic 3.0", fixed = TRUE)
+  expect_message(birdnet_load_perch(), "Perch v2", fixed = TRUE)
+  expect_message(birdnet_load_custom("m.tflite", "l.txt"), "Custom acoustic 2.4", fixed = TRUE)
 })
