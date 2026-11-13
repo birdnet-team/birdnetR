@@ -2,20 +2,17 @@
 
 #' Create a new BirdNET model object
 #'
-#' This function creates a new BirdNET model object by wrapping a Python model object and assigning
-#' it a class and subclasses. The model is created as an R object that can be interacted with
-#' using R's S3 method dispatch.
+#' Wraps a Python model object in an S3 object whose class vector encodes type,
+#' backend and version for method dispatch.
 #'
 #' @param py_model A Python object representing the BirdNET model
 #' @param type Model type: "acoustic", "geo"
-#' @param backend Backend type: "tf", "pb"
-#' @param version Version of the model, e.g., "2.4"
+#' @param backend Backend: "tf", "pb", "pt", "onnx"
+#' @param version Version of the model, e.g., "3.0"
 #' @param custom Logical indicating if the model is a custom model
-#' @param ... Additional arguments to be included in the model object
+#' @param ... Additional fields stored in the model object (NULLs are dropped)
 #'
-#' @return An S3 object of class `birdnet_model` (and additional subclasses) containing the Python model object
-#' and additional attributes.
-#'
+#' @return An S3 object of class `birdnet_model` (and additional subclasses).
 #' @noRd
 construct_model_class <- function(
   py_model,
@@ -25,15 +22,10 @@ construct_model_class <- function(
   custom,
   ...
 ) {
-  stopifnot(reticulate::is_py_object(py_model)) # Ensure that the input is a valid Python object
+  stopifnot(reticulate::is_py_object(py_model))
 
   cl <- c(
-    paste0(
-      "birdnet_model_",
-      type,
-      "_v",
-      gsub("\\.", "_", version)
-    ),
+    paste0("birdnet_model_", type, "_v", gsub("\\.", "_", version)),
     paste0("birdnet_model_", type),
     paste0("birdnet_model_", backend),
     paste0("birdnet_model_v", gsub("\\.", "_", version)),
@@ -46,81 +38,196 @@ construct_model_class <- function(
       list(
         py_model = py_model,
         model_type = type,
-        model_version = version
+        model_version = version,
+        backend = backend,
+        custom = custom
       ),
-      ...
+      compact_nulls(list(...))
     ),
     class = cl
   )
 }
 
+
+# Default backend for an official model version: 3.0 runs on the base
+# install via ONNX, 2.4 via the tf backend (LiteRT where available).
+resolve_backend <- function(version, backend) {
+  if (!is.null(backend)) {
+    return(backend)
+  }
+  switch(
+    version,
+    "3.0" = "onnx",
+    "2.4" = "tf",
+    stop(
+      "No default backend for version '", version, "'. ",
+      "Set `backend`; see birdnet_list_models().",
+      call. = FALSE
+    )
+  )
+}
+
+
+# The TFLite interpreter for the tf backend: LiteRT ships with the base
+# install; the default TFLite interpreter needs birdnet[tf].
+resolve_library <- function(backend, library) {
+  if (backend != "tf") {
+    return(NULL)
+  }
+  if (!is.null(library)) {
+    return(library)
+  }
+  if (reticulate::py_module_available("ai_edge_litert")) "litert" else "tflite"
+}
+
+
+# Which birdnet extra a backend needs on top of the base install, if any.
+needed_extra <- function(backend, library, is_raven = NULL) {
+  if (backend == "pb" || identical(library, "tflite") || isTRUE(is_raven)) {
+    return("tf")
+  }
+  if (backend == "pt") {
+    return("pt")
+  }
+  NULL
+}
+
+
+require_extra_for <- function(backend, library, is_raven = NULL) {
+  extra <- needed_extra(backend, library, is_raven)
+  if (!is.null(extra)) {
+    require_birdnet_extra(extra)
+  }
+  invisible(extra)
+}
+
+
 #' @title Load a BirdNET Model
-#' @name load_birdnet_model
+#' @name birdnet_load
 #' @description
-#' Functions to load BirdNET models for sound identification or species prediction from location and time.
-#' Models will be downloaded if not available locally.
+#' Load BirdNET models for sound identification or for species prediction from
+#' location and time. Models are downloaded on first use.
 #'
-#' * [load_birdnet()]: load a pre-trained BirdNET model or a geographic model.
-#' * [load_perch()]: load the Perch v2 acoustic model.
-#' * [load_custom()]: load a custom trained BirdNET model.
+#' * [birdnet_load()]: an official BirdNET model (acoustic or geographic).
+#' * [birdnet_load_perch()]: the Perch v2 acoustic model.
+#' * [birdnet_load_custom()]: a custom classifier trained with BirdNET-Analyzer.
+#' * [birdnet_inspect_custom()]: describe a custom TFLite classifier without loading it.
+#'
+#' Every successful load prints one line naming the loaded model; silence it
+#' with [suppressMessages()].
 #'
 #' @details
+#' `type`:
+#' * `"acoustic"`: identify species in audio recordings.
+#' * `"geo"`: predict which species occur at a location and week of the year.
 #'
-#' The argument `type` specifies the type of model to load:
-#' * `"acoustic"`: A model for species identification from audio recordings.
-#' * `"geo"`: A model for species prediction based on geographic location and time.
+#' `version`: `"3.0"` (BirdNET+ V3.0, the default) or `"2.4"`.
 #'
-#' The argument `version` specifies the version of the model to load, e.g., `"2.4"`. Use [supported_model_configurations()] to see all supported versions.
+#' `backend`:
+#' * `"onnx"`: ONNX Runtime (3.0 only). Part of the base install; the default for 3.0.
+#' * `"tf"`: TensorFlow Lite model, CPU only. The default for 2.4.
+#' * `"pt"`: PyTorch (3.0 only), CPU or GPU. Installs `birdnet[pt]` on first use.
+#' * `"pb"`: TensorFlow SavedModel (Protobuf), CPU or GPU. Installs `birdnet[tf]` on first use.
 #'
-#' The argument `backend` specifies the backend to use:
-#' * `"tf"`: TensorFlow backend, which supports different precisions and libraries but is CPU only.
-#' * `"pb"`: Protobuf backend, which can be run on a GPU. GPU support requires additional system dependencies; see the upstream `birdnet` documentation for details.
+#' If `backend` is `NULL`, it follows the version: `"onnx"` for 3.0 and `"tf"` for 2.4.
 #'
-#' The argument `library` is only used for the TensorFlow backend and specifies the library to use:
-#' * `"litert"`: The LiteRT library for running TensorFlow Lite models.
-#' * `"tflite"`: The standard TensorFlow Lite library.
+#' `library` only applies to `backend = "tf"`:
+#' * `"litert"`: the LiteRT interpreter, part of the base install where it has wheels.
+#' * `"tflite"`: TensorFlow's own interpreter. Installs `birdnet[tf]` on first use.
 #'
-#' The argument `precision` specifies the precision of the model:
-#' * `"int8"`: 8-bit integer precision, which is the most efficient in terms of speed and memory usage.
-#' * `"fp16"`: 16-bit floating point precision, which is a good balance between speed and accuracy.
-#' * `"fp32"`: 32-bit floating point precision, which is the most accurate but also the slowest and most memory-intensive.
-#' Protobuf and geographic models only support `"fp32"` precision.
+#' If `library` is `NULL`, LiteRT is used when it is installed, otherwise `"tflite"`.
 #'
-#' To get an overview of all valid model configuration combinations use [supported_model_configurations()].
+#' `precision`: `"fp32"`, `"fp16"` or `"int8"`; not every model supports every precision.
 #'
-#' @param type character. The type of model to load: `"acoustic"` or `"geo"`.
-#' @param version character. The version of the model to load, e.g., `"2.4"`.
-#' @param backend character. The backend to use: `"tf"` (TensorFlow) or `"pb"` (Protobuf).
-#' @param library character or `NULL`. The TensorFlow library to use: `"litert"` or `"tflite"`. Only applies when `backend = "tf"`.
-#' @param precision character. The precision of the model: `"int8"`, `"fp16"`, or `"fp32"`.
+#' Heavy runtimes (TensorFlow for `"pb"`, `"tflite"` and Perch; PyTorch for `"pt"`)
+#' are not part of the default installation. They are added automatically the
+#' first time a model needs them, which can take a while.
 #'
-#' @return A BirdNET model object (S3 class `birdnet_model` with type- and version-specific subclasses).
-#' The returned object supports:
-#' \itemize{
-#'   \item [predict()] — run inference on audio files or geographic coordinates
-#'   \item [get_species_list()] — retrieve the species list used by the model
-#' }
+#' Use [birdnet_list_models()] for all valid combinations and which ones need
+#' an extra download.
+#'
+#' @param type character. `"acoustic"` or `"geo"`.
+#' @param version character. Model version, e.g. `"3.0"` or `"2.4"`. For custom models `"auto"` reads it from the file (TFLite only).
+#' @param backend character or `NULL`. `"onnx"`, `"tf"`, `"pt"` or `"pb"`.
+#' @param library character or `NULL`. `"litert"` or `"tflite"`. Only applies to `backend = "tf"`.
+#' @param precision character. `"fp32"`, `"fp16"` or `"int8"`.
+#'
+#' @return A BirdNET model object (S3 class `birdnet_model` with type-, backend- and version-specific subclasses).
+#' Use it with [birdnet_predict()], [birdnet_encode()] (acoustic models) and [birdnet_list_species()].
 #' Internal list fields are implementation details and should not be relied upon.
 #'
+#' `birdnet_inspect_custom()` returns a named list describing a custom TFLite
+#' classifier: `version` (base model, `"2.4"` or `"3.0"`), `mode` (`"replace"`
+#' or `"append"`), `n_species`, `applies_sigmoid`, `supports_encoding` and
+#' `input_samples` (`NULL` if any input length is accepted).
+#'
 #' @examples
-#' # Load a pre-trained acoustic model
 #' \dontrun{
-#' model  <- load_birdnet(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
+#' # BirdNET 3.0 acoustic model (default)
+#' model <- birdnet_load()
+#'
+#' # BirdNET 2.4 and the 3.0 geo model
+#' model_24 <- birdnet_load(version = "2.4")
+#' geo <- birdnet_load(type = "geo")
+#'
+#' # Perch v2
+#' perch <- birdnet_load_perch()
 #' }
 NULL
-#> NULL
 
-#' @rdname load_birdnet_model
+
+#' @rdname birdnet_load
+#' @param language character. Language of the common species names, e.g. `"en_us"`. See [birdnet_list_languages()].
 #' @export
-load_perch <- function() {
-  py_model <- py_birdnet$load_perch_v2("CPU")
+birdnet_load <- function(
+  type = "acoustic",
+  version = "3.0",
+  backend = NULL,
+  library = NULL,
+  precision = "fp32",
+  language = "en_us"
+) {
+  backend <- resolve_backend(version, backend)
+  library <- resolve_library(backend, library)
+  require_extra_for(backend, library)
+
+  args <- c(
+    list(type, version, backend, precision = precision, lang = language),
+    compact_nulls(list(library = library))
+  )
+  py_model <- do.call(py_birdnet$load, args)
+
+  model <- construct_model_class(
+    py_model = py_model,
+    type = type,
+    backend = backend,
+    version = version,
+    custom = FALSE,
+    library = library,
+    precision = precision,
+    language = language
+  )
+  announce_model(model)
+}
+
+
+#' @rdname birdnet_load
+#' @param device character. `"CPU"` (default) or `"GPU"` (see [birdnet_use_gpu()]).
+#' @export
+birdnet_load_perch <- function(device = "CPU") {
+  require_birdnet_extra("tf")
+  py_model <- py_birdnet$load_perch_v2(device)
   stopifnot(reticulate::is_py_object(py_model))
 
-  structure(
+  model <- structure(
     list(
       py_model = py_model,
       model_type = "acoustic",
-      model_version = "perch_v2"
+      model_version = "perch_v2",
+      backend = "pb",
+      precision = "fp32",
+      device = device,
+      custom = FALSE
     ),
     class = c(
       "birdnet_model_perch_v2",
@@ -129,124 +236,71 @@ load_perch <- function() {
       "birdnet_model"
     )
   )
+  announce_model(model)
 }
 
 
-#' @rdname load_birdnet_model
-#' @param language character. Language code for the model to use e.g., "en_us".
-#' Common species names are returned in the specified language if available. Use [supported_languages()] to see all available languages.
+#' @rdname birdnet_load
+#' @param model character. Path to the custom model: a `.tflite` file for `backend = "tf"`, a directory for `backend = "pb"`.
+#' @param species_list character. Path to the species list (labels) file of the custom model.
+#' @param check_validity logical. Check that the model can be loaded before using it.
+#' @param is_raven logical or `NULL`. Set `TRUE` for a Raven export (`backend = "pb"`).
 #' @export
-load_birdnet <- function(
+birdnet_load_custom <- function(
+  model,
+  species_list,
   type = "acoustic",
-  version = "2.4",
+  version = "auto",
   backend = "tf",
   library = NULL,
   precision = "fp32",
-  language = "en_us"
-) {
-  args <- list(
-    type,
-    version,
-    backend,
-    precision = precision,
-    lang = language
-  )
-
-  if (!is.null(library) && backend != "tf") {
-    warning(sprintf(
-      "Argument `library` = '%s' only applies if argument `backend = 'tf'`",
-      library
-    ))
-  }
-
-  if (!is.null(library) && backend == "tf") {
-    args$library <- library
-  }
-
-  py_model <- do.call(py_birdnet$load, args)
-
-  construct_model_class(
-    py_model = py_model,
-    type = type,
-    backend = backend,
-    version = version,
-    custom = FALSE,
-    # this excludes positional (unnamed) arguments and NULL values.
-    args[names(args) != "" & sapply(args, Negate(is.null))]
-  )
-}
-
-
-#' @rdname load_birdnet_model
-#' @param model If backend is "tf", path to custom model file. If backend is "pb", path to model directory.
-#' @param species_list Path to the species list file.
-#' @param check_validity Checks if the model is loadable by loading the model twice.
-#' @param classifier_type Advanced option for custom TensorFlow models. Controls how the custom classifier head is interpreted.
-#' @param is_raven Advanced option for custom protobuf models. Indicates whether the model uses the Raven protobuf layout.
-#' @export
-
-load_custom <- function(
-  type = "acoustic",
-  version = "2.4",
-  backend = "tf",
-  library = NULL,
-  precision = "fp32",
-  model = NULL,
-  species_list = NULL,
   check_validity = TRUE,
-  classifier_type = NULL,
   is_raven = NULL
 ) {
-  args <- list(
-    type,
-    version,
-    backend,
-    model,
-    species_list,
-    precision = precision,
-    check_validity = check_validity
+  if (missing(model) || missing(species_list)) {
+    stop("Both `model` and `species_list` must be provided.", call. = FALSE)
+  }
+
+  library <- resolve_library(backend, library)
+  require_extra_for(backend, library, is_raven)
+
+  args <- c(
+    list(type, version, backend, model, species_list),
+    list(precision = precision, check_validity = check_validity),
+    compact_nulls(list(library = library, is_raven = is_raven))
   )
-
-  # Most of the arguments are validated in the Python function
-  if (is.null(model) || is.null(species_list)) {
-    stop("Both `model` and `species_list` must be provided.")
-  }
-
-  if (!is.null(library) && backend != "tf") {
-    warning(sprintf(
-      "Argument `library` = '%s' only applies if argument `backend = 'tf'`",
-      library
-    ))
-  }
-
-  if (!is.null(library) && backend == "tf") {
-    args$library <- library
-  }
-
-  if (!is.null(classifier_type)) {
-    args$classifier_type <- classifier_type
-  }
-
-  if (!is.null(is_raven)) {
-    args$is_raven <- is_raven
-  }
-
   py_model <- do.call(py_birdnet$load_custom, args)
 
-  # Only keep metadata fields relevant for dispatch and user inspection
-  wrapper_meta <- list(precision = precision)
-  if (!is.null(library) && backend == "tf") {
-    wrapper_meta$library <- library
+  if (identical(version, "auto")) {
+    version <- py_model$get_version()
   }
 
-  construct_model_class(
+  obj <- construct_model_class(
     py_model = py_model,
     type = type,
     backend = backend,
     version = version,
     custom = TRUE,
+    library = library,
+    precision = precision,
     model_path = model,
-    species_list_path = species_list,
-    wrapper_meta
+    species_list_path = species_list
   )
+  announce_model(obj)
+}
+
+
+#' @rdname birdnet_load
+#' @export
+birdnet_inspect_custom <- function(model, library = NULL) {
+  library <- resolve_library("tf", library)
+  require_extra_for("tf", library)
+  info <- py_birdnet$inspect_custom_tflite(model, library = library)
+  fields <- c(
+    "version", "mode", "n_species",
+    "applies_sigmoid", "supports_encoding", "input_samples"
+  )
+  out <- lapply(fields, function(f) info[[f]])
+  names(out) <- fields
+  out
 }
