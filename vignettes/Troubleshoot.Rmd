@@ -94,6 +94,10 @@ Some models need more:
 | `backend = "tf"` with `library = "tflite"`, or where LiteRT is not available (Intel Macs, Windows on ARM) | TensorFlow | about 600 MB |
 | `birdnet_load(backend = "pt")` | PyTorch | several GB with GPU support, much less for the CPU-only version |
 
+On Linux, uv installs the CUDA build of PyTorch by default, which is several GB
+even if you have no GPU. To get the CPU-only build, run
+`Sys.setenv(UV_TORCH_BACKEND = "cpu")` before the first birdnetR call.
+
 birdnetR installs these the first time you load such a model, also in the
 middle of an R session. That one load takes longer. `birdnet_list_models()`
 shows in its `needs` column which models need what.

@@ -334,7 +334,7 @@ The columns match the arguments of `birdnet_load()`:
 - `needs`: what the variant needs on top of the default installation.
   - `"base"`: nothing, it runs out of the box.
   - `"tf"`: TensorFlow (about 600 MB).
-  - `"pt"`: PyTorch (several GB with GPU support, much less for the CPU-only version).
+  - `"pt"`: PyTorch (several GB with GPU support, much less for the CPU-only version). On Linux, uv picks the CUDA build of torch by default; for the CPU-only build run `Sys.setenv(UV_TORCH_BACKEND = "cpu")` before the first birdnetR call.
   - `"tf (2.18-2.19)"`: TensorFlow 2.18 or 2.19 exactly. birdnetR's automatic install picks the newest TensorFlow, so this variant only works in a Python environment you manage yourself.
 
 For example:

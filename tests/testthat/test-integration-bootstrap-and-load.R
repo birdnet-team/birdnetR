@@ -120,6 +120,8 @@ test_that("birdnet_load(version = \"2.4\") loads and announces a 2.4 model", {
   expect_s3_class(model, "birdnet_model_acoustic")
   expect_equal(model$model_version, "2.4")
   expect_equal(model$backend, "tf")
+  # The default install has no TensorFlow: 2.4 runs on LiteRT
+  expect_equal(model$library, "litert")
   expect_true(reticulate::is_py_object(model$py_model))
 })
 

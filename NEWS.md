@@ -20,6 +20,13 @@ without a deprecation cycle; the table below maps them to the new ones.
 | `get_top_prediction()` | Removed; use `dplyr::slice_max()` or birdnetTools |
 | `install_arrow()` | Removed; not needed |
 
+Arguments of the model loaders:
+
+| 0.3.2 | 1.0.0 |
+|---|---|
+| `tflite_num_threads` (`birdnet_model_tflite()`, `birdnet_model_meta()`, `birdnet_model_custom()`) | Removed. Each model runs on one thread per worker; set `n_workers` in `birdnet_predict()` or `birdnet_encode()` for parallelism. |
+| `custom_device` (`birdnet_model_protobuf()`) | Removed from the loader; pass `device = "CPU"` or `"GPU"` to `birdnet_predict()` or `birdnet_encode()`. See `birdnet_use_gpu()`. |
+
 Arguments of the acoustic prediction function:
 
 | 0.3.2 `predict_species_from_audio_file()` | 1.0.0 `birdnet_predict()` |
@@ -28,7 +35,8 @@ Arguments of the acoustic prediction function:
 | `chunk_overlap_s` | `overlap` |
 | `filter_species` | `species_list` |
 | `use_bandpass` | Removed; set `bandpass_fmin` / `bandpass_fmax` |
-| `keep_empty`, `use_arrow` | Removed |
+| `keep_empty` (default `TRUE`) | Removed; segments without detections give no rows, see below |
+| `use_arrow` | Removed |
 
 Output columns now follow the Python package exactly:
 
@@ -47,15 +55,13 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   model 0.3.2 used. Versions are written `"2.4"` and `"3.0"`, without the `v`.
 - `birdnet_predict()` returns a result object instead of a data frame. Convert
   it with `as.data.frame()` or write it to a file with `birdnet_write()`.
+- Segments without detections no longer produce a row. 0.3.2 defaulted to
+  `keep_empty = TRUE` and returned a row with `NA` species and confidence for
+  each such segment; 1.0 returns only actual detections, so row counts and
+  per-file counts change. A recording without any detection gives a data frame
+  with 0 rows.
 - `apply_sigmoid` and `sigmoid_sensitivity` default to `NULL`, which means
-  each model uses its own default. Perch v2 scores are no longer passed through
-  a sigmoid (the development version of 1.0 forced it).
-- Scores of Raven exports of BirdNET 2.4 classifiers change. Upstream fixed a
-  double sigmoid that squeezed scores into 0.5 to 0.73. Species names read
-  from Raven label files no longer contain the id column. Raven exports can't
-  be used with `birdnet_encode()`.
-- `birdnet_load_custom()` takes `model` and `species_list` first. It has no
-  `classifier_type` argument: upstream ignores it.
+  each model uses its own default.
 - Loading the protobuf model on macOS no longer installs `tensorflow-metal`.
   Use `birdnet_use_gpu("pb")` for GPU support.
 
@@ -63,12 +69,16 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
 
 - BirdNET+ V3.0 acoustic and geo models. They run on ONNX Runtime, which is
   part of the default installation on every platform.
-- `birdnet_load_perch()` loads Google's Perch v2 acoustic model.
+- `birdnet_load_perch()` loads Google's Perch v2 acoustic model (not supported
+  on Intel macOS).
 - `birdnet_encode()` returns embeddings (one vector per audio segment).
 - `birdnet_load_custom()` loads classifiers trained with BirdNET-Analyzer on
   the 2.4 or 3.0 base model. `version = "auto"` reads the base version from a
   TFLite file. `birdnet_inspect_custom()` describes a TFLite classifier without
-  loading it.
+  loading it. Raven exports of custom classifiers load with
+  `backend = "pb"` and `is_raven = TRUE`: scores span the full 0 to 1 range
+  (the sigmoid is applied once), species names come from the label file
+  without its id column, and `birdnet_encode()` does not work with them.
 - Smaller default installation: the base install contains ONNX Runtime and
   LiteRT only. TensorFlow (for Perch, `backend = "pb"` and Raven exports) and
   PyTorch (for `backend = "pt"`) are installed automatically the first time a
@@ -83,9 +93,9 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   (3.0 only), `device`, and settings for speed and memory (`n_workers`,
   `n_producers`, `batch_size`, `prefetch_ratio`, `speed`, `half_precision`,
   `max_audio_duration_min`). Settings left at `NULL` use the Python defaults.
-- `birdnet_predict()` for geo models predicts for the whole year when
-  `week = NULL`, combining weeks with `year_round_aggregation`. It also gains
-  `half_precision` and `device`.
+- `birdnet_predict()` for geo models gains `year_round_aggregation` (how
+  weekly scores are combined when `week = NULL`), `half_precision` and
+  `device`.
 - `birdnet_write()` writes predictions and embeddings straight from Python to
   CSV, Parquet or NumPy (`.npz`) files.
 - `birdnet_sitrep()` reports the Python version and path, the `birdnet`

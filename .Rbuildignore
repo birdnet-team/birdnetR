@@ -18,3 +18,5 @@
 ^test\.npz$
 ^test\.parquet$
 ^test\.csv$
+^\.superpowers$
+^inst/python/__pycache__$
