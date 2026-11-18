@@ -68,8 +68,8 @@ create_mock_model <- function(
 
 #' Get an acoustic model for integration testing
 #'
-#' Returns a cached acoustic model loaded via load_birdnet(), or initializes a
-#' new one. Skips the test if the model cannot be loaded.
+#' Returns a cached BirdNET 3.0 acoustic model loaded via birdnet_load(), or
+#' initializes a new one. Skips the test if the model cannot be loaded.
 #' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
 #' @return An acoustic model or skips the test
 get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
@@ -77,11 +77,7 @@ get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
     if (is_full_test_env()) {
       tryCatch(
         {
-          model <- load_birdnet(
-            type = "acoustic",
-            version = "2.4",
-            backend = "tf"
-          )
+          model <- suppressMessages(birdnet_load(type = "acoustic"))
           assign("acoustic_new", model, envir = .test_models)
         },
         error = function(e) {
@@ -103,8 +99,8 @@ get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
 
 #' Get a geo model for integration testing
 #'
-#' Returns a cached geo model loaded via load_birdnet(), or initializes a
-#' new one. Skips the test if the model cannot be loaded.
+#' Returns a cached BirdNET 3.0 geo model loaded via birdnet_load(), or
+#' initializes a new one. Skips the test if the model cannot be loaded.
 #' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
 #' @return A geo model or skips the test
 get_test_geo_model <- function(skip_if_not_available = TRUE) {
@@ -112,11 +108,7 @@ get_test_geo_model <- function(skip_if_not_available = TRUE) {
     if (is_full_test_env()) {
       tryCatch(
         {
-          model <- load_birdnet(
-            type = "geo",
-            version = "2.4",
-            backend = "tf"
-          )
+          model <- suppressMessages(birdnet_load(type = "geo"))
           assign("geo_new", model, envir = .test_models)
         },
         error = function(e) {
@@ -134,6 +126,38 @@ get_test_geo_model <- function(skip_if_not_available = TRUE) {
     }
   }
   get("geo_new", envir = .test_models)
+}
+
+#' Get a Perch v2 model for integration testing
+#'
+#' Returns a cached Perch v2 model loaded via birdnet_load_perch(), or
+#' initializes a new one. Skips the test if the model cannot be loaded.
+#' Loading Perch adds TensorFlow to the Python environment on the fly.
+#' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
+#' @return A Perch model or skips the test
+get_test_perch_model <- function(skip_if_not_available = TRUE) {
+  if (!exists("perch_new", envir = .test_models)) {
+    if (is_full_test_env()) {
+      tryCatch(
+        {
+          model <- suppressMessages(birdnet_load_perch())
+          assign("perch_new", model, envir = .test_models)
+        },
+        error = function(e) {
+          if (skip_if_not_available) {
+            skip(paste("Failed to load Perch model:", e$message))
+          }
+          return(NULL)
+        }
+      )
+    } else {
+      if (skip_if_not_available) {
+        skip("Not in a full test environment - Perch model not available")
+      }
+      return(NULL)
+    }
+  }
+  get("perch_new", envir = .test_models)
 }
 
 #' Get standard test audio file path
