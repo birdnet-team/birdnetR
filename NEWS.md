@@ -60,6 +60,9 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   each such segment; 1.0 returns only actual detections, so row counts and
   per-file counts change. A recording without any detection gives a data frame
   with 0 rows.
+- `birdnet_predict()` returns at most `top_k = 5` species per segment by
+  default. 0.3.2 returned every species above `min_confidence`. Raise `top_k`
+  to get more.
 - `apply_sigmoid` and `sigmoid_sensitivity` default to `NULL`, which means
   each model uses its own default.
 - Loading the protobuf model on macOS no longer installs `tensorflow-metal`.
@@ -91,7 +94,7 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
 - `birdnet_predict()` for acoustic models accepts several files at once and
   gains `top_k`, `min_confidence_custom`, `apply_softmax`, `segment_size_s`
   (3.0 only), `device`, and settings for speed and memory (`n_workers`,
-  `n_producers`, `batch_size`, `prefetch_ratio`, `speed`, `half_precision`,
+  `n_producers`, `prefetch_ratio`, `speed`, `half_precision`,
   `max_audio_duration_min`). Settings left at `NULL` use the Python defaults.
 - `birdnet_predict()` for geo models gains `year_round_aggregation` (how
   weekly scores are combined when `week = NULL`), `half_precision` and

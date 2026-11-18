@@ -103,7 +103,7 @@ df <- as.data.frame(predictions)
 | BirdNET+ V3.0 geo | `birdnet_load(type = "geo")` | about 14,000 | CC BY-NC-SA 4.0 |
 | BirdNET V2.4 acoustic | `birdnet_load(version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
 | BirdNET V2.4 geo | `birdnet_load(type = "geo", version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
-| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | see [Google's model page](https://www.kaggle.com/models/google/bird-vocalization-classifier) |
+| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
 
 `birdnet_list_models()` lists every backend and precision you can choose. The
 [Get started](https://birdnet-team.github.io/birdnetR/articles/birdnetR.html)
@@ -162,7 +162,7 @@ Feel free to use `birdnetR` for your acoustic analyses and research. If you do, 
 ## License
 
 - **Source code**: The source code of this package is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-- **Models**: The BirdNET+ V3.0 acoustic model is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) and comes with an acceptable use policy. The other BirdNET models are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/). Perch v2 is a model by Google; see [Google's model page](https://www.kaggle.com/models/google/bird-vocalization-classifier) for its terms.
+- **Models**: The BirdNET+ V3.0 acoustic model is licensed under the [Apache License 2.0](https://github.com/birdnet-team/model-converter/blob/main/MODEL_LICENSE.md) and comes with an [acceptable use policy](https://github.com/birdnet-team/model-converter/blob/main/ACCEPTABLE_USE.md). The other models used in this package are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
 
 Please review and follow the license terms of each model; see the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). Note that educational and research purposes are considered non-commercial use cases.
 

@@ -291,7 +291,7 @@ Raven exports can't be used with `birdnet_encode()`.
 | BirdNET+ V3.0 geo | `birdnet_load(type = "geo")` | about 14,000 | CC BY-NC-SA 4.0 |
 | BirdNET V2.4 acoustic | `birdnet_load(version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
 | BirdNET V2.4 geo | `birdnet_load(type = "geo", version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
-| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | see [Google's model page](https://www.kaggle.com/models/google/bird-vocalization-classifier) |
+| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
 
 CC BY-NC-SA 4.0 allows non-commercial use only; educational and research use count as non-commercial. See the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). For details on each model (sample rates, segment lengths, embedding sizes), see the [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
 
@@ -329,7 +329,7 @@ The columns match the arguments of `birdnet_load()`:
   - `"tf"`: a TensorFlow Lite file. The default for V2.4. CPU only.
   - `"pb"`: a TensorFlow SavedModel (Protobuf). Can run on a GPU.
   - `"pt"`: PyTorch. Can run on a GPU.
-- `library`: only for `backend = "tf"`, the interpreter for the TensorFlow Lite file. `"litert"` (Google's LiteRT) is part of the default installation; `"tflite"` is TensorFlow's own interpreter. birdnetR uses LiteRT where it is installed. LiteRT is not available on Intel Macs and Windows on ARM.
+- `library`: only for `backend = "tf"`, the interpreter for the TensorFlow Lite file. `"litert"` (Google's LiteRT) is part of the default installation; `"tflite"` is TensorFlow's own interpreter. birdnetR uses LiteRT on every platform that has it. LiteRT is not available on Intel Macs and Windows on ARM.
 - `precision`: how precisely the model's numbers are stored. `"fp32"` is the full model. `"fp16"` and `"int8"` are smaller and can be faster, and their scores can differ slightly from `"fp32"`.
 - `needs`: what the variant needs on top of the default installation.
   - `"base"`: nothing, it runs out of the box.
