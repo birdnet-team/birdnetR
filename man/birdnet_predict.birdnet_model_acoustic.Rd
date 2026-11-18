@@ -93,7 +93,7 @@ With \code{apply_sigmoid = NULL} (default) each model uses its own default:
 BirdNET and custom models apply the sigmoid, Perch v2 does not.
 When \code{apply_sigmoid = TRUE}, the raw logit scores from the linear classifier are passed
 through a sigmoid function, scaling them into the range [0, 1]. This unitless confidence
-score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
+score reflects BirdNET's certainty in its prediction (it is not a direct probability of species presence).
 Adjusting the \code{sigmoid_sensitivity} parameter modifies the score distribution:
 \itemize{
 \item Values \strong{< 1} tend to produce more extreme scores (closer to 0 or 1).

@@ -3,7 +3,7 @@
 #' Groups and collapses specified columns of a model configurations data frame, combining all unique values in
 #' \code{collapse_cols} for each group into a single string, separated by colons.
 #'
-#' @param opts_df A data frame of model configurations (as returned by \code{supported_model_configurations()}).
+#' @param opts_df A data frame of model configurations (as returned by \code{birdnet_list_models()}).
 #' @param collapse_cols Character vector of column names to collapse (default: \code{c("precision", "library")}).
 #' @param na_string String to use for replacing \code{NA} values during grouping (default: \code{"<NA>"}).
 #'

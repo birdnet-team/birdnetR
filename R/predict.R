@@ -64,7 +64,7 @@ birdnet_predict <- function(model, ...) {
 #' BirdNET and custom models apply the sigmoid, Perch v2 does not.
 #' When `apply_sigmoid = TRUE`, the raw logit scores from the linear classifier are passed
 #' through a sigmoid function, scaling them into the range \[0, 1\]. This unitless confidence
-#' score reflects BirdNET’s certainty in its prediction (it is not a direct probability of species presence).
+#' score reflects BirdNET's certainty in its prediction (it is not a direct probability of species presence).
 #' Adjusting the `sigmoid_sensitivity` parameter modifies the score distribution:
 #' * Values **< 1** tend to produce more extreme scores (closer to 0 or 1).
 #' * Values **> 1** result in scores that are more moderate (centered around intermediate values).
@@ -235,7 +235,7 @@ birdnet_predict.birdnet_model_acoustic <- function(
     species_list <- py_builtins$set(species_list)
   }
 
-  # Build optional kwargs — NULLs are omitted so Python uses its own defaults
+  # Build optional kwargs - NULLs are omitted so Python uses its own defaults
   optional_kwargs <- compact_nulls(list(
     n_producers = n_producers,
     n_workers = n_workers,
@@ -329,7 +329,7 @@ birdnet_predict.birdnet_model_geo <- function(
   # forwards them as Python int (not float).
   if (!is.null(week)) week <- as.integer(week)
 
-  # Build optional kwargs — NULLs are omitted so Python uses its own defaults
+  # Build optional kwargs - NULLs are omitted so Python uses its own defaults
   optional_kwargs <- compact_nulls(list(
     half_precision = half_precision,
     year_round_aggregation = year_round_aggregation,
@@ -386,7 +386,7 @@ as.data.frame.birdnet_prediction <- function(
     stop("No prediction results available.")
   }
 
-  # Convert via structured array → dict (bypasses pandas entirely)
+  # Convert via structured array -> dict (bypasses pandas entirely)
   dict_data <- get_df_helper()$predictions_to_dict(py_result)
   as.data.frame(dict_data, stringsAsFactors = FALSE)
 }
@@ -411,7 +411,7 @@ as.data.frame.birdnet_prediction_geo <- function(
 }
 
 
-# Lazily loaded Python helper for structured array → dict conversion.
+# Lazily loaded Python helper for structured array -> dict conversion.
 # Bypasses pandas entirely to avoid Arrow-backed StringDtype issues
 # with reticulate.
 .df_cache <- new.env(parent = emptyenv())

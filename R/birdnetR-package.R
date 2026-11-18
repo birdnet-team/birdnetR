@@ -64,7 +64,7 @@ py_builtins <- NULL
 #' the base requirement, so upstream's platform pins apply. Once Python runs,
 #' reticulate only accepts new package names (an extra on `birdnet` counts as
 #' a change), so the extra's own package is declared instead and reticulate
-#' layers it on top of the running environment (spec §8.1).
+#' layers it on top of the running environment (spec section 8.1).
 #'
 #' @param extra One of `"tf"`, `"pt"`; `"and-cuda"` only before Python starts.
 #' @return `invisible(NULL)`
