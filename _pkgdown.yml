@@ -42,4 +42,4 @@ reference:
 - contents:
   - supported_languages
   - get_species_list
-  - birdnet_version
+  - birdnet_sitrep

@@ -1,10 +1,16 @@
-#' Report Python and birdnet Version Information
+#' Report the Python environment
 #'
-#' Returns the Python executable path, Python version, and installed
-#' `birdnet` Python package version as a named list. Useful for
-#' debugging environment issues.
+#' Summarises the Python environment birdnetR runs on: the Python version and
+#' path, the installed `birdnet` Python package version, and which inference
+#' runtimes are installed. Useful for debugging environment issues.
 #'
-#' @return A named list with elements:
+#' The character fields and `runtimes` are `NA` (with a warning) when they
+#' cannot be determined.
+#'
+#' @param x A `birdnet_sitrep` object, as returned by `birdnet_sitrep()`.
+#' @param ... Ignored.
+#' @return `birdnet_sitrep()` returns a list of class `birdnet_sitrep` with
+#'   elements:
 #' \describe{
 #'   \item{python_version}{Character string with the Python version
 #'     (e.g. `"3.12.3"`), or `NA` if Python is not available.}
@@ -13,14 +19,19 @@
 #'   \item{birdnet_version}{Character string with the installed
 #'     `birdnet` package version (e.g. `"0.2.16"`), or `NA` if the
 #'     package is not installed.}
+#'   \item{runtimes}{Named logical vector, `TRUE` for each of
+#'     `onnxruntime`, `ai_edge_litert`, `tensorflow` and `torch` that is
+#'     installed (found by importlib, without importing it), `NA` if this
+#'     could not be determined.}
 #' }
+#' `print()` returns `x`, invisibly.
 #'
 #' @export
 #' @examples
 #' \dontrun{
-#' birdnet_version()
+#' birdnet_sitrep()
 #' }
-birdnet_version <- function() {
+birdnet_sitrep <- function() {
   py_version <- NA_character_
   py_executable <- NA_character_
   bn_version <- NA_character_
@@ -28,7 +39,8 @@ birdnet_version <- function() {
   tryCatch(
     {
       cfg <- reticulate::py_config()
-      py_version <- cfg$version
+      # version_string is e.g. "3.12.3 (main, ...) [GCC]"; cfg$version is only "3.12"
+      py_version <- sub(" .*", "", cfg$version_string)
       py_executable <- cfg$python
     },
     error = \(e) {
@@ -54,11 +66,60 @@ birdnet_version <- function() {
     }
   )
 
-  list(
-    python_version = py_version,
-    python_executable = py_executable,
-    birdnet_version = bn_version
+  runtime_names <- c("onnxruntime", "ai_edge_litert", "tensorflow", "torch")
+  runtimes <- structure(rep(NA, length(runtime_names)), names = runtime_names)
+
+  # find_spec() looks the module up without importing it (tensorflow and torch
+  # are slow to load); reticulate converts Python None to NULL.
+  tryCatch(
+    {
+      util <- reticulate::import("importlib.util", delay_load = FALSE)
+      runtimes[] <- vapply(
+        runtime_names,
+        function(m) !is.null(util$find_spec(m)),
+        logical(1)
+      )
+    },
+    error = \(e) {
+      warning(
+        "Could not determine installed runtimes: ",
+        conditionMessage(e),
+        call. = FALSE
+      )
+    }
   )
+
+  structure(
+    list(
+      python_version = py_version,
+      python_executable = py_executable,
+      birdnet_version = bn_version,
+      runtimes = runtimes
+    ),
+    class = "birdnet_sitrep"
+  )
+}
+
+
+#' @rdname birdnet_sitrep
+#' @export
+print.birdnet_sitrep <- function(x, ...) {
+  available <- names(x$runtimes)[x$runtimes %in% TRUE]
+  runtimes <- if (anyNA(x$runtimes)) {
+    "NA"
+  } else if (length(available)) {
+    toString(available)
+  } else {
+    "none"
+  }
+  cat(
+    "python_version: ", x$python_version, "\n",
+    "python_executable: ", x$python_executable, "\n",
+    "birdnet_version: ", x$birdnet_version, "\n",
+    "runtimes: ", runtimes, "\n",
+    sep = ""
+  )
+  invisible(x)
 }
 
 
