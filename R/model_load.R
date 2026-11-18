@@ -68,8 +68,27 @@ resolve_backend <- function(version, backend) {
 }
 
 
+# Is LiteRT part of the base install? Never starts Python: before it runs,
+# decide by platform (mirrors the wheel marker of `ai-edge-litert` in birdnet
+# 1.4: Linux, macOS arm64, Windows x86-64); afterwards, look the module up
+# without importing it.
+litert_available <- function() {
+  if (reticulate::py_available()) {
+    return(!is.null(reticulate::import("importlib.util")$find_spec("ai_edge_litert")))
+  }
+  p <- platform()
+  switch(
+    p[["sysname"]],
+    Linux = TRUE,
+    Darwin = p[["machine"]] == "arm64",
+    Windows = p[["machine"]] == "x86-64",
+    FALSE
+  )
+}
+
+
 # The TFLite interpreter for the tf backend: LiteRT ships with the base
-# install; the default TFLite interpreter needs birdnet[tf].
+# install where it has wheels; the default TFLite interpreter needs birdnet[tf].
 resolve_library <- function(backend, library) {
   if (backend != "tf") {
     return(NULL)
@@ -77,7 +96,7 @@ resolve_library <- function(backend, library) {
   if (!is.null(library)) {
     return(library)
   }
-  if (reticulate::py_module_available("ai_edge_litert")) "litert" else "tflite"
+  if (litert_available()) "litert" else "tflite"
 }
 
 
@@ -135,13 +154,16 @@ require_extra_for <- function(backend, library, is_raven = NULL) {
 #' * `"litert"`: the LiteRT interpreter, part of the base install where it has wheels.
 #' * `"tflite"`: TensorFlow's own interpreter. Installs `birdnet[tf]` on first use.
 #'
-#' If `library` is `NULL`, LiteRT is used when it is installed, otherwise `"tflite"`.
+#' If `library` is `NULL`, LiteRT is used where it is available (Linux, macOS on
+#' Apple silicon, Windows on x86-64), otherwise `"tflite"`.
 #'
 #' `precision`: `"fp32"`, `"fp16"` or `"int8"`; not every model supports every precision.
 #'
 #' Heavy runtimes (TensorFlow for `"pb"`, `"tflite"` and Perch; PyTorch for `"pt"`)
 #' are not part of the default installation. They are added automatically the
 #' first time a model needs them, which can take a while.
+#'
+#' The Perch v2 model is not supported on Intel macOS.
 #'
 #' Use [birdnet_list_models()] for all valid combinations and which ones need
 #' an extra download.
@@ -215,6 +237,9 @@ birdnet_load <- function(
 #' @param device character. `"CPU"` (default) or `"GPU"` (see [birdnet_use_gpu()]).
 #' @export
 birdnet_load_perch <- function(device = "CPU") {
+  if (is_intel_mac()) {
+    stop("The Perch v2 model is not supported on Intel macOS.", call. = FALSE)
+  }
   require_birdnet_extra("tf")
   py_model <- py_birdnet$load_perch_v2(device)
   stopifnot(reticulate::is_py_object(py_model))

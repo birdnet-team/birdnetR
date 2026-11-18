@@ -91,8 +91,8 @@ require_birdnet_extra <- function(extra) {
 
 #' @noRd
 is_intel_mac <- function() {
-  info <- Sys.info()
-  info[["sysname"]] == "Darwin" && info[["machine"]] == "x86_64"
+  p <- platform()
+  p[["sysname"]] == "Darwin" && p[["machine"]] == "x86_64"
 }
 
 

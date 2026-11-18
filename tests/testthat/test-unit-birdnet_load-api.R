@@ -1,9 +1,11 @@
-# Unit tests for the model loaders. No Python: py_birdnet, the extras helper
-# and reticulate::py_module_available are mocked.
+# Unit tests for the model loaders. No Python: py_birdnet, the extras helper,
+# the platform and reticulate::py_available are mocked, and
+# reticulate::py_module_available (which would start Python) must not be called.
 
 # Mocks the Python loaders and records what birdnetR passes to them.
-# Returns an environment with captured_load / captured_perch / captured_custom /
-# captured_inspect / captured_extra.
+# `litert` picks the mocked platform: Linux (LiteRT wheels exist) or Intel
+# macOS (they do not). Returns an environment with captured_load /
+# captured_perch / captured_custom / captured_inspect / captured_extra.
 local_loader_mocks <- function(litert = TRUE, quiet = TRUE, env = parent.frame()) {
   cap <- new.env()
   cap$captured_extra <- NULL
@@ -11,8 +13,20 @@ local_loader_mocks <- function(litert = TRUE, quiet = TRUE, env = parent.frame()
 
   testthat::local_mocked_bindings(
     is_py_object = mock_is_py_object(),
-    py_module_available = function(module, ...) litert,
+    py_available = function(...) FALSE,
+    py_module_available = function(...) stop("must not be called"),
     .package = "reticulate",
+    .env = env
+  )
+  testthat::local_mocked_bindings(
+    platform = function() {
+      if (litert) {
+        c(sysname = "Linux", machine = "x86_64")
+      } else {
+        c(sysname = "Darwin", machine = "x86_64")
+      }
+    },
+    .package = "birdnetR",
     .env = env
   )
   testthat::local_mocked_bindings(
@@ -72,7 +86,7 @@ test_that("birdnet_load() forwards precision, language and an explicit library",
   expect_equal(cap$captured_extra, "tf")
 })
 
-test_that("birdnet_load(version = '2.4') uses tf + litert when LiteRT is importable", {
+test_that("birdnet_load(version = '2.4') uses tf + litert where LiteRT has wheels", {
   cap <- local_loader_mocks(litert = TRUE)
   m <- birdnet_load(version = "2.4")
   expect_equal(cap$captured_load[[3]], "tf")
@@ -81,11 +95,59 @@ test_that("birdnet_load(version = '2.4') uses tf + litert when LiteRT is importa
   expect_equal(m$library, "litert")
 })
 
-test_that("birdnet_load(version = '2.4') falls back to tflite and requires [tf] without LiteRT", {
+test_that("birdnet_load(version = '2.4') falls back to tflite and requires [tf] without LiteRT wheels", {
   cap <- local_loader_mocks(litert = FALSE)
   birdnet_load(version = "2.4")
   expect_equal(cap$captured_load$library, "tflite")
   expect_equal(cap$captured_extra, "tf")
+})
+
+test_that("resolve_library() decides by platform while Python is not running", {
+  testthat::local_mocked_bindings(
+    py_available = function(...) FALSE,
+    py_module_available = function(...) stop("must not be called"),
+    .package = "reticulate"
+  )
+  lib_on <- function(sysname, machine) {
+    testthat::local_mocked_bindings(
+      platform = function() c(sysname = sysname, machine = machine)
+    )
+    birdnetR:::resolve_library("tf", NULL)
+  }
+  expect_equal(lib_on("Linux", "x86_64"), "litert")
+  expect_equal(lib_on("Linux", "aarch64"), "litert")
+  expect_equal(lib_on("Darwin", "arm64"), "litert")
+  expect_equal(lib_on("Windows", "x86-64"), "litert")
+  expect_equal(lib_on("Darwin", "x86_64"), "tflite")
+  expect_equal(lib_on("Windows", "arm64"), "tflite")
+})
+
+test_that("resolve_library() looks LiteRT up without importing it once Python runs", {
+  find_spec_result <- NULL
+  testthat::local_mocked_bindings(
+    py_available = function(...) TRUE,
+    py_module_available = function(...) stop("must not be called"),
+    import = function(module, ...) {
+      expect_equal(module, "importlib.util")
+      list(find_spec = function(name) {
+        expect_equal(name, "ai_edge_litert")
+        find_spec_result
+      })
+    },
+    .package = "reticulate"
+  )
+  expect_equal(birdnetR:::resolve_library("tf", NULL), "tflite")
+  find_spec_result <- list()
+  expect_equal(birdnetR:::resolve_library("tf", NULL), "litert")
+})
+
+test_that("resolve_library() ignores non-tf backends and keeps an explicit library", {
+  testthat::local_mocked_bindings(
+    py_available = function(...) stop("must not be called"),
+    .package = "reticulate"
+  )
+  expect_null(birdnetR:::resolve_library("onnx", NULL))
+  expect_equal(birdnetR:::resolve_library("tf", "tflite"), "tflite")
 })
 
 test_that("pb and pt backends require their extras before loading", {
@@ -115,6 +177,13 @@ test_that("birdnet_load_perch() requires [tf] and forwards device", {
   expect_equal(m$model_version, "perch_v2")
   expect_equal(m$backend, "pb")
   expect_equal(m$device, "GPU")
+})
+
+test_that("birdnet_load_perch() stops early on Intel macOS, before declaring TensorFlow", {
+  cap <- local_loader_mocks(litert = FALSE)
+  expect_error(birdnet_load_perch(), "not supported on Intel macOS")
+  expect_null(cap$captured_extra)
+  expect_null(cap$captured_perch)
 })
 
 test_that("birdnet_load_perch() defaults to CPU", {

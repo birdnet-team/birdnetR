@@ -103,13 +103,16 @@ If \code{backend} is \code{NULL}, it follows the version: \code{"onnx"} for 3.0 
 \item \code{"tflite"}: TensorFlow's own interpreter. Installs \code{birdnet[tf]} on first use.
 }
 
-If \code{library} is \code{NULL}, LiteRT is used when it is installed, otherwise \code{"tflite"}.
+If \code{library} is \code{NULL}, LiteRT is used where it is available (Linux, macOS on
+Apple silicon, Windows on x86-64), otherwise \code{"tflite"}.
 
 \code{precision}: \code{"fp32"}, \code{"fp16"} or \code{"int8"}; not every model supports every precision.
 
 Heavy runtimes (TensorFlow for \code{"pb"}, \code{"tflite"} and Perch; PyTorch for \code{"pt"})
 are not part of the default installation. They are added automatically the
 first time a model needs them, which can take a while.
+
+The Perch v2 model is not supported on Intel macOS.
 
 Use \code{\link[=birdnet_list_models]{birdnet_list_models()}} for all valid combinations and which ones need
 an extra download.

@@ -117,3 +117,15 @@ test_that("use_managed_python() keeps a user's RETICULATE_PYTHON", {
     expect_equal(Sys.getenv("RETICULATE_PYTHON"), "managed")
   })
 })
+
+test_that("is_intel_mac() builds on platform()", {
+  intel <- function(sysname, machine) {
+    testthat::local_mocked_bindings(
+      platform = function() c(sysname = sysname, machine = machine)
+    )
+    birdnetR:::is_intel_mac()
+  }
+  expect_true(intel("Darwin", "x86_64"))
+  expect_false(intel("Darwin", "arm64"))
+  expect_false(intel("Linux", "x86_64"))
+})
