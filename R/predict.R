@@ -81,7 +81,7 @@ birdnet_predict <- function(model, ...) {
 #'   source file for each prediction row.
 #' @param min_confidence A numeric value to set the minimum confidence threshold for predictions.
 #' @param min_confidence_custom A named list where each element is a single numeric value to set custom minimum confidence thresholds for specific species. A custom threshold will override the default one.
-#' @param top_k An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold.
+#' @param top_k An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold. `NULL` returns every species above the threshold.
 #' @param overlap A numeric value specifying the overlap duration in seconds between consecutive time intervals. Must be smaller than the segment length (3 s for BirdNET 2.4; see `segment_size_s` for 3.0).
 #' @param apply_sigmoid A logical value indicating whether to apply a sigmoid function to the confidence scores. If `NULL` (default), the model's own default is used.
 #' @param sigmoid_sensitivity A numeric value that adjusts the sensitivity of the sigmoid function. Must be in the interval \[0.5, 1.5\]. If `NULL` (default), the model's own default (1.0) is used.
@@ -160,7 +160,7 @@ birdnet_predict.birdnet_model_acoustic <- function(
   files <- as.list(path.expand(as.character(unlist(files, use.names = FALSE))))
 
   stopifnot(is_scalar_number(min_confidence))
-  stopifnot(is_scalar_integer(top_k))
+  if (!is.null(top_k)) stopifnot(is_scalar_integer(top_k))
   stopifnot(is_scalar_number(overlap))
   if (!is.null(apply_sigmoid)) stopifnot(is_scalar_logical(apply_sigmoid))
   if (!is.null(apply_softmax)) stopifnot(is_scalar_logical(apply_softmax))
@@ -202,7 +202,7 @@ birdnet_predict.birdnet_model_acoustic <- function(
 
   # Coerce integer-like doubles to true R integers so reticulate
   # forwards them as Python int (not float).
-  top_k <- as.integer(top_k)
+  if (!is.null(top_k)) top_k <- as.integer(top_k)
   bandpass_fmin <- as.integer(bandpass_fmin)
   bandpass_fmax <- as.integer(bandpass_fmax)
   if (!is.null(n_producers))  n_producers  <- as.integer(n_producers)
@@ -252,7 +252,7 @@ birdnet_predict.birdnet_model_acoustic <- function(
     device = device
   ))
 
-  # Required kwargs always forwarded
+  # Required kwargs always forwarded (top_k = NULL arrives as None: no cap)
   required_kwargs <- list(
     top_k = top_k,
     overlap_duration_s = overlap,

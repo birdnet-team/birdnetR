@@ -43,7 +43,7 @@ source file for each prediction row.}
 
 \item{min_confidence_custom}{A named list where each element is a single numeric value to set custom minimum confidence thresholds for specific species. A custom threshold will override the default one.}
 
-\item{top_k}{An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold.}
+\item{top_k}{An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold. \code{NULL} returns every species above the threshold.}
 
 \item{overlap}{A numeric value specifying the overlap duration in seconds between consecutive time intervals. Must be smaller than the segment length (3 s for BirdNET 2.4; see \code{segment_size_s} for 3.0).}
 

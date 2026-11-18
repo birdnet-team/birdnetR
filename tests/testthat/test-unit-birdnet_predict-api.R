@@ -305,6 +305,11 @@ test_that("predict.birdnet_model_acoustic omits NULL power-user params from Pyth
   # the model's own setting and is omitted
   expect_false(is.null(captured_args$top_k))
   expect_null(captured_args$apply_sigmoid)
+
+  # top_k = NULL is forwarded (as None), not dropped
+  birdnet_predict(model, files = tmp, top_k = NULL)
+  expect_true("top_k" %in% names(captured_args))
+  expect_null(captured_args$top_k)
 })
 
 test_that("predict.birdnet_model_acoustic forwards non-NULL power-user params", {

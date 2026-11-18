@@ -90,7 +90,7 @@ The columns are:
 - `species_name`: scientific and common name, separated by an underscore,
 - `confidence`: the score (see `?birdnet_predict.birdnet_model_acoustic` on how to read it).
 
-If several species score above `min_confidence` in the same segment, you get one row per species (at most `top_k`, default 5).
+If several species score above `min_confidence` in the same segment, you get one row per species (at most `top_k`, default 5; `top_k = NULL` returns all of them).
 
 Pass a vector of paths to analyse several files in one call:
 
