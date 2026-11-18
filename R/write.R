@@ -1,15 +1,18 @@
-#' Write BirdNET prediction results to file
+#' Write BirdNET predictions or encodings to file
 #'
-#' Write prediction results to disk using the underlying Python result object.
-#' The format can be inferred from the file extension or specified explicitly.
+#' Write prediction or encoding results to disk using the underlying Python
+#' result object. The format can be inferred from the file extension or
+#' specified explicitly.
 #'
-#' Supported formats by prediction type:
+#' Supported formats by result type:
 #' \itemize{
 #'   \item \strong{Acoustic predictions}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
 #'   \item \strong{Geo predictions}: CSV (\code{.csv}), NumPy (\code{.npz})
+#'   \item \strong{Encodings}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
 #' }
 #'
-#' @param x A BirdNET prediction object (as returned by \code{predict()}).
+#' @param x A prediction or encoding object (from [birdnet_predict()] or
+#'   [birdnet_encode()]).
 #' @param file Output file path.
 #' @param format Output file format. If \code{NULL} (default), inferred from
 #'   the file extension. Explicit values: \code{"csv"}, \code{"parquet"},
@@ -18,21 +21,22 @@
 #' @return Invisibly returns the output file path.
 #' @examples
 #' \dontrun{
-#' write_predictions(pred, "results.csv")
-#' write_predictions(pred, "results.parquet")
-#' write_predictions(pred, "results.npz")
-#' write_predictions(pred, "output.csv", format = "csv")
+#' birdnet_write(pred, "results.csv")
+#' birdnet_write(pred, "results.parquet")
+#' birdnet_write(pred, "results.npz")
+#' birdnet_write(pred, "output.csv", format = "csv")
+#' birdnet_write(enc, "embeddings.parquet")
 #' }
 #' @export
-#' @rdname write_predictions
-write_predictions <- function(x, file, format = NULL, ...) {
-  UseMethod("write_predictions")
+#' @rdname birdnet_write
+birdnet_write <- function(x, file, format = NULL, ...) {
+  UseMethod("birdnet_write")
 }
 
-#' @rdname write_predictions
-#' @method write_predictions birdnet_prediction_geo
+#' @rdname birdnet_write
+#' @method birdnet_write birdnet_prediction_geo
 #' @export
-write_predictions.birdnet_prediction_geo <- function(
+birdnet_write.birdnet_prediction_geo <- function(
   x,
   file,
   format = NULL,
@@ -44,13 +48,13 @@ write_predictions.birdnet_prediction_geo <- function(
       "Parquet format is not supported for geo predictions. Use 'csv' or 'npz'."
     )
   }
-  write_predictions.birdnet_prediction(x, file, format = format, ...)
+  birdnet_write.birdnet_prediction(x, file, format = format, ...)
 }
 
-#' @rdname write_predictions
-#' @method write_predictions birdnet_prediction
+#' @rdname birdnet_write
+#' @method birdnet_write birdnet_prediction
 #' @export
-write_predictions.birdnet_prediction <- function(
+birdnet_write.birdnet_prediction <- function(
   x,
   file,
   format = NULL,
@@ -61,6 +65,34 @@ write_predictions.birdnet_prediction <- function(
   if (is.null(py_result)) {
     stop("No prediction results available.")
   }
+  write_py_result(py_result, file, format, ...)
+}
+
+#' @rdname birdnet_write
+#' @method birdnet_write birdnet_encoding
+#' @export
+birdnet_write.birdnet_encoding <- function(
+  x,
+  file,
+  format = NULL,
+  ...
+) {
+  format <- resolve_save_format(file, format)
+  py_result <- x$py_encodings
+  if (is.null(py_result)) {
+    stop("No encoding results available.")
+  }
+  write_py_result(py_result, file, format, ...)
+}
+
+#' Call the Python writer matching a validated format
+#' @param py_result Python result object (predictions or encodings).
+#' @param file Output file path.
+#' @param format Validated format string from `resolve_save_format()`.
+#' @param ... Passed to the Python method.
+#' @return Invisibly returns `file`.
+#' @noRd
+write_py_result <- function(py_result, file, format, ...) {
   if (format == "csv") {
     py_result$to_csv(file, ...)
   } else if (format == "parquet") {

@@ -33,7 +33,7 @@ reference:
 - contents:
   - starts_with("predict.")
   - as.data.frame.birdnet_prediction
-  - write_predictions
+  - birdnet_write
 - title: Encoding
 - contents:
   - encode

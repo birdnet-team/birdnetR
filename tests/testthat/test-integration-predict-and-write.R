@@ -1,4 +1,4 @@
-# Integration tests for predict(), as.data.frame(), and write_predictions().
+# Integration tests for predict(), as.data.frame(), and birdnet_write().
 # These tests require a working Python environment with birdnet installed,
 # internet access for model downloads, and BIRDNETR_RUN_INTEGRATION_TESTS=TRUE.
 
@@ -73,7 +73,7 @@ test_that("as.data.frame() on geo prediction returns expected columns", {
 
 # -- Result saving: acoustic CSV ------------------------------------------
 
-test_that("write_predictions() saves acoustic predictions to CSV", {
+test_that("birdnet_write() saves acoustic predictions to CSV", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_acoustic_model()
@@ -83,7 +83,7 @@ test_that("write_predictions() saves acoustic predictions to CSV", {
   tmp <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp), add = TRUE)
 
-  result_path <- write_predictions(pred, tmp)
+  result_path <- birdnet_write(pred, tmp)
 
   expect_equal(result_path, tmp)
   expect_true(file.exists(tmp))
@@ -96,7 +96,7 @@ test_that("write_predictions() saves acoustic predictions to CSV", {
 
 # -- Result saving: geo CSV -----------------------------------------------
 
-test_that("write_predictions() saves geo predictions to CSV", {
+test_that("birdnet_write() saves geo predictions to CSV", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_geo_model()
@@ -105,7 +105,7 @@ test_that("write_predictions() saves geo predictions to CSV", {
   tmp <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp), add = TRUE)
 
-  result_path <- write_predictions(pred, tmp)
+  result_path <- birdnet_write(pred, tmp)
 
   expect_equal(result_path, tmp)
   expect_true(file.exists(tmp))
