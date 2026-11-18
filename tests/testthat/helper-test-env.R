@@ -4,6 +4,22 @@
 #'
 #' @return Logical indicating if we can run integration tests
 is_full_test_env <- function() {
+  # The explicit environment variable comes first: probing for the birdnet
+  # module starts Python (and, under R CMD check, builds the managed
+  # environment), which must not happen unless integration tests are wanted.
+  run_integration_tests <- isTRUE(as.logical(Sys.getenv(
+    "BIRDNETR_RUN_INTEGRATION_TESTS",
+    "false"
+  )))
+  if (!run_integration_tests) {
+    message("\u2717 Full integration testing environment not available")
+    message(
+      "  Missing requirements:\n",
+      "    - BIRDNETR_RUN_INTEGRATION_TESTS environment variable not set to TRUE"
+    )
+    return(FALSE)
+  }
+
   # birdnet installed
   has_birdnet <- reticulate::py_module_available("birdnet")
   birdnet_message <- if (has_birdnet) {
@@ -20,27 +36,14 @@ is_full_test_env <- function() {
     "Internet: Not connected"
   }
 
-  # Check if we have the explicit environment variable set
-  run_integration_tests <- isTRUE(as.logical(Sys.getenv(
-    "BIRDNETR_RUN_INTEGRATION_TESTS",
-    "false"
-  )))
-  integration_message <- if (run_integration_tests) {
-    "Integration tests: Enabled"
-  } else {
-    "Integration tests: Disabled"
-  }
-
   # Determine if we can run full tests
-  can_run_full_tests <- isTRUE(
-    has_birdnet && has_internet && run_integration_tests
-  )
+  can_run_full_tests <- isTRUE(has_birdnet && has_internet)
 
   # Create appropriate status message
   if (can_run_full_tests) {
-    message("✓ Full integration testing environment detected")
+    message("\u2713 Full integration testing environment detected")
   } else {
-    message("✗ Full integration testing environment not available")
+    message("\u2717 Full integration testing environment not available")
 
     # List the specific reasons for disabled tests
     reasons <- character()
@@ -50,25 +53,16 @@ is_full_test_env <- function() {
     if (!has_internet) {
       reasons <- c(reasons, "Internet connection not available")
     }
-    if (!run_integration_tests) {
-      reasons <- c(
-        reasons,
-        "BIRDNETR_RUN_INTEGRATION_TESTS environment variable not set to TRUE"
-      )
-    }
 
-    if (length(reasons) > 0) {
-      message(
-        "  Missing requirements:",
-        paste0("\n    - ", reasons, collapse = "")
-      )
-    }
+    message(
+      "  Missing requirements:",
+      paste0("\n    - ", reasons, collapse = "")
+    )
 
     # Also show the detailed status
     message("  Environment status:")
     message(sprintf("    %s", birdnet_message))
     message(sprintf("    %s", internet_message))
-    message(sprintf("    %s", integration_message))
   }
 
   return(can_run_full_tests)

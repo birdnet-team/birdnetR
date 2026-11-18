@@ -374,7 +374,7 @@ test_that("as.data.frame.birdnet_encoding errors when no results available", {
 
 test_that("df_utils.encodings_to_dict converts structured array to R-friendly dict", {
   skip_if_not_installed("reticulate")
-  skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
+  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
 
   mock_enc <- reticulate::py_run_string(
     "

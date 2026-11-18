@@ -496,7 +496,7 @@ test_that("predict.birdnet_model_geo validates half_precision", {
 
 test_that("df_utils.predictions_to_dict converts structured array to R-friendly dict", {
   skip_if_not_installed("reticulate")
-  skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
+  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
 
   # Build a numpy structured array matching birdnet's geo format
   mock_pred <- reticulate::py_run_string(
@@ -544,7 +544,7 @@ class MockGeoPred:
 
 test_that("df_utils.predictions_to_dict handles multi-file object-dtype input column", {
   skip_if_not_installed("reticulate")
-  skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
+  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
 
   # Build a structured array with object-dtype "input" column (as
   # AcousticFilePredictionResult produces) containing two distinct file paths
@@ -789,7 +789,7 @@ test_that("predict() methods are gone", {
 
 test_that("predictions_to_dict keeps column names for an empty result", {
   skip_if_not_installed("reticulate")
-  skip_if(!reticulate::py_available(initialize = TRUE), "Python not available")
+  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
 
   mock_pred <- reticulate::py_run_string(
     "

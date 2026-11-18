@@ -77,6 +77,11 @@ test_that("birdnet_list_languages() picks the per-version list and rejects unkno
 
 test_that("birdnet_list_species() returns the model's species as a character vector", {
   mock_species <- c("Cyanocitta cristata_Blue Jay", "Zenaida macroura_Mourning Dove")
+  # builtins$list() is Python's list(); the real one would start Python
+  testthat::local_mocked_bindings(
+    py_builtins = list(list = function(x) x),
+    .package = "birdnetR"
+  )
   model <- structure(
     list(py_model = list(species_list = mock_species), model_type = "acoustic", model_version = "3.0"),
     class = c("birdnet_model_acoustic", "birdnet_model")
