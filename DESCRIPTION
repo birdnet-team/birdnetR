@@ -1,15 +1,18 @@
 Type: Package
 Package: birdnetR
 Title: Deep Learning for Automated (Bird) Sound Identification
-Version: 0.3.2.9000
+Version: 1.0.0
 Authors@R: c(
     person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
     person("BirdNET", "Team", role = "aut")
   )
 Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to automatically identify (bird) sounds.
-    Analyze bioacoustic datasets without any computer science background using a pre-trained model or a custom trained classifier.
+    Analyze bioacoustic datasets without any computer science background, using the
+    pre-trained 'BirdNET+' V3.0 model (default), 'BirdNET' V2.4, Google's 'Perch' v2
+    model, or a custom trained classifier. Extract embeddings from audio for downstream analyses.
     Predict bird species occurrence based on location and week of the year.
+    Wraps the 'birdnet' 'Python' package via 'reticulate'.
     Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021) <doi:10.1016/j.ecoinf.2021.101236>.
 License: MIT + file LICENSE
 URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/birdnetR

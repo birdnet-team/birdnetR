@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 library(birdnetR)
 ```
 
-The `birdnetR` package provides a comprehensive interface for utilizing the `birdnet` Python package within R. This guide will walk you through the basic steps of setting up the package, initializing models, and using various functions to analyze audio files for (bird) species identification.
+The `birdnetR` package lets you use the `birdnet` Python package from R. This guide shows how to load models, identify species in audio files, predict species for a location, extract embeddings, and run custom classifiers.
 
 
 ##  Installation
@@ -39,92 +39,91 @@ pak::pak("birdnet-team/birdnetR")
 
 <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
 <strong>Note</strong><br>
- `birdnetR` uses [`reticulate::py_require()`](https://rstudio.github.io/reticulate/reference/py_require.html) to handle Python dependencies. These dependencies are installed only when needed, which might result in a longer initial setup.
+ You don't need to install Python yourself. `birdnetR` uses [`reticulate::py_require()`](https://rstudio.github.io/reticulate/reference/py_require.html) to set up Python and the `birdnet` package the first time you use it. This takes a few minutes once. The default setup is small: TensorFlow or PyTorch are downloaded only when you first load a model that needs them (see [Choosing a model](#choosing-a-model)).
 </div>
 
 
 ## Usage
 
 ### Load a BirdNET model
-To begin using BirdNET, a model must first be loaded. During this step, the required model is downloaded if necessary, loaded into memory, and prepared for making predictions.
-
-Several model variations are available, including different backends and precisions. Use `supported_model_configurations()` to see all valid combinations.
-
-You can also load a custom model if one is available. For information on training custom models, please refer to the BirdNET-Analyzer repository.
+To begin, load a model. On first use, the model files are downloaded; after that they are read from disk.
 
 ```{r init_model}
-# Load a pre-trained acoustic model (default: TensorFlow backend, fp32 precision)
-model <- load_birdnet()
-
-# Load a model with specific options
-model <- load_birdnet(type = "acoustic", version = "2.4", backend = "tf", precision = "int8")
-
-# See all supported model configurations
-supported_model_configurations()
+# BirdNET+ V3.0 acoustic model (the default)
+model <- birdnet_load()
+#> BirdNET acoustic 3.0 · onnx · fp32 · en_us · 11,725 classes
 ```
 
-To load a custom model, provide the path to the model file and the species list file.
+Every load prints one line: the model, its backend, precision, language and number of classes. Use `suppressMessages(birdnet_load())` to load quietly. `print(model)` shows the same line again.
 
-```{r init_custom_model}
-model_path <- "/path/to/custom/model.tflite"
-species_list_path <- "/path/to/custom/species_list.txt"
-
-custom_model <- load_custom(model = model_path, species_list = species_list_path)
-```
-
+BirdNET+ V3.0 recognises about 11,700 classes, including many non-bird animals such as frogs, insects and mammals. The exact number depends on the release of the model.
 
 
 ### Identify species in an audio file
-With BirdNET, you can identify bird species present in an audio file. The function returns a prediction object that can be converted to a data frame. Each row in the resulting data frame represents a single prediction for a specific 3-second interval.
+`birdnet_predict()` runs the model on one or more audio files. It returns a prediction object that you convert to a data frame with `as.data.frame()`. Each row is one detection in one segment of the recording (3 seconds by default).
 
 ```{r species_in_audio}
-library(birdnetR)
-
-# Load the BirdNET acoustic model
-model <- load_birdnet()
-
 # Path to an example audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
 # Predict species in the audio file
-predictions <- predict(model, audio_path, min_confidence = 0.3)
+predictions <- birdnet_predict(model, audio_path, min_confidence = 0.3)
 
 # Convert to a data frame
 df <- as.data.frame(predictions)
+head(df)
 
-# Example output:
-#   input                   start_time end_time                   species_name confidence
-#   soundscape.mp3                   0        3 Poecile atricapillus_...       0.8140557
-#   soundscape.mp3                   3        6 Poecile atricapillus_...       0.3082857
-#   soundscape.mp3                   9       12 Haemorhous mexicanus_...       0.6393781
-# ...
-
+# Example output (the input column holds the full file path):
+#>            input start_time end_time                                species_name confidence
+#> 1 soundscape.mp3          0        3 Poecile atricapillus_Black-capped Chickadee  0.9206197
+#> 2 soundscape.mp3          0        3            Haemorhous mexicanus_House Finch  0.3681544
+#> 3 soundscape.mp3          3        6 Poecile atricapillus_Black-capped Chickadee  0.7824634
+#> 4 soundscape.mp3          6        9            Haemorhous mexicanus_House Finch  0.5423213
+#> 5 soundscape.mp3          6        9              Junco hyemalis_Dark-eyed Junco  0.5064150
+#> 6 soundscape.mp3          9       12            Haemorhous mexicanus_House Finch  0.9012285
 ```
 
-If there are multiple predictions above the confidence threshold for the same time interval, you will see multiple rows for that interval.
+The columns are:
+
+- `input`: the audio file,
+- `start_time`, `end_time`: the segment, in seconds from the start of the file,
+- `species_name`: scientific and common name, separated by an underscore,
+- `confidence`: the score (see `?birdnet_predict.birdnet_model_acoustic` on how to read it).
+
+If several species score above `min_confidence` in the same segment, you get one row per species (at most `top_k`, default 5).
+
+Pass a vector of paths to analyse several files in one call:
+
+```{r several_files}
+files <- list.files("recordings", pattern = "\\.wav$", full.names = TRUE)
+predictions <- birdnet_predict(model, files)
+```
+
+To process many files and save the results, see the [workflow article](workflow.html).
 
 
 ### Using a custom species list
-In many cases, you may not need to identify all 6,000+ species available in the model. To focus on species relevant to your project, you can use a custom species list containing only the necessary class labels. Providing a custom species list will limit the output to that set of species.
+Often you only need some of the species the model knows. Pass a custom species list to limit the output to those species.
 
-Class labels follow a specific format, consisting of the scientific name and the common name, separated by an underscore, like this:
+Class labels consist of the scientific name and the common name, separated by an underscore, like this:
 ```{r class_label_example}
-"Accipiter cooperii_Cooper's Hawk"
 "Agelaius phoeniceus_Red-winged Blackbird"
+"Cyanocitta cristata_Blue Jay"
 ```
 
-You can retrieve the full species list from a loaded model using `get_species_list()`:
+Get the full species list of a loaded model with `birdnet_list_species()`:
 
 ```{r species_list}
-# Get the full species list from the model
-species <- get_species_list(model)
+species <- birdnet_list_species(model)
 head(species)
 ```
+
+Every name must be in the model's species list, otherwise `birdnet_predict()` stops with an error. Names can differ between model versions. For example, Cooper's Hawk is `Accipiter cooperii` in BirdNET V2.4 and `Astur cooperii` in V3.0. Always take the names from the model you use.
 
 To filter predictions to specific species, pass a character vector to the `species_list` argument:
 
 ```{r use_custom_species_list}
-predictions <- predict(model, audio_path,
+predictions <- birdnet_predict(model, audio_path,
   species_list = c("Cyanocitta cristata_Blue Jay", "Junco hyemalis_Dark-eyed Junco"),
   min_confidence = 0.3
 )
@@ -133,105 +132,229 @@ as.data.frame(predictions)
 ```
 
 
+### BirdNET V2.4 and Perch v2
 
-### Processing multiple files
+BirdNET V2.4 is the model that birdnetR 0.x used. It has 6,522 classes and runs on the default installation:
 
-When processing many audio files, it is more efficient to keep predictions in
-Python and write them to disk without converting to R data frames. A practical
-pattern is to loop over meaningful chunks (e.g. one folder or one recording
-day) and write one output file per chunk:
-
-```{r batch_predict}
-model <- load_birdnet()
-
-# Folders of audio recordings, e.g. one folder per site
-audio_folders <- list.dirs("recordings", recursive = FALSE)
-
-for (folder in audio_folders) {
-  files <- list.files(folder, pattern = "\\.wav$", full.names = TRUE)
-  predictions <- predict(model, files)
-
-  out_file <- file.path("results", paste0(basename(folder), ".parquet"))
-  write_predictions(predictions, out_file)
-}
+```{r model_24}
+model_24 <- birdnet_load(version = "2.4")
+#> BirdNET acoustic 2.4 · tf/litert · fp32 · en_us · 6,522 classes
 ```
 
-This keeps memory usage constant regardless of total dataset size because each
-iteration discards the previous prediction object before creating the next one.
+[Perch v2](https://www.kaggle.com/models/google/bird-vocalization-classifier) is an acoustic model by Google with 14,795 classes (birds and other animals). It analyses 5-second segments.
 
-`write_predictions()` supports CSV, Parquet, and NPZ formats. Choose based on
-your downstream workflow:
+```{r perch}
+perch <- birdnet_load_perch()
+#> Perch v2 · pb · CPU · 14,795 classes
 
-| Format  | Best for | Notes |
-|---------|----------|-------|
-| CSV     | Interoperability, quick inspection | Human-readable; largest file size |
-| Parquet | Efficient storage and analysis in R/Python | Columnar; much smaller than CSV |
-| NPZ     | NumPy-based pipelines | Compact; requires Python to read |
-
-**Note:** Parquet is not supported for geo predictions — use CSV or NPZ instead.
-
-
-### Reading Parquet files in R
-
-`write_predictions(predictions, "results.parquet")` writes Parquet files
-directly from Python and does not require the `arrow` R package.
-
-If you want to **read** Parquet files back into R (e.g. with
-`arrow::read_parquet()`), you need the `arrow` package installed:
-
-```r
-install.packages("arrow")
+predictions <- birdnet_predict(perch, audio_path)
 ```
 
-On Linux this may require compilation and can take several minutes.
+Perch needs TensorFlow. birdnetR installs it the first time you load Perch, which downloads about 600 MB. Perch does not run on Intel Macs.
+
+Perch scores are raw model outputs (logits), not values between 0 and 1. They are not comparable with BirdNET scores, and the default `min_confidence = 0.1` has a different meaning for them. Use `apply_sigmoid = TRUE` or `apply_softmax = TRUE` in `birdnet_predict()` if you need scores between 0 and 1.
+
+Perch's species names are scientific names only (for example `"Poecile atricapillus"`), so `birdnet_load_perch()` has no `language` argument.
 
 
 ### Predict species occurrence with the geo model
-BirdNET includes a geographic model that predicts the likelihood of bird species occurrence at a specific location and time of year. This function returns a prediction object that can be converted to a data frame containing species labels and corresponding confidence values.
+BirdNET includes a geographic model that predicts which species are likely to occur at a location and week of the year. It returns a prediction object with species names and scores.
+
+BirdNET's year has 48 weeks: four per month, so week 1 is the first week of January and week 48 the last week of December.
 
 ```{r use_geo_model}
 # Load the geo model
-geo_model <- load_birdnet(type = "geo")
+geo_model <- birdnet_load(type = "geo")
 
-# Predict species occurrence in Ithaca, NY in week 4 of the year
-predictions <- predict(geo_model, latitude = 42.5, longitude = -76.45, week = 4L)
+# Predict species occurrence in Ithaca, NY in week 4 (the end of January)
+predictions <- birdnet_predict(geo_model, latitude = 42.5, longitude = -76.45, week = 4L)
 
-# Convert to data frame
-as.data.frame(predictions)
+# Convert to a data frame and sort by score
+df <- as.data.frame(predictions)
+head(df[order(-df$confidence), ])
 
 # Example output:
-#   species_name                                confidence
-#   Cyanocitta cristata_Blue Jay                0.92886776
-#   Poecile atricapillus_Black-capped Chickadee 0.90332001
-#   Sitta carolinensis_White-breasted Nuthatch  0.83232993
-#   ...
+#>                           species_name confidence
+#>     Spinus tristis_American Goldfinch  0.9998151
+#>        Junco hyemalis_Dark-eyed Junco  0.9997241
+#>  Dryobates pubescens_Downy Woodpecker  0.9997090
+#>        Zenaida macroura_Mourning Dove  0.9996312
+```
+
+With `week = NULL` (the default), the model predicts for the whole year. `year_round_aggregation` then decides how the weekly scores are combined: `"max"` (the default) or `"average"`.
+
+```{r geo_year_round}
+predictions <- birdnet_predict(geo_model, latitude = 42.5, longitude = -76.45)
+```
+
+You can use the geo prediction as a species list for the acoustic model. Every name in `species_list` must be in the acoustic model, so keep only the shared names, and use geo and acoustic models of the same version:
+
+```{r geo_species_list}
+local_species <- as.data.frame(predictions)$species_name
+local_species <- intersect(local_species, birdnet_list_species(model))
+predictions <- birdnet_predict(model, audio_path, species_list = local_species)
 ```
 
 
 ### Translating common species names
 
-The birdnetR package allows you to translate common bird species names into several different languages. To check which languages are supported, you can use the following command:
+Common names are available in several languages. The two model versions support different languages:
 ```{r languages}
-supported_languages()
+birdnet_list_languages()      # BirdNET+ V3.0
+birdnet_list_languages("2.4") # BirdNET V2.4
 ```
 
-To output the common names in your preferred language, load the model with the `language` parameter:
+To get common names in your preferred language, load the model with the `language` argument:
 ```{r}
-model_fr <- load_birdnet(language = "fr")
+model_fr <- birdnet_load(language = "fr")
 
 # Get species list in French
-head(get_species_list(model_fr))
+head(birdnet_list_species(model_fr))
 ```
+
+
+### Extract embeddings
+
+Embeddings are the feature vectors a model computes for each audio segment before it scores the species. You can use them for clustering, similarity search or to train your own classifier.
+
+```{r encode}
+embeddings <- birdnet_encode(model, audio_path)
+df <- as.data.frame(embeddings)
+```
+
+The data frame has the columns `input`, `start_time`, `end_time` and `embedding`. `embedding` is a list column with one numeric vector per segment (1,280 values for BirdNET+ V3.0, 1,024 for V2.4). To get a matrix with one row per segment:
+
+```{r embedding_matrix}
+emb <- do.call(rbind, df$embedding)
+dim(emb)
+```
+
+`birdnet_write(embeddings, "embeddings.parquet")` saves them to a file.
+
+
+### Custom classifiers
+
+You can train your own classifier with [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer) on top of BirdNET V2.4 or V3.0. BirdNET-Analyzer exports a TFLite file and a species list (labels) file.
+
+`birdnet_inspect_custom()` describes a TFLite classifier without loading it:
+
+```{r inspect_custom}
+info <- birdnet_inspect_custom("/path/to/CustomClassifier.tflite")
+str(info)
+#> List of 6
+#>  $ version          : chr "2.4"
+#>  $ mode             : chr "replace"
+#>  $ n_species        : int 345
+#>  $ applies_sigmoid  : logi FALSE
+#>  $ supports_encoding: logi TRUE
+#>  $ input_samples    : int 144000
+```
+
+- `version`: the base model, `"2.4"` or `"3.0"`.
+- `mode`: `"replace"` (only your classes) or `"append"` (your classes added to the base model's).
+- `n_species`: the number of classes.
+- `applies_sigmoid`: whether the model applies the sigmoid itself.
+- `supports_encoding`: whether `birdnet_encode()` works with it.
+- `input_samples`: the number of audio samples per segment (`NULL` if any length is accepted).
+
+To load it, give the paths to the model file and the species list file. birdnetR reads the base version from the file:
+
+```{r init_custom_model}
+custom_model <- birdnet_load_custom(
+  model = "/path/to/CustomClassifier.tflite",
+  species_list = "/path/to/CustomClassifier_Labels.txt"
+)
+
+predictions <- birdnet_predict(custom_model, audio_path)
+```
+
+TFLite classifiers on the V2.4 base run on the default installation. For a Raven export (a folder) or another Protobuf classifier, set `backend = "pb"` and the base version, because it can't be read from the files. This installs TensorFlow on first use:
+
+```{r raven}
+raven_model <- birdnet_load_custom(
+  model = "/path/to/raven_export",
+  species_list = "/path/to/raven_labels.csv",
+  version = "2.4",
+  backend = "pb",
+  is_raven = TRUE
+)
+```
+
+Raven exports can't be used with `birdnet_encode()`.
+
+
+## Choosing a model
+
+| Model | Load with | Classes | License of the model files |
+|---|---|---|---|
+| BirdNET+ V3.0 acoustic (default) | `birdnet_load()` | about 11,700 | Apache 2.0 |
+| BirdNET+ V3.0 geo | `birdnet_load(type = "geo")` | about 14,000 | CC BY-NC-SA 4.0 |
+| BirdNET V2.4 acoustic | `birdnet_load(version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
+| BirdNET V2.4 geo | `birdnet_load(type = "geo", version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
+| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | see [Google's model page](https://www.kaggle.com/models/google/bird-vocalization-classifier) |
+
+CC BY-NC-SA 4.0 allows non-commercial use only; educational and research use count as non-commercial. See the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). For details on each model (sample rates, segment lengths, embedding sizes), see the [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
+
+### `birdnet_list_models()`
+
+Each model comes in several variants. `birdnet_list_models()` lists every variant the installed `birdnet` Python package can load. `compact = TRUE` puts the precisions and libraries of otherwise identical rows into one string:
+
+```{r list_models}
+birdnet_list_models(compact = TRUE)
+#>        type  version backend          needs      precision library
+#> 8  acoustic      2.4      pb             tf           fp32    <NA>
+#> 3  acoustic      2.4      tf           base fp16:fp32:int8  litert
+#> 13 acoustic      2.4      tf             tf fp16:fp32:int8  tflite
+#> 1  acoustic      3.0    onnx           base      fp16:fp32    <NA>
+#> 10 acoustic      3.0      pb             tf           fp32    <NA>
+#> 6  acoustic      3.0      pt             pt           fp32    <NA>
+#> 5  acoustic      3.0      tf           base      fp16:fp32  litert
+#> 15 acoustic      3.0      tf             tf      fp16:fp32  tflite
+#> 12 acoustic perch_v2      pb             tf           fp32    <NA>
+#> 9       geo      2.4      pb             tf           fp32    <NA>
+#> 4       geo      2.4      tf           base           fp32  litert
+#> 14      geo      2.4      tf             tf           fp32  tflite
+#> 2       geo      3.0    onnx           base      fp16:fp32    <NA>
+#> 11      geo      3.0      pb             tf           fp32    <NA>
+#> 7       geo      3.0      pt             pt           fp32    <NA>
+#> 16      geo      3.0      tf tf (2.18-2.19) fp16:fp32:int8  tflite
+```
+
+The columns match the arguments of `birdnet_load()`:
+
+- `type`: `"acoustic"` (audio) or `"geo"` (location and week).
+- `version`: `"3.0"`, `"2.4"`, or `"perch_v2"`. Load Perch with `birdnet_load_perch()`, everything else with `birdnet_load()`.
+- `backend`: the format of the model file and the software that runs it.
+  - `"onnx"`: ONNX Runtime. The default for V3.0.
+  - `"tf"`: a TensorFlow Lite file. The default for V2.4. CPU only.
+  - `"pb"`: a TensorFlow SavedModel (Protobuf). Can run on a GPU.
+  - `"pt"`: PyTorch. Can run on a GPU.
+- `library`: only for `backend = "tf"`, the interpreter for the TensorFlow Lite file. `"litert"` (Google's LiteRT) is part of the default installation; `"tflite"` is TensorFlow's own interpreter. birdnetR uses LiteRT where it is installed. LiteRT is not available on Intel Macs and Windows on ARM.
+- `precision`: how precisely the model's numbers are stored. `"fp32"` is the full model. `"fp16"` and `"int8"` are smaller and can be faster, and their scores can differ slightly from `"fp32"`.
+- `needs`: what the variant needs on top of the default installation.
+  - `"base"`: nothing, it runs out of the box.
+  - `"tf"`: TensorFlow (about 600 MB).
+  - `"pt"`: PyTorch (several GB with GPU support, much less for the CPU-only version).
+  - `"tf (2.18-2.19)"`: TensorFlow 2.18 or 2.19 exactly. birdnetR's automatic install picks the newest TensorFlow, so this variant only works in a Python environment you manage yourself.
+
+For example:
+
+```{r load_variants}
+birdnet_load(version = "2.4", precision = "int8")  # needs: base
+birdnet_load(backend = "pt")                       # needs: pt
+birdnet_load(type = "geo", version = "2.4", backend = "pb")  # needs: tf
+```
+
+When a variant needs TensorFlow or PyTorch, birdnetR installs it automatically the first time you load the model, also in the middle of an R session. Expect a longer wait that one time. There is one exception: if you point `RETICULATE_PYTHON` at your own Python environment, birdnetR can't install anything into it. Install `birdnet[tf]` or `birdnet[pt]` there yourself. See the [Troubleshoot](Troubleshoot.html) article for details, and for running models on a GPU.
+
 
 ## Next steps
 
 Once you have predictions, you may want to filter, visualise, or validate them.
 The [birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html)
-package provides functions for these tasks — filtering detections by species,
+package provides functions for these tasks: filtering detections by species,
 confidence, or date range; creating heatmaps; and running interactive validation
 workflows to set species-specific confidence thresholds.
 
-For a high-level overview of how BirdNET-Analyzer, birdnetR, and birdnetTools
-fit together, see the
-[BirdNET ecosystem workflow](workflow.html) article.
-
+For processing many files, saving results, and handing them to birdnetTools,
+see the [BirdNET ecosystem workflow](workflow.html) article.

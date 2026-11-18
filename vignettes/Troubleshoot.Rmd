@@ -15,25 +15,257 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Long Pause After Prediction
+## Reporting a problem
 
-If you notice a significant pause after BirdNET has finished processing your audio file but before returning the results, this is likely due to data conversion overhead between Python and R when calling `as.data.frame()`. This is particularly noticeable when:
-
-- Processing long audio files (>20 minutes)
-- Using low confidence thresholds that generate many predictions (`min_confidence < 0.1`)
-- Working with memory-constrained environments
-
-### Solution: Use `write_predictions()`
-
-For large prediction results, prefer `write_predictions()` to write results directly from Python to a file (CSV, Parquet, or NumPy) without crossing the R boundary. This avoids the memory overhead of converting large result sets to R data frames.
+`birdnet_sitrep()` shows which Python environment birdnetR uses:
 
 ```{r}
-model <- load_birdnet()
-predictions <- predict(model, audio_path)
-
-# Write directly from Python - no R conversion needed
-write_predictions(predictions, "results.csv")
+birdnet_sitrep()
+#> python_version: 3.12.14
+#> python_executable: /home/user/.cache/uv/archive-v0/0MLD8yprGexELXHg/bin/python
+#> birdnet_version: 1.4.0
+#> runtimes: onnxruntime, ai_edge_litert
 ```
 
-For tips on processing many files efficiently, see the
-[Get started with birdnetR](birdnetR.html) vignette.
+- `python_version`, `python_executable`: the Python that birdnetR runs on.
+- `birdnet_version`: the version of the `birdnet` Python package.
+- `runtimes`: the installed inference runtimes, out of `onnxruntime`,
+  `ai_edge_litert` (LiteRT), `tensorflow` and `torch`.
+
+Please include this output when you
+[report a bug](https://github.com/birdnet-team/birdnetR/issues).
+
+After birdnetR has installed TensorFlow or PyTorch during a session (see
+[Extra downloads](#extra-downloads)), `python_executable` points to a different
+folder than before. That is expected: reticulate adds the new packages as an
+extra layer on top of the existing environment.
+
+
+## Long pause after prediction
+
+If you notice a long pause after BirdNET has finished processing your audio but before you get the results, this is likely the conversion from Python to R in `as.data.frame()`. This is particularly noticeable when:
+
+- processing long audio files (> 20 minutes),
+- using low confidence thresholds that generate many predictions (`min_confidence < 0.1`),
+- working with little memory.
+
+### Solution: use `birdnet_write()`
+
+For large results, use `birdnet_write()` to write them directly from Python to a file (CSV, Parquet, or NumPy) without converting them to an R data frame first.
+
+```{r}
+model <- birdnet_load()
+predictions <- birdnet_predict(model, audio_path)
+
+# Write directly from Python - no R conversion needed
+birdnet_write(predictions, "results.csv")
+```
+
+For tips on processing many files, see the
+[workflow](workflow.html) article.
+
+
+## Parallel processing
+
+Don't run birdnetR inside `parallel` or `future` workers (for example with
+`parallel::parLapply()`, `future.apply::future_lapply()` or `furrr`). Each
+worker is a fresh R session without birdnetR's Python setup, so birdnet does
+not work reliably there (see
+[#56](https://github.com/birdnet-team/birdnetR/issues/56)).
+
+`birdnet_predict()` and `birdnet_encode()` already run in parallel. Pass all
+files in one call and set the number of parallel workers with `n_workers`:
+
+```{r}
+predictions <- birdnet_predict(model, files, n_workers = 8L)
+```
+
+
+## Extra downloads
+
+The default installation contains ONNX Runtime and LiteRT. It runs BirdNET+
+V3.0 and BirdNET V2.4 models, and custom TFLite classifiers trained on V2.4.
+Some models need more:
+
+| You load | birdnetR installs | Download |
+|---|---|---|
+| `birdnet_load_perch()` | TensorFlow | about 600 MB |
+| `birdnet_load(backend = "pb")`, Raven exports | TensorFlow | about 600 MB |
+| `backend = "tf"` with `library = "tflite"`, or where LiteRT is not available (Intel Macs, Windows on ARM) | TensorFlow | about 600 MB |
+| `birdnet_load(backend = "pt")` | PyTorch | several GB with GPU support, much less for the CPU-only version |
+
+birdnetR installs these the first time you load such a model, also in the
+middle of an R session. That one load takes longer. `birdnet_list_models()`
+shows in its `needs` column which models need what.
+
+### Intel Macs
+
+On Intel Macs, TensorFlow can only be added before Python starts. If you load
+a model that needs TensorFlow after Python has started (for example after
+loading another model), birdnetR stops with:
+
+```
+On Intel Macs, TensorFlow must be added before Python starts. Restart R and make this load your first birdnetR call.
+```
+
+Restart R and load the TensorFlow model first. Perch v2 does not run on Intel
+Macs at all.
+
+### Your own Python environment
+
+If you set `RETICULATE_PYTHON` to the Python of your own virtual environment,
+birdnetR uses that environment and does not change it. It also can't install
+the extras there. Install them yourself, for example with
+`reticulate::virtualenv_install("my-env", "birdnet[tf]")` for TensorFlow or
+`"birdnet[pt]"` for PyTorch. If a runtime is missing, the `birdnet` Python
+package stops with an error that names it.
+
+`RETICULATE_PYTHON` must be set before Python starts: in your `.Renviron` file,
+or with `Sys.setenv()` before you load the first model. Note that
+`reticulate::use_virtualenv()` alone does not work with birdnetR: birdnetR sets
+`RETICULATE_PYTHON` to reticulate's managed environment when it is unset, and
+`RETICULATE_PYTHON` takes precedence.
+
+
+## Working offline
+
+Models are downloaded the first time you load them. Run your analysis once
+while online, so that Python, the Python packages and the models are on disk.
+
+Releases of the `birdnet` Python package newer than 1.4.0 never try to
+download anything when the environment variable `BIRDNET_OFFLINE` is `1`. Set
+it before you load a model:
+
+```{r}
+Sys.setenv(BIRDNET_OFFLINE = "1")
+model <- birdnet_load()
+```
+
+
+## Harmless console messages
+
+- Decoding MP3 files (for example the bundled `soundscape.mp3`) can print
+  libmpg123 errors such as `part2_3_length ... too large`. The results are not
+  affected.
+- TensorFlow prints CUDA or XLA log lines on computers without an NVIDIA GPU,
+  for example `failed call to cuInit`. You can ignore them.
+
+
+## GPU
+
+By default, all models run on the CPU. A GPU can speed up very large
+analyses.
+
+Not every backend can use a GPU:
+
+- `"pt"` (PyTorch, BirdNET+ V3.0 only) and `"pb"` (TensorFlow, all models
+  including Perch v2) can.
+- `"onnx"` can, but only in a Python environment you set up yourself (see
+  [ONNX Runtime](#onnx-runtime-bring-your-own-environment)).
+- `"tf"` (TensorFlow Lite) runs on the CPU only.
+
+`birdnet_use_gpu()` declares the Python packages for GPU support. Call it at
+the top of your script, before you load any model, because the packages are
+resolved when Python starts. Choose one backend per R session: TensorFlow and
+PyTorch each bring their own CUDA libraries, which can conflict.
+
+Then pass `device = "GPU"` when you predict or encode. If something does not
+work, restart R without `birdnet_use_gpu()` to go back to the CPU.
+
+### Linux with an NVIDIA GPU: PyTorch
+
+```{r}
+birdnet_use_gpu("pt")
+model <- birdnet_load(backend = "pt")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+This installs `birdnet[pt]`. If the environment variable `UV_TORCH_BACKEND` is
+not set, birdnetR sets it to `"auto"`, so the installer picks the PyTorch build
+that matches your GPU driver. The NVIDIA driver must be installed.
+
+### Linux with an NVIDIA GPU: TensorFlow
+
+```{r}
+birdnet_use_gpu("pb")
+model <- birdnet_load(backend = "pb")
+predictions <- birdnet_predict(model, files, device = "GPU")
+
+# Perch v2
+perch <- birdnet_load_perch(device = "GPU")
+predictions <- birdnet_predict(perch, files, device = "GPU")
+```
+
+This installs `birdnet[and-cuda]`, TensorFlow with its CUDA libraries. The
+NVIDIA driver and CUDA must already be installed on your system.
+
+### Linux with an AMD GPU (ROCm, experimental)
+
+PyTorch has builds for AMD GPUs (ROCm). Tell the installer which one to use
+before calling `birdnet_use_gpu()`:
+
+```{r}
+Sys.setenv(UV_TORCH_BACKEND = "rocm6.4")
+birdnet_use_gpu("pt")
+model <- birdnet_load(backend = "pt")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+Use the newest `rocmX.Y` value that matches the ROCm version installed on your
+system. Older values can resolve to an old PyTorch release. ROCm support is
+experimental: not every AMD GPU is supported by ROCm.
+
+### macOS with Apple silicon: TensorFlow with Metal
+
+```{r}
+birdnet_use_gpu("pb")
+model <- birdnet_load(backend = "pb")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+This installs `birdnet[tf]` and `tensorflow-metal`, Apple's GPU plugin for
+TensorFlow. Two caveats:
+
+- The `birdnet` Python package lists GPU use of the Protobuf (`"pb"`) backend
+  on macOS as unsupported.
+- `tensorflow-metal` is often released later than TensorFlow, so the newest
+  TensorFlow may not work with it yet.
+
+### ONNX Runtime: bring your own environment
+
+The GPU version of ONNX Runtime (`onnxruntime-gpu`) has to replace the regular
+`onnxruntime`, which the `birdnet` package depends on. birdnetR can't do that
+in its managed environment, so you create your own environment once. You need
+an NVIDIA GPU with the CUDA and cuDNN versions that
+[ONNX Runtime requires](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements).
+
+```{r}
+# Once: create a virtual environment with birdnet and onnxruntime-gpu.
+# It needs Python 3.11 to 3.13 on your system (see reticulate::install_python()).
+reticulate::virtualenv_create("birdnet-gpu", version = "3.12")
+reticulate::virtualenv_install("birdnet-gpu", "birdnet>=1.4,<2")
+reticulate::virtualenv_remove("birdnet-gpu", packages = "onnxruntime", confirm = FALSE)
+reticulate::virtualenv_install("birdnet-gpu", "onnxruntime-gpu")
+```
+
+In every session, point `RETICULATE_PYTHON` at this environment before you
+load the first model (or set it in your `.Renviron` file):
+
+```{r}
+Sys.setenv(RETICULATE_PYTHON = reticulate::virtualenv_python("birdnet-gpu"))
+library(birdnetR)
+
+model <- birdnet_load()
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+If you later upgrade `birdnet` in this environment, check that
+`onnxruntime` did not come back, and remove it again. Extras such as TensorFlow
+are not installed automatically in your own environment (see
+[Your own Python environment](#your-own-python-environment)).
+
+### Other platforms
+
+On other platforms, for example Windows, `birdnet_use_gpu()` stops with an
+error because there is no automatic setup. You can build your own environment
+as in the ONNX Runtime section.

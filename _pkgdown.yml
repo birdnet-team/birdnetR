@@ -23,23 +23,26 @@ articles:
   - workflow
   - Troubleshoot
 reference:
-- title: Model Loading
+- title: Model loading
 - contents:
-  - load_birdnet
-  - load_perch
-  - load_custom
-  - supported_model_configurations
+  - birdnet_load
+  - birdnet_load_perch
+  - birdnet_load_custom
+  - birdnet_inspect_custom
+  - birdnet_list_models
+  - birdnet_list_languages
 - title: Prediction
 - contents:
-  - starts_with("predict.")
+  - starts_with("birdnet_predict")
   - as.data.frame.birdnet_prediction
   - birdnet_write
 - title: Encoding
 - contents:
-  - encode
+  - birdnet_encode
   - as.data.frame.birdnet_encoding
 - title: Helpers
 - contents:
-  - supported_languages
-  - get_species_list
+  - birdnet_list_species
   - birdnet_sitrep
+  - birdnet_use_gpu
+  - print.birdnet_model

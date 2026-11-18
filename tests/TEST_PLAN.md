@@ -35,7 +35,7 @@ devtools::test(filter = "^integration")
 
 ## Test Environment Detection
 
-The function `is_full_test_env()` in `test_testing_environment.R` determines whether the environment supports integration tests by checking:
+The function `is_full_test_env()` in `tests/testthat/helper-test-env.R` determines whether the environment supports integration tests. All three must hold:
 1. BirdNET Python package is available
 2. Internet connection is available
-3. Optional: explicit environment flag is set
+3. `BIRDNETR_RUN_INTEGRATION_TESTS` is set to `"true"`

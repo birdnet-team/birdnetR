@@ -6,17 +6,22 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/birdnetR)](https://CRAN.R-project.org/package=birdnetR)
 <!-- badges: end -->
 
-> [!CAUTION]
-> **Version 1.0.0 is currently in development and will be a breaking release.**
-> Several functions have been renamed or removed. If you are upgrading from
-> 0.x, see the [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x)
-> section below.
+> [!NOTE]
+> **birdnetR 1.0 is a breaking release.** All functions have new
+> `birdnet_<verb>` names, and BirdNET+ V3.0 is the default model. If you are
+> upgrading from 0.x, see [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x) below.
 
-`birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state‐of‐the‐art deep learning classifier for automated (bird) sound identification, into an R-workflow.
-This package will simplify the analysis of (large) audio datasets from bioacoustic projects, allowing researchers to easily apply machine learning techniques—even without a background in computer science.
+`birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state-of-the-art deep learning classifier for automated (bird) sound identification, into an R workflow.
+It helps you analyze (large) audio datasets from bioacoustic projects, even without a background in computer science.
 
-`birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). It provides the core functionality to analyze audio using the pre-trained 'BirdNET' model or a custom classifier, and to predict bird species occurrence based on location and week of the year.
-However, it does not include all the advanced features available in the [BirdNET Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer). For advanced applications such as training custom classifiers or accessing the broader BirdNET feature set, refer to the BirdNET Analyzer directly.
+`birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). With it you can:
+
+- identify species in audio files with BirdNET+ V3.0 (the default), BirdNET V2.4 or Google's Perch v2,
+- predict which species occur at a location and week of the year (geo models),
+- extract embeddings (one feature vector per audio segment) for your own analyses,
+- run custom classifiers trained with [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer).
+
+To train custom classifiers, use BirdNET-Analyzer directly.
 
 
 ## Installation
@@ -33,51 +38,77 @@ or install the development version from GitHub with:
 pak::pak("birdnet-team/birdnetR")
 ```
 
-<div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
-<strong>Note</strong><br>
- Python dependencies are installed on demand, meaning they are installed when you use them for the first time. This will result in longer initial setup.
-</div>
+You don't need to install Python yourself. On first use, birdnetR sets up Python
+and the `birdnet` package for you (through
+[reticulate](https://rstudio.github.io/reticulate/)). This takes a few minutes
+once. The default setup is small. TensorFlow (about 600 MB) or PyTorch are
+downloaded only when you first load a model that needs them.
 
 
 ## Example use
 
-This is a simple example using BirdNET to predict species in an audio file.
+Identify species in an audio file:
 
 ```r
-# Load the package
 library(birdnetR)
 
-# Load a BirdNET acoustic model
-model <- load_birdnet()
+# Load the BirdNET+ V3.0 acoustic model (downloaded on first use)
+model <- birdnet_load()
 
-# Path to the audio file (replace with your own file path)
+# Path to an audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
 # Predict species within the audio file
-predictions <- predict(model, audio_path)
+predictions <- birdnet_predict(model, audio_path)
 
 # Convert predictions to a data frame
 df <- as.data.frame(predictions)
+```
 
+Each row of `df` is one detection: the file (`input`), the segment's
+`start_time` and `end_time` in seconds, the `species_name`
+(`"<scientific name>_<common name>"`) and the `confidence` score.
+
+Other models load the same way:
+
+```r
+model_24 <- birdnet_load(version = "2.4")   # BirdNET V2.4
+perch <- birdnet_load_perch()               # Google's Perch v2
+geo <- birdnet_load(type = "geo")           # species expected at a place and week
 ```
 
 
 ## Working with prediction results
 
-`predict()` returns a lightweight Python-backed object — not an R data frame.
-Use `as.data.frame()` when you need the results in R for further analysis.
-For file-based pipelines (especially with large datasets), it is more efficient
-to skip conversion and write results directly:
+`birdnet_predict()` returns a lightweight Python-backed object, not an R data
+frame. Use `as.data.frame()` when you need the results in R. For large runs, it
+is faster to skip the conversion and write the results to a file directly:
 
 ```r
-predictions <- predict(model, audio_path)
+predictions <- birdnet_predict(model, audio_path)
 
-# More efficient for large runs — stays in Python:
-write_predictions(predictions, "results.parquet")
+# Faster for large runs; the data stays in Python:
+birdnet_write(predictions, "results.parquet")
 
-# Only when you need results in R:
+# Only when you need the results in R:
 df <- as.data.frame(predictions)
 ```
+
+
+## Models
+
+| Model | Load with | Classes | License of the model files |
+|---|---|---|---|
+| BirdNET+ V3.0 acoustic (default) | `birdnet_load()` | about 11,700 | Apache 2.0 |
+| BirdNET+ V3.0 geo | `birdnet_load(type = "geo")` | about 14,000 | CC BY-NC-SA 4.0 |
+| BirdNET V2.4 acoustic | `birdnet_load(version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
+| BirdNET V2.4 geo | `birdnet_load(type = "geo", version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
+| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | see [Google's model page](https://www.kaggle.com/models/google/bird-vocalization-classifier) |
+
+`birdnet_list_models()` lists every backend and precision you can choose. The
+[Get started](https://birdnet-team.github.io/birdnetR/articles/birdnetR.html)
+article explains its columns. For details on each model, see the
+[models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
 
 
 ## Upgrading from birdnetR 0.x
@@ -85,19 +116,22 @@ df <- as.data.frame(predictions)
 Version 1.0 is a breaking release. The table below maps removed functions to
 their replacements:
 
-| Removed | Replacement |
+| 0.3.2 | 1.0.0 |
 |---|---|
-| `birdnet_model_tflite(...)` | `load_birdnet(..., backend = "tf", library = "tflite")` |
-| `birdnet_model_protobuf(...)` | `load_birdnet(..., backend = "pb")` |
-| `birdnet_model_meta(...)` | `load_birdnet(type = "geo")` |
-| `birdnet_model_custom(...)` | `load_custom(...)` |
-| `predict_species_from_audio_file(model, ...)` | `predict(model, files = ...)` |
-| `predict_species_at_location_and_time(model, ...)` | `predict(model, latitude = ..., longitude = ...)` |
-| `labels_path()` / `read_labels()` | `get_species_list(model)` |
-| `available_languages()` | `supported_languages()` |
+| `birdnet_model_tflite()` | `birdnet_load(version = "2.4", backend = "tf")` |
+| `birdnet_model_protobuf()` | `birdnet_load(version = "2.4", backend = "pb")` |
+| `birdnet_model_meta()` | `birdnet_load(type = "geo", version = "2.4")` |
+| `birdnet_model_custom()` | `birdnet_load_custom()` |
+| `predict_species_from_audio_file()` | `birdnet_predict(model, files = ...)` |
+| `predict_species_at_location_and_time()` | `birdnet_predict(model, latitude = ..., longitude = ...)` |
+| `labels_path()` / `read_labels()` | `birdnet_list_species(model)` |
+| `available_languages()` | `birdnet_list_languages()` |
 | `get_top_prediction()` | Removed; use `dplyr` or `birdnetTools` |
 
-See `NEWS.md` for the full changelog.
+Predictions now come back as an object (convert with `as.data.frame()`), and
+the output columns follow the Python package (`input`, `start_time`,
+`end_time`, `species_name`, `confidence`). `NEWS.md` lists the renamed
+arguments and all other changes.
 
 
 ## The BirdNET ecosystem
@@ -127,10 +161,10 @@ Feel free to use `birdnetR` for your acoustic analyses and research. If you do, 
 
 ## License
 
-- **Source Code**: The source code for this project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-- **Models**: The models used in this project are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+- **Source code**: The source code of this package is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+- **Models**: The BirdNET+ V3.0 acoustic model is licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) and comes with an acceptable use policy. The other BirdNET models are licensed under the [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/). Perch v2 is a model by Google; see [Google's model page](https://www.kaggle.com/models/google/bird-vocalization-classifier) for its terms.
 
-Please ensure you review and adhere to the specific license terms provided with each model. Note that educational and research purposes are considered non-commercial use cases.
+Please review and follow the license terms of each model; see the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). Note that educational and research purposes are considered non-commercial use cases.
 
 ## Funding
 
