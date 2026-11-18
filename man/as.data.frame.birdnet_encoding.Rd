@@ -7,7 +7,7 @@
 \method{as.data.frame}{birdnet_encoding}(x, row.names = NULL, optional = FALSE, ...)
 }
 \arguments{
-\item{x}{A BirdNET encoding object (as returned by \code{\link[=encode]{encode()}}).}
+\item{x}{A BirdNET encoding object (as returned by \code{\link[=birdnet_encode]{birdnet_encode()}}).}
 
 \item{row.names}{\code{NULL} or a character vector giving the row names
 for the data frame. Not used.}
@@ -28,11 +28,11 @@ returned as a list of numeric vectors (one per segment).
 }
 \examples{
 \dontrun{
-model <- load_birdnet(type = "acoustic")
+model <- birdnet_load()
 audio_file <- system.file("extdata", "soundscape.mp3",
   package = "birdnetR"
 )
-enc <- encode(model, files = audio_file)
+enc <- birdnet_encode(model, files = audio_file)
 df <- as.data.frame(enc)
 # Access the first embedding vector
 df$embedding[[1]]

@@ -25,15 +25,15 @@ construct_encoding_class <- function(py_encodings) {
 #' downstream tasks such as clustering, dimensionality reduction, or
 #' transfer-learning workflows that build on BirdNET embeddings.
 #'
-#' @param object A BirdNET model object of class `birdnet_model_acoustic`
-#'   created with [load_birdnet()] or [load_perch()].
+#' @param model A BirdNET model object of class `birdnet_model_acoustic`, see
+#'   [birdnet_load()], [birdnet_load_perch()] and [birdnet_load_custom()].
 #' @param files A character vector of one or more file paths to audio
 #'   files. When multiple files are provided the resulting data frame
 #'   (via [as.data.frame()]) includes an `input` column identifying the
 #'   source file for each row.
 #' @param overlap A numeric value specifying the overlap duration in
-#'   seconds between consecutive time intervals. Must be in the
-#'   interval \[0.0, 3.0\].
+#'   seconds between consecutive time intervals. Must be smaller than the
+#'   segment length (3 s for BirdNET 2.4; see `segment_size_s` for 3.0).
 #' @param bandpass_fmin,bandpass_fmax An integer value to set minimum and
 #'   maximum frequencies for the bandpass filter (in Hz).
 #' @param progress A character string specifying the type of progress
@@ -61,32 +61,37 @@ construct_encoding_class <- function(py_encodings) {
 #' @param max_audio_duration_min A numeric value specifying the maximum
 #'   total audio duration per call in minutes. Must be > 0. If `NULL`
 #'   (default), no limit is applied.
+#' @param segment_size_s A numeric value: length of the analysed segments in
+#'   seconds (BirdNET 3.0 only; it accepts variable-length input). If `NULL`
+#'   (default), the model's own default is used.
+#' @param device A character string, `"CPU"` or `"GPU"` (or a vector of
+#'   devices). If `NULL` (default), the CPU is used. See [birdnet_use_gpu()].
 #' @param ... Additional arguments passed to the generic (currently
 #'   unused).
 #'
 #' @return An S3 object of class `birdnet_encoding` containing the
 #'   encoding results. Use [as.data.frame()] to convert to a data
 #'   frame.
-#' @seealso [as.data.frame.birdnet_encoding()]
+#' @seealso [as.data.frame.birdnet_encoding()], [birdnet_predict()]
 #' @export
 #' @examples
 #' \dontrun{
-#' model <- load_birdnet(type = "acoustic")
+#' model <- birdnet_load()
 #' audio_file <- system.file("extdata", "soundscape.mp3",
 #'   package = "birdnetR"
 #' )
-#' enc <- encode(model, files = audio_file)
+#' enc <- birdnet_encode(model, files = audio_file)
 #' as.data.frame(enc)
 #' }
-encode <- function(object, ...) {
-  UseMethod("encode")
+birdnet_encode <- function(model, ...) {
+  UseMethod("birdnet_encode")
 }
 
 
-#' @rdname encode
+#' @rdname birdnet_encode
 #' @export
-encode.birdnet_model_acoustic <- function(
-  object,
+birdnet_encode.birdnet_model_acoustic <- function(
+  model,
   files,
   overlap = 0,
   bandpass_fmin = 0L,
@@ -99,9 +104,10 @@ encode.birdnet_model_acoustic <- function(
   speed = NULL,
   half_precision = NULL,
   max_audio_duration_min = NULL,
+  segment_size_s = NULL,
+  device = NULL,
   ...
 ) {
-  model <- object
   progress <- match.arg(progress)
 
   stopifnot(is.list(model))
@@ -149,6 +155,10 @@ encode.birdnet_model_acoustic <- function(
       max_audio_duration_min > 0
     )
   }
+  if (!is.null(segment_size_s)) {
+    stopifnot(is_scalar_number(segment_size_s), segment_size_s > 0)
+  }
+  if (!is.null(device)) stopifnot(is_valid_device(device))
 
   # Coerce integer-like doubles to true R integers
   bandpass_fmin <- as.integer(bandpass_fmin)
@@ -158,7 +168,7 @@ encode.birdnet_model_acoustic <- function(
   if (!is.null(batch_size)) batch_size <- as.integer(batch_size)
   if (!is.null(prefetch_ratio)) prefetch_ratio <- as.integer(prefetch_ratio)
 
-  # Build optional kwargs — NULLs are omitted so Python uses its defaults
+  # Build optional kwargs - NULLs are omitted so Python uses its defaults
   optional_kwargs <- compact_nulls(list(
     n_producers = n_producers,
     n_workers = n_workers,
@@ -166,7 +176,9 @@ encode.birdnet_model_acoustic <- function(
     prefetch_ratio = prefetch_ratio,
     speed = speed,
     half_precision = half_precision,
-    max_audio_duration_min = max_audio_duration_min
+    max_audio_duration_min = max_audio_duration_min,
+    segment_size_s = segment_size_s,
+    device = device
   ))
 
   required_kwargs <- list(
@@ -192,7 +204,7 @@ encode.birdnet_model_acoustic <- function(
 #' Each row represents one audio segment. The `embedding` column is
 #' returned as a list of numeric vectors (one per segment).
 #'
-#' @param x A BirdNET encoding object (as returned by [encode()]).
+#' @param x A BirdNET encoding object (as returned by [birdnet_encode()]).
 #' @param row.names `NULL` or a character vector giving the row names
 #'   for the data frame. Not used.
 #' @param optional logical. Not used.
@@ -204,11 +216,11 @@ encode.birdnet_model_acoustic <- function(
 #' @export
 #' @examples
 #' \dontrun{
-#' model <- load_birdnet(type = "acoustic")
+#' model <- birdnet_load()
 #' audio_file <- system.file("extdata", "soundscape.mp3",
 #'   package = "birdnetR"
 #' )
-#' enc <- encode(model, files = audio_file)
+#' enc <- birdnet_encode(model, files = audio_file)
 #' df <- as.data.frame(enc)
 #' # Access the first embedding vector
 #' df$embedding[[1]]

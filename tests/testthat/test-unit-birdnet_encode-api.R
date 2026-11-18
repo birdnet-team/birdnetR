@@ -1,4 +1,4 @@
-test_that("encode.birdnet_model_acoustic wraps result in correct class", {
+test_that("birdnet_encode.birdnet_model_acoustic wraps result in correct class", {
   mock_py_encodings <- create_mock_py_object()
 
   testthat::local_mocked_bindings(
@@ -18,12 +18,12 @@ test_that("encode.birdnet_model_acoustic wraps result in correct class", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  result <- encode(model, files = tmp)
+  result <- birdnet_encode(model, files = tmp)
   expect_s3_class(result, "birdnet_encoding")
   expect_false(is.null(result$py_encodings))
 })
 
-test_that("encode.birdnet_model_acoustic maps R arguments to Python names", {
+test_that("birdnet_encode.birdnet_model_acoustic maps R arguments to Python names", {
   captured_args <- NULL
   mock_py_encodings <- create_mock_py_object()
 
@@ -47,7 +47,7 @@ test_that("encode.birdnet_model_acoustic maps R arguments to Python names", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  encode(model, files = tmp, overlap = 1.5)
+  birdnet_encode(model, files = tmp, overlap = 1.5)
 
   # R `overlap` maps to Python `overlap_duration_s`
   expect_equal(captured_args$overlap_duration_s, 1.5)
@@ -56,7 +56,7 @@ test_that("encode.birdnet_model_acoustic maps R arguments to Python names", {
   expect_equal(captured_args[[1]][[1]], tmp)
 })
 
-test_that("encode.birdnet_model_acoustic errors for missing files", {
+test_that("birdnet_encode.birdnet_model_acoustic errors for missing files", {
   mock_py_encodings <- create_mock_py_object()
 
   testthat::local_mocked_bindings(
@@ -74,12 +74,12 @@ test_that("encode.birdnet_model_acoustic errors for missing files", {
   )
 
   expect_error(
-    encode(model, files = "nonexistent_file.wav"),
+    birdnet_encode(model, files = "nonexistent_file.wav"),
     "do not exist"
   )
 })
 
-test_that("encode.birdnet_model_acoustic forwards multi-file vector as list", {
+test_that("birdnet_encode.birdnet_model_acoustic forwards multi-file vector as list", {
   captured_args <- NULL
   mock_py_encodings <- create_mock_py_object()
 
@@ -105,13 +105,13 @@ test_that("encode.birdnet_model_acoustic forwards multi-file vector as list", {
   file.create(tmp1)
   file.create(tmp2)
 
-  encode(model, files = c(tmp1, tmp2))
+  birdnet_encode(model, files = c(tmp1, tmp2))
 
   expect_type(captured_args[[1]], "list")
   expect_length(captured_args[[1]], 2)
 })
 
-test_that("encode.birdnet_model_acoustic strips names from files vector", {
+test_that("birdnet_encode.birdnet_model_acoustic strips names from files vector", {
   captured_args <- NULL
   mock_py_encodings <- create_mock_py_object()
 
@@ -136,11 +136,11 @@ test_that("encode.birdnet_model_acoustic strips names from files vector", {
   file.create(tmp)
   named_files <- c(my_file = tmp)
 
-  encode(model, files = named_files)
+  birdnet_encode(model, files = named_files)
   expect_null(names(captured_args[[1]]))
 })
 
-test_that("encode.birdnet_model_acoustic omits NULL power-user params", {
+test_that("birdnet_encode.birdnet_model_acoustic omits NULL power-user params", {
   captured_args <- NULL
   mock_py_encodings <- create_mock_py_object()
 
@@ -164,7 +164,7 @@ test_that("encode.birdnet_model_acoustic omits NULL power-user params", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  encode(model, files = tmp)
+  birdnet_encode(model, files = tmp)
 
   expect_false("n_producers" %in% names(captured_args))
   expect_false("n_workers" %in% names(captured_args))
@@ -179,7 +179,7 @@ test_that("encode.birdnet_model_acoustic omits NULL power-user params", {
   expect_false(is.null(captured_args$bandpass_fmin))
 })
 
-test_that("encode.birdnet_model_acoustic forwards non-NULL power-user params", {
+test_that("birdnet_encode.birdnet_model_acoustic forwards non-NULL power-user params", {
   captured_args <- NULL
   mock_py_encodings <- create_mock_py_object()
 
@@ -203,7 +203,7 @@ test_that("encode.birdnet_model_acoustic forwards non-NULL power-user params", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  encode(
+  birdnet_encode(
     model,
     files = tmp,
     n_producers = 2L,
@@ -224,7 +224,7 @@ test_that("encode.birdnet_model_acoustic forwards non-NULL power-user params", {
   expect_equal(captured_args$max_audio_duration_min, 30)
 })
 
-test_that("encode.birdnet_model_acoustic validates power-user params", {
+test_that("birdnet_encode.birdnet_model_acoustic validates power-user params", {
   mock_py_encodings <- create_mock_py_object()
 
   testthat::local_mocked_bindings(
@@ -244,17 +244,56 @@ test_that("encode.birdnet_model_acoustic validates power-user params", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  expect_error(encode(model, files = tmp, n_producers = 0L))
-  expect_error(encode(model, files = tmp, batch_size = 0L))
-  expect_error(encode(model, files = tmp, prefetch_ratio = -1L))
-  expect_error(encode(model, files = tmp, speed = 0))
-  expect_error(encode(model, files = tmp, speed = 101))
-  expect_error(encode(model, files = tmp, half_precision = 1L))
-  expect_error(encode(model, files = tmp, max_audio_duration_min = 0))
-  expect_error(encode(model, files = tmp, max_audio_duration_min = -5))
+  expect_error(birdnet_encode(model, files = tmp, n_producers = 0L))
+  expect_error(birdnet_encode(model, files = tmp, batch_size = 0L))
+  expect_error(birdnet_encode(model, files = tmp, prefetch_ratio = -1L))
+  expect_error(birdnet_encode(model, files = tmp, speed = 0))
+  expect_error(birdnet_encode(model, files = tmp, speed = 101))
+  expect_error(birdnet_encode(model, files = tmp, half_precision = 1L))
+  expect_error(birdnet_encode(model, files = tmp, max_audio_duration_min = 0))
+  expect_error(birdnet_encode(model, files = tmp, max_audio_duration_min = -5))
 })
 
-test_that("encode.birdnet_model_acoustic coerces integer-like doubles", {
+test_that("birdnet_encode.birdnet_model_acoustic omits segment_size_s and device when NULL, forwards them when set", {
+  captured_args <- NULL
+  mock_py_encodings <- create_mock_py_object()
+
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+
+  model <- structure(
+    list(
+      py_model = list(encode = function(...) {
+        captured_args <<- list(...)
+        mock_py_encodings
+      }),
+      model_type = "acoustic",
+      model_version = "3.0"
+    ),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+
+  birdnet_encode(model, files = tmp)
+  expect_false(any(c("segment_size_s", "device") %in% names(captured_args)))
+
+  birdnet_encode(model, files = tmp, segment_size_s = 5, device = "GPU")
+  expect_equal(captured_args$segment_size_s, 5)
+  expect_equal(captured_args$device, "GPU")
+
+  expect_error(birdnet_encode(model, files = tmp, segment_size_s = 0))
+  expect_error(birdnet_encode(model, files = tmp, device = character()))
+})
+
+test_that("the old encode() name is gone", {
+  expect_false(exists("encode", envir = asNamespace("birdnetR"), inherits = FALSE))
+})
+
+test_that("birdnet_encode.birdnet_model_acoustic coerces integer-like doubles", {
   captured_args <- NULL
   mock_py_encodings <- create_mock_py_object()
 
@@ -278,7 +317,7 @@ test_that("encode.birdnet_model_acoustic coerces integer-like doubles", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  encode(
+  birdnet_encode(
     model,
     files = tmp,
     bandpass_fmin = 100,
