@@ -27,7 +27,11 @@ local_gpu_mocks <- function(
 
 test_that("birdnet_use_gpu() errors once Python is running", {
   cap <- local_gpu_mocks(py_running = TRUE)
-  expect_error(birdnet_use_gpu(), "before any model is loaded")
+  expect_error(
+    birdnet_use_gpu(),
+    "must be called before Python starts (before loading a model or calling other birdnetR functions that use Python)",
+    fixed = TRUE
+  )
   expect_null(cap$extra)
 })
 

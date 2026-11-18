@@ -123,8 +123,9 @@ birdnet_encode.birdnet_model_acoustic <- function(
     )
   }
 
-  # Coerce to unnamed list so reticulate passes a Python list[str]
-  files <- unname(as.list(files))
+  # Coerce to unnamed list so reticulate passes a Python list[str]. Python
+  # does not expand `~`, so expand it here.
+  files <- as.list(path.expand(as.character(unlist(files, use.names = FALSE))))
 
   stopifnot(is_scalar_number(overlap))
   stopifnot(is_scalar_integer(bandpass_fmin))

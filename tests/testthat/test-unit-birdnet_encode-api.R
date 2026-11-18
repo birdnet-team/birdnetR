@@ -427,3 +427,30 @@ class MockEncoding:
   expect_s3_class(df, "data.frame")
   expect_equal(nrow(df), 2)
 })
+
+test_that("birdnet_encode.birdnet_model_acoustic expands ~ in file paths before forwarding them", {
+  skip_on_os("windows") # ~ expansion follows HOME on Unix only
+  captured_args <- NULL
+  testthat::local_mocked_bindings(
+    is_py_object = mock_is_py_object(),
+    .package = "reticulate"
+  )
+  model <- structure(
+    list(
+      py_model = list(encode = function(...) {
+        captured_args <<- list(...)
+        create_mock_py_object()
+      }),
+      model_type = "acoustic",
+      model_version = "2.4"
+    ),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+
+  home <- withr::local_tempdir()
+  withr::local_envvar(HOME = home)
+  file.create(file.path(home, "tilde.wav"))
+
+  birdnet_encode(model, files = "~/tilde.wav")
+  expect_equal(captured_args[[1]][[1]], file.path(home, "tilde.wav"))
+})

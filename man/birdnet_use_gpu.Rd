@@ -14,9 +14,10 @@ Invisibly returns \code{TRUE}.
 }
 \description{
 Declares the Python packages BirdNET needs to run on a GPU. Call it once at
-the top of a script, before any model is loaded: the packages are resolved
-when Python starts, so afterwards it is too late and the function errors
-(restart R and call it first).
+the top of a script, before Python starts (loading a model, \code{\link[=birdnet_sitrep]{birdnet_sitrep()}}
+and the \verb{birdnet_list_*()} functions that use Python all start it): the
+packages are resolved when Python starts, so afterwards it is too late and
+the function errors (restart R and call it first).
 }
 \details{
 Choose one backend per call. TensorFlow (\code{"pb"}) and PyTorch (\code{"pt"}) each

@@ -49,6 +49,19 @@ construct_model_class <- function(
 }
 
 
+# `switch()` matches numbers by position, so `version = 3.0` would silently
+# become "3"; refuse anything that is not a single string.
+check_version <- function(version) {
+  if (!is.character(version) || length(version) != 1L || is.na(version)) {
+    stop(
+      "`version` must be a string, e.g. \"3.0\" or \"2.4\".",
+      call. = FALSE
+    )
+  }
+  invisible(version)
+}
+
+
 # Default backend for an official model version: 3.0 runs on the base
 # install via ONNX, 2.4 via the tf backend (LiteRT where available).
 resolve_backend <- function(version, backend) {
@@ -209,6 +222,7 @@ birdnet_load <- function(
   precision = "fp32",
   language = "en_us"
 ) {
+  check_version(version)
   backend <- resolve_backend(version, backend)
   library <- resolve_library(backend, library)
   require_extra_for(backend, library)
@@ -285,6 +299,10 @@ birdnet_load_custom <- function(
   if (missing(model) || missing(species_list)) {
     stop("Both `model` and `species_list` must be provided.", call. = FALSE)
   }
+  check_version(version)
+  # Python does not expand `~`
+  model <- path.expand(model)
+  species_list <- path.expand(species_list)
 
   library <- resolve_library(backend, library)
   require_extra_for(backend, library, is_raven)
@@ -318,6 +336,7 @@ birdnet_load_custom <- function(
 #' @rdname birdnet_load
 #' @export
 birdnet_inspect_custom <- function(model, library = NULL) {
+  model <- path.expand(model)
   library <- resolve_library("tf", library)
   require_extra_for("tf", library)
   info <- py_birdnet$inspect_custom_tflite(model, library = library)

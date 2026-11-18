@@ -1,9 +1,10 @@
 #' Set up GPU support
 #'
 #' Declares the Python packages BirdNET needs to run on a GPU. Call it once at
-#' the top of a script, before any model is loaded: the packages are resolved
-#' when Python starts, so afterwards it is too late and the function errors
-#' (restart R and call it first).
+#' the top of a script, before Python starts (loading a model, [birdnet_sitrep()]
+#' and the `birdnet_list_*()` functions that use Python all start it): the
+#' packages are resolved when Python starts, so afterwards it is too late and
+#' the function errors (restart R and call it first).
 #'
 #' Choose one backend per call. TensorFlow (`"pb"`) and PyTorch (`"pt"`) each
 #' pull their own CUDA wheels, and installing both can conflict.
@@ -46,7 +47,8 @@ birdnet_use_gpu <- function(backend = c("pt", "pb")) {
 
   if (reticulate::py_available()) {
     stop(
-      "birdnet_use_gpu() must be called before any model is loaded. ",
+      "birdnet_use_gpu() must be called before Python starts ",
+      "(before loading a model or calling other birdnetR functions that use Python). ",
       "Restart R and call it first.",
       call. = FALSE
     )

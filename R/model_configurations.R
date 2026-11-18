@@ -136,6 +136,7 @@ birdnet_list_models <- function(compact = FALSE) {
 #' }
 #' @export
 birdnet_list_languages <- function(version = "3.0") {
+  check_version(version)
   switch(
     version,
     "3.0" = py_birdnet_globals$VALID_MODEL_LANGUAGES_V3_0,

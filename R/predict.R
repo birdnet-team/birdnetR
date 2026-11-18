@@ -156,7 +156,8 @@ birdnet_predict.birdnet_model_acoustic <- function(
 
   # Coerce to unnamed list so reticulate passes a Python list[str]
   # to the positional-only `inp` parameter, regardless of vector length.
-  files <- unname(as.list(files))
+  # Python does not expand `~`, so expand it here.
+  files <- as.list(path.expand(as.character(unlist(files, use.names = FALSE))))
 
   stopifnot(is_scalar_number(min_confidence))
   stopifnot(is_scalar_integer(top_k))

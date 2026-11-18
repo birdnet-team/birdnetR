@@ -209,6 +209,27 @@ test_that("birdnet_load_custom() defaults to version auto and has no classifier_
   expect_equal(m$species_list_path, "labels.txt")
 })
 
+test_that("birdnet_load_custom() expands ~ in model and species_list", {
+  cap <- local_loader_mocks()
+  m <- birdnet_load_custom("~/m.tflite", "~/labels.txt")
+  expect_equal(cap$captured_custom[[4]], path.expand("~/m.tflite"))
+  expect_equal(cap$captured_custom[[5]], path.expand("~/labels.txt"))
+  expect_false(startsWith(cap$captured_custom[[4]], "~"))
+  expect_equal(m$model_path, path.expand("~/m.tflite"))
+  expect_equal(m$species_list_path, path.expand("~/labels.txt"))
+})
+
+test_that("birdnet_load(), birdnet_load_custom() and birdnet_list_languages() need a string version", {
+  local_loader_mocks()
+  msg <- "`version` must be a string"
+  expect_error(birdnet_load(version = 3.0), msg, fixed = TRUE)
+  expect_error(birdnet_load(version = c("3.0", "2.4")), msg, fixed = TRUE)
+  expect_error(birdnet_load(version = NULL), msg, fixed = TRUE)
+  expect_error(birdnet_load(version = NA_character_), msg, fixed = TRUE)
+  expect_error(birdnet_load_custom("m.tflite", "l.txt", version = 2.4), msg, fixed = TRUE)
+  expect_error(birdnet_list_languages(version = 3.0), msg, fixed = TRUE)
+})
+
 test_that("birdnet_load_custom(is_raven = TRUE) requires [tf] and forwards is_raven", {
   cap <- local_loader_mocks()
   birdnet_load_custom("raven_dir", "labels.csv", version = "3.0", backend = "pb", is_raven = TRUE)
@@ -233,6 +254,10 @@ test_that("birdnet_inspect_custom() returns the CustomTFLiteInfo fields as a lis
   expect_null(info$input_samples)
   expect_equal(cap$captured_inspect[[1]], "m.tflite")
   expect_equal(cap$captured_inspect$library, "litert")
+
+  birdnet_inspect_custom("~/m.tflite")
+  expect_equal(cap$captured_inspect[[1]], path.expand("~/m.tflite"))
+  expect_false(startsWith(cap$captured_inspect[[1]], "~"))
 })
 
 test_that("old loader names are gone", {
