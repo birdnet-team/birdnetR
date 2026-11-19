@@ -83,7 +83,7 @@ resolve_backend <- function(version, backend) {
 
 # Is LiteRT part of the base install? Never starts Python: before it runs,
 # decide by platform (mirrors the wheel marker of `ai-edge-litert` in birdnet
-# 1.4: Linux, macOS arm64, Windows x86-64); afterwards, look the module up
+# 1.5: Linux, macOS arm64, Windows x86-64); afterwards, look the module up
 # without importing it.
 litert_available <- function() {
   if (reticulate::py_available()) {

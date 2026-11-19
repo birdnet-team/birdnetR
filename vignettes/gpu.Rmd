@@ -184,7 +184,7 @@ an NVIDIA GPU with the CUDA and cuDNN versions that
 # Once: create a virtual environment with birdnet and onnxruntime-gpu.
 # It needs Python 3.11 to 3.13 on your system (see reticulate::install_python()).
 reticulate::virtualenv_create("birdnet-gpu", version = "3.12")
-reticulate::virtualenv_install("birdnet-gpu", "birdnet>=1.4,<2")
+reticulate::virtualenv_install("birdnet-gpu", "birdnet>=1.5,<2")
 reticulate::virtualenv_remove("birdnet-gpu", packages = "onnxruntime", confirm = FALSE)
 reticulate::virtualenv_install("birdnet-gpu", "onnxruntime-gpu")
 ```
@@ -221,7 +221,7 @@ reticulate::virtualenv_create("birdnet-gpu", version = "3.12")
 reticulate::virtualenv_install("birdnet-gpu", "torch",
   pip_options = "--index-url https://download.pytorch.org/whl/cu128"
 )
-reticulate::virtualenv_install("birdnet-gpu", "birdnet[pt]>=1.4,<2")
+reticulate::virtualenv_install("birdnet-gpu", "birdnet[pt]>=1.5,<2")
 ```
 
 Take the `cuXYZ` value that fits your driver from the

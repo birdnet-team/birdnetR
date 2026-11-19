@@ -15,7 +15,7 @@ test_that("birdnet package version is within the supported range", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   pkg_version <- birdnet_sitrep()$birdnet_version
-  expect_gte(utils::compareVersion(pkg_version, "1.4.0"), 0)
+  expect_gte(utils::compareVersion(pkg_version, "1.5.0"), 0)
   expect_lt(utils::compareVersion(pkg_version, "2"), 0)
 })
 

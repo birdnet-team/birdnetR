@@ -28,7 +28,7 @@ the [GPU](gpu.html) article.
 birdnet_sitrep()
 #> python_version: 3.12.14
 #> python_executable: /home/user/.cache/uv/archive-v0/0MLD8yprGexELXHg/bin/python
-#> birdnet_version: 1.4.0
+#> birdnet_version: 1.5.0
 #> runtimes: onnxruntime, ai_edge_litert
 ```
 

@@ -1,6 +1,6 @@
 # birdnetR 1.0.0
 
-birdnetR 1.0 is a breaking release. It wraps version 1.4 of the Python
+birdnetR 1.0 is a breaking release. It wraps version 1.5 of the Python
 `birdnet` package (0.3.2 used 0.1.7) and loads BirdNET+ V3.0 by default. All
 functions have new `birdnet_<verb>` names. The old functions are removed
 without a deprecation cycle; the table below maps them to the new ones.
@@ -49,7 +49,7 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
 
 ## Breaking changes
 
-- Requires the Python package `birdnet` >= 1.4 (< 2) and Python 3.11 to 3.13.
+- Requires the Python package `birdnet` >= 1.5 (< 2) and Python 3.11 to 3.13.
   reticulate installs both on first use, as before.
 - `birdnet_load()` loads BirdNET+ V3.0 by default. Use `version = "2.4"` for the
   model 0.3.2 used. Versions are written `"2.4"` and `"3.0"`, without the `v`.

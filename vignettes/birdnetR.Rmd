@@ -235,12 +235,19 @@ With `week = NULL` (the default), the model predicts for the whole year. `year_r
 predictions <- birdnet_predict(geo_model, latitude = 42.5, longitude = -76.45)
 ```
 
-You can use the geo prediction as a species list for the acoustic model. Every name in `species_list` must be known to the acoustic model, so keep only the names both models share. Use geo and acoustic models of the same version:
+You can use the geo prediction as a species list for the acoustic model. Every name in `species_list` must be known to the acoustic model, so take the names from the acoustic model's own list. The two models can name the same species differently, so match the names by scientific name, and by common name for the rest. Use geo and acoustic models of the same version:
 
 ```{r geo_species_list}
-local_species <- as.data.frame(predictions)$species_name
-local_species <- intersect(local_species, birdnet_list_species(model))
-predictions <- birdnet_predict(model, audio_path, species_list = local_species)
+geo_species <- as.data.frame(predictions)$species_name
+acoustic_species <- birdnet_list_species(model)
+
+# Names are "<scientific name>_<common name>"
+scientific <- function(x) sub("_.*", "", x)
+common <- function(x) sub("^[^_]*_", "", x)
+keep <- scientific(acoustic_species) %in% scientific(geo_species) |
+  common(acoustic_species) %in% common(geo_species)
+
+predictions <- birdnet_predict(model, audio_path, species_list = acoustic_species[keep])
 ```
 
 

@@ -23,7 +23,7 @@ elements:
 \item{python_executable}{Character string with the path to the
 Python executable, or \code{NA} if Python is not available.}
 \item{birdnet_version}{Character string with the installed
-\code{birdnet} package version (e.g. \code{"1.4.0"}), or \code{NA} if the
+\code{birdnet} package version (e.g. \code{"1.5.0"}), or \code{NA} if the
 package is not installed.}
 \item{runtimes}{Named logical vector, \code{TRUE} for each of
 \code{onnxruntime}, \code{ai_edge_litert}, \code{tensorflow} and \code{torch} that is

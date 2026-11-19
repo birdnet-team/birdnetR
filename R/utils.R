@@ -17,7 +17,7 @@
 #'   \item{python_executable}{Character string with the path to the
 #'     Python executable, or `NA` if Python is not available.}
 #'   \item{birdnet_version}{Character string with the installed
-#'     `birdnet` package version (e.g. `"1.4.0"`), or `NA` if the
+#'     `birdnet` package version (e.g. `"1.5.0"`), or `NA` if the
 #'     package is not installed.}
 #'   \item{runtimes}{Named logical vector, `TRUE` for each of
 #'     `onnxruntime`, `ai_edge_litert`, `tensorflow` and `torch` that is

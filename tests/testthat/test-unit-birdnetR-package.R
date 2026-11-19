@@ -4,28 +4,28 @@
 test_that(".birdnet_py_spec() returns the default bounded range when no env var is set", {
   withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = NA), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
 test_that(".birdnet_py_spec() returns the default range for an empty env var", {
   withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = ""), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
 test_that(".birdnet_py_spec() returns the default range for whitespace-only env var", {
   withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "   "), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
 test_that(".birdnet_py_spec() accepts a valid exact pin", {
-  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "==1.4.0"), {
+  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "==1.5.0"), {
     spec <- birdnetR:::.birdnet_py_spec()
-    expect_equal(spec, "birdnet==1.4.0")
+    expect_equal(spec, "birdnet==1.5.0")
   })
 })
 
@@ -35,7 +35,7 @@ test_that(".birdnet_py_spec() warns and falls back for a two-segment version pin
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
@@ -45,7 +45,7 @@ test_that(".birdnet_py_spec() warns and falls back for a pin missing the operato
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
@@ -55,7 +55,7 @@ test_that(".birdnet_py_spec() warns and falls back for a range specifier", {
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
@@ -65,7 +65,7 @@ test_that(".birdnet_py_spec() warns and falls back when package name is included
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
     )
-    expect_equal(spec, "birdnet>=1.4,<2")
+    expect_equal(spec, "birdnet>=1.5,<2")
   })
 })
 
@@ -80,12 +80,12 @@ test_that("require_birdnet_extra() adds the extra to the version spec", {
     c(BIRDNETR_BIRDNET_VERSION = NA),
     birdnetR:::require_birdnet_extra("tf")
   )
-  expect_equal(captured, "birdnet[tf]>=1.4,<2")
+  expect_equal(captured, "birdnet[tf]>=1.5,<2")
   withr::with_envvar(
-    c(BIRDNETR_BIRDNET_VERSION = "==1.4.0"),
+    c(BIRDNETR_BIRDNET_VERSION = "==1.5.0"),
     birdnetR:::require_birdnet_extra("pt")
   )
-  expect_equal(captured, "birdnet[pt]==1.4.0")
+  expect_equal(captured, "birdnet[pt]==1.5.0")
 })
 
 test_that("require_birdnet_extra() declares the extra's own packages once Python runs", {

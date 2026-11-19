@@ -118,9 +118,10 @@ Some GPU setups need your own environment; see the [GPU](gpu.html) article.
 Models are downloaded the first time you load them. Run your analysis once
 while online, so that Python, the Python packages and the models are on disk.
 
-Releases of the `birdnet` Python package newer than 1.4.0 never try to
-download anything when the environment variable `BIRDNET_OFFLINE` is `1`. Set
-it before you load a model:
+When the environment variable `BIRDNET_OFFLINE` is `1`, the `birdnet` Python
+package never tries to download anything. A model that is not on disk then
+stops with an error that names its download URL. Set the variable before you
+load a model:
 
 ```{r}
 Sys.setenv(BIRDNET_OFFLINE = "1")

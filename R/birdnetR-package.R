@@ -23,16 +23,16 @@ py_builtins <- NULL
 #' Build the birdnet Python package requirement spec for py_require()
 #'
 #' Returns a pip-compatible version specifier string for the birdnet Python
-#' package. By default this is a bounded range (e.g. `"birdnet>=1.4,<2"`).
+#' package. By default this is a bounded range (e.g. `"birdnet>=1.5,<2"`).
 #'
 #' If the environment variable `BIRDNETR_BIRDNET_VERSION` is set to a valid
-#' exact pin (e.g. `"==1.4.0"`), that pin is used instead. Invalid values
+#' exact pin (e.g. `"==1.5.0"`), that pin is used instead. Invalid values
 #' produce a warning and fall back to the default range.
 #'
 #' @return A single character string suitable for `reticulate::py_require()`.
 #' @noRd
 .birdnet_py_spec <- function() {
-  default_spec <- "birdnet>=1.4,<2"
+  default_spec <- "birdnet>=1.5,<2"
 
   override <- trimws(Sys.getenv("BIRDNETR_BIRDNET_VERSION", unset = ""))
   if (nchar(override) == 0L) {
@@ -45,7 +45,7 @@ py_builtins <- NULL
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION='",
       override,
       "'. ",
-      "Expected a simple exact pin like '==1.4.0'. ",
+      "Expected a simple exact pin like '==1.5.0'. ",
       "Falling back to default: '",
       default_spec,
       "'.",
@@ -82,7 +82,7 @@ require_birdnet_extra <- function(extra) {
       call. = FALSE
     )
   } else {
-    # mirrors birdnet[tf] / birdnet[pt] in birdnet 1.4
+    # mirrors birdnet[tf] / birdnet[pt] in birdnet 1.5
     reticulate::py_require(c(tf = "tensorflow>=2.8.0", pt = "torch>=2.0.0")[[extra]])
   }
   invisible(NULL)
@@ -122,9 +122,9 @@ use_managed_python <- function() {
   use_managed_python()
 
   # Versions of Python and BirdNET; numpy is automatically installed by `reticulate`.
-  # The default spec uses a bounded range (>=1.4,<2) so that upstream
+  # The default spec uses a bounded range (>=1.5,<2) so that upstream
   # bugfix releases are picked up without a CRAN re-submission.
-  # Set BIRDNETR_BIRDNET_VERSION (e.g. "==1.4.0") to override.
+  # Set BIRDNETR_BIRDNET_VERSION (e.g. "==1.5.0") to override.
   # Python stays below 3.14: extras such as birdnet[tf] may be added after
   # Python has started and must resolve on the same interpreter.
   reticulate::py_require(
