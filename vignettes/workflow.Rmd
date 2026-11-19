@@ -15,10 +15,26 @@ knitr::opts_chunk$set(
 )
 ```
 
-`birdnetR` sits within an ecosystem of tools that cover the full arc from
-optional custom training through species detection to post-processing and
-validation. This article gives a high-level map of that ecosystem, shows how to
-run birdnetR on many files, and how to hand the results to birdnetTools.
+`birdnetR` is one of several BirdNET tools. This article shows how they fit
+together and how to hand your results from birdnetR to birdnetTools.
+
+## Overview
+
+A typical R workflow looks like this:
+
+1. *(Optional)* Train a custom classifier in **BirdNET-Analyzer** and export
+   it.
+2. Load a model in **birdnetR** with `birdnet_load()`, `birdnet_load_perch()`
+   or `birdnet_load_custom()`.
+3. Run `birdnet_predict()` on your audio files and save the results with
+   `birdnet_write()`.
+4. Read the results into **birdnetTools** for filtering, visualisation, and
+   validation.
+
+For code examples, see the
+[Get started with birdnetR](birdnetR.html) article and the
+[birdnetTools documentation](https://birdnet-team.github.io/birdnetTools/index.html).
+
 
 ## Stage 1: Custom training (optional) with BirdNET-Analyzer
 
@@ -45,70 +61,14 @@ birdnetR wraps the `birdnet` Python package and exposes two model types in R:
   `birdnet_load()`, `birdnet_load_perch()` or `birdnet_load_custom()`, run them
   with `birdnet_predict()`, and write the results with `birdnet_write()`.
   `birdnet_encode()` returns embeddings instead of species.
-- **Geo models** estimate the expected species for a location and week of the
-  year. Load them with `birdnet_load(type = "geo")` and run them with
+- **Geo models** estimate which species to expect at a location and week of
+  the year. Load them with `birdnet_load(type = "geo")` and run them with
   `birdnet_predict()`.
 
 `as.data.frame()` converts any prediction object to a plain R data frame.
 
-### Processing many files
-
-When you process many audio files, keep the predictions in Python and write
-them to disk without converting them to R data frames. A practical pattern is
-to loop over meaningful chunks (e.g. one folder per site or one recording day)
-and write one output file per chunk:
-
-```{r batch_predict}
-library(birdnetR)
-
-model <- birdnet_load()
-
-# Folders of audio recordings, e.g. one folder per site
-audio_folders <- list.dirs("recordings", recursive = FALSE)
-dir.create("results", showWarnings = FALSE)
-
-for (folder in audio_folders) {
-  files <- list.files(folder, pattern = "\\.wav$", full.names = TRUE)
-  predictions <- birdnet_predict(model, files)
-
-  out_file <- file.path("results", paste0(basename(folder), ".csv"))
-  birdnet_write(predictions, out_file)
-}
-```
-
-This keeps memory use constant regardless of total dataset size, because each
-iteration replaces the previous prediction object.
-
-`birdnet_predict()` already uses several CPU cores. Set `n_workers` to change
-how many. Don't run birdnetR inside `parallel` or `future` workers; see the
-[Troubleshoot](Troubleshoot.html) article.
-
-`birdnet_write()` chooses the format from the file extension:
-
-| Format  | Best for | Notes |
-|---------|----------|-------|
-| CSV     | birdnetTools, quick inspection, other software | Human-readable; largest file size |
-| Parquet | Large datasets analysed in R or Python | Columnar; much smaller than CSV |
-| NPZ     | NumPy-based pipelines | Compact; requires Python to read |
-
-Parquet is not supported for geo predictions; use CSV or NPZ instead.
-`birdnet_write()` also writes embeddings from `birdnet_encode()`.
-
-In CSV files, `start_time` and `end_time` are text in the form
-`"HH:MM:SS.cc"` (hours, minutes, seconds and hundredths), e.g. `"00:00:03.00"`.
-In the data frame from `as.data.frame()` they are numbers of seconds.
-
-### Reading Parquet files in R
-
-`birdnet_write(predictions, "results.parquet")` writes Parquet files directly
-from Python and does not need the `arrow` R package. To **read** Parquet files
-back into R (e.g. with `arrow::read_parquet()`), install `arrow`:
-
-```r
-install.packages("arrow")
-```
-
-On Linux this may require compilation and can take several minutes.
+To process many files and save the results, see
+[Process many files](birdnetR.html#process-many-files) in Get started.
 
 ## Stage 3: Post-processing and validation with birdnetTools
 
@@ -151,22 +111,5 @@ Perch v2 names are scientific names only, so for Perch output both new
 columns hold the scientific name.
 
 The same works for results written to CSV files and read back with
-`birdnetTools::birdnet_combine()`. Note that the times in CSV files are text
-(see above).
-
-## Putting it together
-
-A typical R workflow looks like this:
-
-1. *(Optional)* Train a custom classifier in **BirdNET-Analyzer** and export
-   it.
-2. Load a model in **birdnetR** with `birdnet_load()`, `birdnet_load_perch()`
-   or `birdnet_load_custom()`.
-3. Run `birdnet_predict()` on your audio files and save the results with
-   `birdnet_write()`.
-4. Read the results into **birdnetTools** for filtering, visualisation, and
-   validation.
-
-For code examples, see the
-[Get started with birdnetR](birdnetR.html) vignette and the
-[birdnetTools documentation](https://birdnet-team.github.io/birdnetTools/index.html).
+`birdnetTools::birdnet_combine()`. The times in CSV files are text (see
+[Process many files](birdnetR.html#process-many-files)).

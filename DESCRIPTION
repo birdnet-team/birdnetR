@@ -7,7 +7,7 @@ Authors@R: c(
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
     person("BirdNET", "Team", role = "aut")
   )
-Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to automatically identify (bird) sounds.
+Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to automatically identify animal sounds.
     Analyze bioacoustic datasets without any computer science background, using the
     pre-trained 'BirdNET+' V3.0 model (default), 'BirdNET' V2.4, Google's 'Perch' v2
     model, or a custom trained classifier. Extract embeddings from audio for downstream analyses.

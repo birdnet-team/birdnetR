@@ -1,0 +1,243 @@
+---
+title: "GPU"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GPU}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+By default, all models run on the CPU. A GPU can speed up very large
+analyses, but it is not always faster than the CPU. How fast it is depends on
+`batch_size` and `n_workers`, so try a few values on a sample of your data
+before a large run (see [Workers and batch size](#workers-and-batch-size)).
+
+| Platform | GPU | Setup |
+|---|---|---|
+| Linux | NVIDIA | `birdnet_use_gpu("pt")` or `birdnet_use_gpu("pb")` |
+| Linux | AMD (experimental) | `UV_TORCH_BACKEND`, then `birdnet_use_gpu("pt")` |
+| macOS, Apple silicon | built-in | `birdnet_use_gpu("pb")` |
+| Windows | NVIDIA | your own Python environment |
+| any | NVIDIA, with ONNX Runtime | your own Python environment |
+
+
+## Backends
+
+Not every backend can use a GPU:
+
+- `"pt"` (PyTorch, BirdNET+ V3.0 only) and `"pb"` (TensorFlow, all models
+  including Perch v2) can.
+- `"onnx"` can, but only in a Python environment you set up yourself (see
+  [ONNX Runtime](#onnx-runtime-bring-your-own-environment)).
+- `"tf"` (TensorFlow Lite) runs on the CPU only.
+
+`birdnet_use_gpu()` adds the Python packages needed for GPU support. Call it at
+the top of your script, before you load any model, because the packages are
+installed when Python starts. Choose one backend per R session: TensorFlow and
+PyTorch each bring their own CUDA libraries, which can conflict.
+
+Then pass `device = "GPU"` when you predict or encode. If something does not
+work, restart R without `birdnet_use_gpu()` to go back to the CPU.
+
+The GPU packages are large downloads; see
+[Download progress](installation.html#download-progress).
+
+
+## Workers and batch size
+
+Two arguments of `birdnet_predict()` and `birdnet_encode()` decide how well
+the GPU is used:
+
+- `n_workers`: each worker is a separate process with its own copy of the
+  model on the GPU. With `device = "GPU"`, birdnetR starts one worker per GPU
+  unless you set `n_workers`. More workers can keep a large GPU busier, but
+  each one needs its own GPU memory and RAM.
+- `batch_size`: how many segments the GPU processes at once. The default of 1
+  leaves most of a GPU idle. Larger values such as `32L` or `64L` are usually
+  faster and need more GPU memory.
+
+```{r}
+predictions <- birdnet_predict(model, files, device = "GPU", batch_size = 32L)
+```
+
+The best values depend on your GPU, so time a sample of your data (for
+example 30 minutes of audio):
+
+1. Start with one worker (the default) and `batch_size = 32L`.
+2. Double `batch_size` until it stops getting faster or the GPU runs out of
+   memory.
+3. Try `n_workers = 2L`. Keep it only if it is clearly faster, because every
+   worker puts another copy of the model into GPU memory and RAM.
+4. Run the same sample on the CPU (without `device = "GPU"`) and compare.
+
+On AMD GPUs, time the second run of each setting: the first run with a new
+`batch_size` includes compiling GPU code (see
+[ROCm](#linux-with-an-amd-gpu-rocm-experimental)).
+
+If memory runs out, see [High memory or CPU use](Troubleshoot.html#high-memory-or-cpu-use).
+
+
+## Linux with an NVIDIA GPU: PyTorch
+
+```{r}
+birdnet_use_gpu("pt")
+model <- birdnet_load(backend = "pt")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+This installs `birdnet[pt]`. If the environment variable `UV_TORCH_BACKEND` is
+not set, birdnetR sets it to `"auto"`, so the installer picks the PyTorch build
+that matches your GPU driver. The NVIDIA driver must be installed.
+
+To check that PyTorch can see your GPU (NVIDIA or AMD), run this after loading
+the model:
+
+```{r}
+reticulate::import("torch")$cuda$is_available()
+#> [1] TRUE
+```
+
+
+## Linux with an NVIDIA GPU: TensorFlow
+
+```{r}
+birdnet_use_gpu("pb")
+model <- birdnet_load(backend = "pb")
+predictions <- birdnet_predict(model, files, device = "GPU")
+
+# Perch v2
+perch <- birdnet_load_perch(device = "GPU")
+predictions <- birdnet_predict(perch, files, device = "GPU")
+```
+
+This installs `birdnet[and-cuda]`, TensorFlow with its CUDA libraries. The
+NVIDIA driver and CUDA must already be installed on your system.
+
+
+## Linux with an AMD GPU (ROCm, experimental)
+
+PyTorch has builds for AMD GPUs (ROCm). Tell the installer which one to use
+before calling `birdnet_use_gpu()`:
+
+```{r}
+Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")
+birdnet_use_gpu("pt")
+model <- birdnet_load(backend = "pt")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+The value names a PyTorch build, and uv accepts only the builds it knows. If
+you give another value, uv stops with an error that lists the valid ones. Use
+the newest `rocmX.Y` from that list; older values can pull in an older
+PyTorch release. PyTorch's ROCm builds include the ROCm libraries they need,
+so the value does not have to match a ROCm version installed on your system.
+
+The ROCm build of PyTorch is about 6 GB to download. The first run with a
+new `batch_size` can take a minute or two while ROCm compiles its GPU code;
+later runs reuse it.
+
+ROCm support is experimental: not every AMD GPU is supported by ROCm. Check
+that PyTorch can see your GPU as shown [above](#linux-with-an-nvidia-gpu-pytorch).
+Integrated GPUs share memory with the CPU and may not be faster than it (see
+[Workers and batch size](#workers-and-batch-size)).
+
+
+## macOS with Apple silicon: TensorFlow with Metal
+
+```{r}
+birdnet_use_gpu("pb")
+model <- birdnet_load(backend = "pb")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+This installs `birdnet[tf]` and `tensorflow-metal`, Apple's GPU plugin for
+TensorFlow. Two caveats:
+
+- The `birdnet` Python package lists GPU use of the Protobuf (`"pb"`) backend
+  on macOS as unsupported.
+- `tensorflow-metal` often lags behind TensorFlow releases, so the newest
+  TensorFlow may not work with it yet.
+
+The BirdNET+ V3.0 release on Zenodo also has Core ML files (`.mlpackage`) for
+iOS and macOS apps. The `birdnet` Python package can't use Core ML yet, so
+birdnetR can't either (see
+[birdnet#101](https://github.com/birdnet-team/birdnet/issues/101)).
+
+
+## ONNX Runtime: bring your own environment
+
+The GPU version of ONNX Runtime (`onnxruntime-gpu`) has to replace the regular
+`onnxruntime`, which the `birdnet` package depends on. birdnetR can't do that
+in its managed environment, so you create your own environment once. You need
+an NVIDIA GPU with the CUDA and cuDNN versions that
+[ONNX Runtime requires](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements).
+
+```{r}
+# Once: create a virtual environment with birdnet and onnxruntime-gpu.
+# It needs Python 3.11 to 3.13 on your system (see reticulate::install_python()).
+reticulate::virtualenv_create("birdnet-gpu", version = "3.12")
+reticulate::virtualenv_install("birdnet-gpu", "birdnet>=1.4,<2")
+reticulate::virtualenv_remove("birdnet-gpu", packages = "onnxruntime", confirm = FALSE)
+reticulate::virtualenv_install("birdnet-gpu", "onnxruntime-gpu")
+```
+
+In every session, point `RETICULATE_PYTHON` at this environment before you
+load the first model (or set it in your `.Renviron` file):
+
+```{r}
+Sys.setenv(RETICULATE_PYTHON = reticulate::virtualenv_python("birdnet-gpu"))
+library(birdnetR)
+
+model <- birdnet_load()
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+If you later upgrade `birdnet` in this environment, check whether
+`onnxruntime` has come back, and remove it again if so. Extras such as TensorFlow
+are not installed automatically in your own environment (see
+[Your own Python environment](installation.html#your-own-python-environment)).
+
+
+## Windows
+
+On Windows, `birdnet_use_gpu()` stops with an error because there is no
+automatic setup. Set up your own Python environment once, as for
+[ONNX Runtime](#onnx-runtime-bring-your-own-environment). You need an NVIDIA
+GPU and its driver.
+
+For PyTorch, install a CUDA build of PyTorch first, then `birdnet`:
+
+```{r}
+# Once:
+reticulate::virtualenv_create("birdnet-gpu", version = "3.12")
+reticulate::virtualenv_install("birdnet-gpu", "torch",
+  pip_options = "--index-url https://download.pytorch.org/whl/cu128"
+)
+reticulate::virtualenv_install("birdnet-gpu", "birdnet[pt]>=1.4,<2")
+```
+
+Take the `cuXYZ` value that fits your driver from the
+[PyTorch installation page](https://pytorch.org/get-started/locally/). Then,
+in every session:
+
+```{r}
+Sys.setenv(RETICULATE_PYTHON = reticulate::virtualenv_python("birdnet-gpu"))
+library(birdnetR)
+
+model <- birdnet_load(backend = "pt")
+predictions <- birdnet_predict(model, files, device = "GPU")
+```
+
+For ONNX Runtime, follow the [ONNX Runtime](#onnx-runtime-bring-your-own-environment)
+section above; it works the same way on Windows.
+
+TensorFlow (`"pb"`) does not support GPUs on native Windows. If you run R in
+WSL2 (the Windows Subsystem for Linux), follow the Linux sections instead.

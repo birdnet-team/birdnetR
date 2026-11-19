@@ -13,7 +13,7 @@
 #' * **Linux, `"pt"`** (default): installs `birdnet[pt]`. If the environment
 #'   variable `UV_TORCH_BACKEND` is not set, it is set to `"auto"` so that uv
 #'   picks the torch build matching your GPU driver. For AMD GPUs, set e.g.
-#'   `Sys.setenv(UV_TORCH_BACKEND = "rocm6.4")` before calling
+#'   `Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")` before calling
 #'   `birdnet_use_gpu()` (ROCm support is experimental).
 #' * **Linux, `"pb"`**: installs `birdnet[and-cuda]`. An NVIDIA driver and CUDA
 #'   must already be installed on the system.
@@ -21,8 +21,8 @@
 #'   `tensorflow-metal`.
 #'
 #' Any other combination (for example Windows) has no automatic setup and
-#' errors; see `vignette("Troubleshoot", package = "birdnetR")`, which also
-#' covers everything else that can go wrong with GPUs.
+#' errors; `vignette("gpu", package = "birdnetR")` shows how to set up your own
+#' Python environment instead, and covers everything else about GPUs.
 #'
 #' Afterwards, load a model for the chosen backend with
 #' `birdnet_load(backend = "pt")` (or `birdnet_load_perch(device = "GPU")`) and
@@ -38,7 +38,7 @@
 #' pred <- birdnet_predict(model, "soundscape.wav", device = "GPU")
 #'
 #' # AMD GPU (experimental)
-#' Sys.setenv(UV_TORCH_BACKEND = "rocm6.4")
+#' Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")
 #' birdnet_use_gpu("pt")
 #' }
 #' @export
@@ -71,7 +71,7 @@ birdnet_use_gpu <- function(backend = c("pt", "pb")) {
     stop(
       "No automatic GPU setup for ", p[["sysname"]], "/", p[["machine"]],
       " with backend '", backend, "'. ",
-      "See vignette('Troubleshoot', package = 'birdnetR').",
+      "See vignette('gpu', package = 'birdnetR').",
       call. = FALSE
     )
   }

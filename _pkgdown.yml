@@ -21,6 +21,12 @@ articles:
   contents:
   - birdnetR
   - workflow
+- title: Setup and models
+  navbar: Setup and models
+  contents:
+  - installation
+  - models
+  - gpu
   - Troubleshoot
 reference:
 - title: Model loading

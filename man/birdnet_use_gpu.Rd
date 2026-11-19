@@ -28,7 +28,7 @@ Requirements by platform:
 \item \strong{Linux, \code{"pt"}} (default): installs \code{birdnet[pt]}. If the environment
 variable \code{UV_TORCH_BACKEND} is not set, it is set to \code{"auto"} so that uv
 picks the torch build matching your GPU driver. For AMD GPUs, set e.g.
-\code{Sys.setenv(UV_TORCH_BACKEND = "rocm6.4")} before calling
+\code{Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")} before calling
 \code{birdnet_use_gpu()} (ROCm support is experimental).
 \item \strong{Linux, \code{"pb"}}: installs \code{birdnet[and-cuda]}. An NVIDIA driver and CUDA
 must already be installed on the system.
@@ -37,8 +37,8 @@ must already be installed on the system.
 }
 
 Any other combination (for example Windows) has no automatic setup and
-errors; see \code{vignette("Troubleshoot", package = "birdnetR")}, which also
-covers everything else that can go wrong with GPUs.
+errors; \code{vignette("gpu", package = "birdnetR")} shows how to set up your own
+Python environment instead, and covers everything else about GPUs.
 
 Afterwards, load a model for the chosen backend with
 \code{birdnet_load(backend = "pt")} (or \code{birdnet_load_perch(device = "GPU")}) and
@@ -52,7 +52,7 @@ model <- birdnet_load("acoustic", "3.0", backend = "pt")
 pred <- birdnet_predict(model, "soundscape.wav", device = "GPU")
 
 # AMD GPU (experimental)
-Sys.setenv(UV_TORCH_BACKEND = "rocm6.4")
+Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")
 birdnet_use_gpu("pt")
 }
 }

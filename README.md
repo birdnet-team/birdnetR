@@ -11,10 +11,10 @@
 > `birdnet_<verb>` names, and BirdNET+ V3.0 is the default model. If you are
 > upgrading from 0.x, see [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x) below.
 
-`birdnetR` integrates [BirdNET](https://birdnet.cornell.edu/), a state-of-the-art deep learning classifier for automated (bird) sound identification, into an R workflow.
-It helps you analyze (large) audio datasets from bioacoustic projects, even without a background in computer science.
+`birdnetR` brings [BirdNET](https://birdnet.cornell.edu/) to R. BirdNET is a deep learning model that identifies birds and many other animals by their sounds.
+birdnetR helps you analyse audio from bioacoustic projects, from a few recordings to large datasets, even without a background in computer science.
 
-`birdnetR` is an R wrapper around the `birdnet` [Python package](https://github.com/birdnet-team/birdnet). With it you can:
+`birdnetR` wraps the `birdnet` [Python package](https://github.com/birdnet-team/birdnet) and sets up Python for you. With it you can:
 
 - identify species in audio files with BirdNET+ V3.0 (the default), BirdNET V2.4 or Google's Perch v2,
 - predict which species occur at a location and week of the year (geo models),
@@ -40,9 +40,14 @@ pak::pak("birdnet-team/birdnetR")
 
 You don't need to install Python yourself. On first use, birdnetR sets up Python
 and the `birdnet` package for you (through
-[reticulate](https://rstudio.github.io/reticulate/)). This takes a few minutes
-once. The default setup is small. TensorFlow (about 600 MB) or PyTorch are
+[reticulate](https://rstudio.github.io/reticulate/)). The first setup takes a
+few minutes. The default setup is small. TensorFlow (about 600 MB) or PyTorch are
 downloaded only when you first load a model that needs them.
+
+[Installation and setup](https://birdnet-team.github.io/birdnetR/articles/installation.html)
+covers these extra downloads, your own Python environment and working offline.
+For GPUs, see the [GPU](https://birdnet-team.github.io/birdnetR/articles/gpu.html)
+article.
 
 
 ## Example use
@@ -58,7 +63,7 @@ model <- birdnet_load()
 # Path to an audio file (replace with your own file path)
 audio_path <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
 
-# Predict species within the audio file
+# Predict species in the audio file
 predictions <- birdnet_predict(model, audio_path)
 
 # Convert predictions to a data frame
@@ -106,8 +111,8 @@ df <- as.data.frame(predictions)
 | Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
 
 `birdnet_list_models()` lists every backend and precision you can choose. The
-[Get started](https://birdnet-team.github.io/birdnetR/articles/birdnetR.html)
-article explains its columns. For details on each model, see the
+[Models and backends](https://birdnet-team.github.io/birdnetR/articles/models.html)
+article explains them. For details on each model, see the
 [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
 
 
