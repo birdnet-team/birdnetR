@@ -284,6 +284,7 @@ test_that("birdnet_encode.birdnet_model_acoustic omits segment_size_s and device
   birdnet_encode(model, files = tmp, segment_size_s = 5, device = "GPU")
   expect_equal(captured_args$segment_size_s, 5)
   expect_equal(captured_args$device, "GPU")
+  expect_identical(captured_args$n_workers, 1L)
 
   expect_error(birdnet_encode(model, files = tmp, segment_size_s = 0))
   expect_error(birdnet_encode(model, files = tmp, device = character()))

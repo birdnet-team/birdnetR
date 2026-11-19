@@ -763,6 +763,20 @@ test_that("new acoustic arguments are forwarded when set", {
   )
 })
 
+test_that("a GPU device defaults n_workers to one worker per device", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  birdnet_predict(m$model, files = tmp, device = "GPU")
+  expect_identical(m$cap$args$n_workers, 1L)
+  birdnet_predict(m$model, files = tmp, device = c("GPU:0", "GPU:1"))
+  expect_identical(m$cap$args$n_workers, 2L)
+  birdnet_predict(m$model, files = tmp, device = "GPU", n_workers = 3L)
+  expect_identical(m$cap$args$n_workers, 3L)
+  birdnet_predict(m$model, files = tmp, device = "CPU")
+  expect_null(m$cap$args$n_workers)
+})
+
 test_that("new acoustic arguments are validated", {
   m <- local_capturing_model("acoustic")
   tmp <- withr::local_tempfile(fileext = ".wav")

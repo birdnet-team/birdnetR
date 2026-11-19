@@ -105,7 +105,8 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   version and the installed runtimes. Include its output in bug reports.
 - `birdnet_use_gpu()` sets up GPU support (PyTorch on Linux, TensorFlow on
   Linux and Apple silicon). `device = "GPU"` in `birdnet_load_perch()`,
-  `birdnet_predict()` and `birdnet_encode()` uses it.
+  `birdnet_predict()` and `birdnet_encode()` uses it, with one worker per GPU
+  unless you set `n_workers`.
 - Loading a model prints one line naming the model, backend, precision and
   number of classes. `print()` on a model shows the same line.
 

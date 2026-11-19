@@ -92,7 +92,7 @@ birdnet_predict <- function(model, ...) {
 #' @param species_list A character vector or list of species names to filter the predictions. If `NULL`, all species are considered.
 #' @param progress A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".
 #' @param n_producers An integer specifying the number of threads for producing audio batches. Must be >= 1. If `NULL` (default), the Python backend default is used.
-#' @param n_workers An integer specifying the number of backend workers for parallel inference. If `NULL` (default), the Python backend auto-detects based on available CPU cores.
+#' @param n_workers An integer specifying the number of backend workers for parallel inference. Each worker loads its own copy of the model. If `NULL` (default), the Python backend auto-detects based on available CPU cores and memory; with a GPU `device`, one worker per device.
 #' @param batch_size An integer specifying the number of audio segments evaluated per inference call. Must be >= 1. If `NULL` (default), the Python backend default is used.
 #' @param prefetch_ratio An integer specifying how many batches to decode ahead of processing. Must be >= 0. If `NULL` (default), the Python backend default is used.
 #' @param speed A numeric value for the resampling multiplier to accommodate different recording speeds. Must be in the interval \[0.01, 100\]. If `NULL` (default), the Python backend default is used.
@@ -207,6 +207,9 @@ birdnet_predict.birdnet_model_acoustic <- function(
   bandpass_fmax <- as.integer(bandpass_fmax)
   if (!is.null(n_producers))  n_producers  <- as.integer(n_producers)
   if (!is.null(n_workers))    n_workers    <- as.integer(n_workers)
+  # birdnet sizes n_workers by CPU cores, and each worker loads its own model
+  # copy onto the device: on a GPU that is one worker per device
+  if (is.null(n_workers) && any(grepl("GPU", device))) n_workers <- length(device)
   if (!is.null(batch_size))   batch_size   <- as.integer(batch_size)
   if (!is.null(prefetch_ratio)) prefetch_ratio <- as.integer(prefetch_ratio)
 

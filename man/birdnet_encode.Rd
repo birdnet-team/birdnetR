@@ -54,8 +54,9 @@ producing audio batches. Must be >= 1. If \code{NULL} (default), the
 Python backend default is used.}
 
 \item{n_workers}{An integer specifying the number of backend workers
-for parallel inference. If \code{NULL} (default), the Python backend
-auto-detects based on available CPU cores.}
+for parallel inference. Each worker loads its own copy of the model. If
+\code{NULL} (default), the Python backend auto-detects based on available CPU
+cores and memory; with a GPU \code{device}, one worker per device.}
 
 \item{batch_size}{An integer specifying the number of audio segments
 evaluated per inference call. Must be >= 1. If \code{NULL} (default),
