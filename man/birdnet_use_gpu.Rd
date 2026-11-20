@@ -23,7 +23,8 @@ the function errors (restart R and call it first).
 }
 \details{
 Choose one backend per R session. TensorFlow (\code{"pb"}) and PyTorch (\code{"pt"})
-each bring their own CUDA libraries, and installing both can conflict.
+each bring their own CUDA libraries, and installing both can conflict, so
+asking for the other backend later in the same session is an error.
 
 Requirements by platform:
 \itemize{
@@ -33,7 +34,8 @@ picks the torch build matching your GPU driver. For AMD GPUs, set e.g.
 \code{Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")} before calling
 \code{birdnet_use_gpu()} (ROCm support is experimental).
 \item \strong{Linux, \code{"pb"}}: installs \code{birdnet[and-cuda]}. An NVIDIA driver and CUDA
-must already be installed on the system.
+must already be installed on the system. TensorFlow 2.21.0 is left out,
+because it does not find the GPU.
 \item \strong{macOS (Apple silicon), \code{"pb"}}: installs \code{birdnet[tf]} plus
 \code{tensorflow-metal}.
 }

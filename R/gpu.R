@@ -7,7 +7,8 @@
 #' the function errors (restart R and call it first).
 #'
 #' Choose one backend per R session. TensorFlow (`"pb"`) and PyTorch (`"pt"`)
-#' each bring their own CUDA libraries, and installing both can conflict.
+#' each bring their own CUDA libraries, and installing both can conflict, so
+#' asking for the other backend later in the same session is an error.
 #'
 #' Requirements by platform:
 #' * **Linux, `"pt"`** (default): installs `birdnet[pt]`. If the environment
@@ -16,7 +17,8 @@
 #'   `Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")` before calling
 #'   `birdnet_use_gpu()` (ROCm support is experimental).
 #' * **Linux, `"pb"`**: installs `birdnet[and-cuda]`. An NVIDIA driver and CUDA
-#'   must already be installed on the system.
+#'   must already be installed on the system. TensorFlow 2.21.0 is left out,
+#'   because it does not find the GPU.
 #' * **macOS (Apple silicon), `"pb"`**: installs `birdnet[tf]` plus
 #'   `tensorflow-metal`.
 #'
@@ -67,6 +69,15 @@ birdnet_use_gpu <- function(backend = c("pt", "pb")) {
     )
   }
 
+  if (!is.null(.gpu$backend) && .gpu$backend != backend) {
+    stop(
+      "birdnet_use_gpu(\"", .gpu$backend, "\") was already called in this R ",
+      "session. Only one GPU backend can be set up per session; restart R to ",
+      "use \"", backend, "\".",
+      call. = FALSE
+    )
+  }
+
   p <- platform()
   if (p[["sysname"]] == "Linux" && backend == "pt") {
     require_birdnet_extra("pt")
@@ -75,6 +86,10 @@ birdnet_use_gpu <- function(backend = c("pt", "pb")) {
     }
   } else if (p[["sysname"]] == "Linux" && backend == "pb") {
     require_birdnet_extra("and-cuda")
+    # The TensorFlow 2.21.0 wheel has no search path for libcusolver, so it
+    # finds no GPU and runs on the CPU (tensorflow/tensorflow#113541). 2.20.0
+    # and the 2.22 release candidates have it.
+    reticulate::py_require("tensorflow!=2.21.0")
   } else if (
     p[["sysname"]] == "Darwin" && p[["machine"]] == "arm64" && backend == "pb"
   ) {
@@ -89,8 +104,13 @@ birdnet_use_gpu <- function(backend = c("pt", "pb")) {
     )
   }
 
+  .gpu$backend <- backend
   invisible(TRUE)
 }
+
+
+# The backend birdnet_use_gpu() set up in this R session.
+.gpu <- new.env(parent = emptyenv())
 
 
 #' Operating system and CPU architecture, as one mockable value

@@ -42,7 +42,8 @@ Not every backend can use a GPU:
 `birdnet_use_gpu()` adds the Python packages needed for GPU support. Call it at
 the top of your script, before you load any model, because the packages are
 installed when Python starts. Choose one backend per R session: TensorFlow and
-PyTorch each bring their own CUDA libraries, which can conflict.
+PyTorch each bring their own CUDA libraries, which can conflict. To switch,
+restart R.
 
 Then pass `device = "GPU"` when you predict or encode. If something does not
 work, restart R without `birdnet_use_gpu()` to go back to the CPU.
@@ -125,6 +126,19 @@ predictions <- birdnet_predict(perch, files, device = "GPU")
 
 This installs `birdnet[and-cuda]`, TensorFlow with its CUDA libraries. The
 NVIDIA driver and CUDA must already be installed on your system.
+
+To check that TensorFlow can see your GPU, run this after loading the model:
+
+```{r}
+reticulate::import("tensorflow")$config$list_physical_devices("GPU")
+#> [[1]]
+#> PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')
+```
+
+An empty list means TensorFlow runs on the CPU. TensorFlow 2.21.0 does this
+even when everything is installed, because it does not find one of the CUDA
+libraries. `birdnet_use_gpu("pb")` leaves that version out; if you manage your
+own Python environment, install another TensorFlow version there.
 
 
 ## Linux with an AMD GPU (ROCm, experimental)

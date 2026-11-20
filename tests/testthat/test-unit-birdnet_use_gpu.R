@@ -13,6 +13,9 @@ local_gpu_mocks <- function(
   cap$required <- NULL
   # what .onLoad sets unless the user chose their own Python
   withr::local_envvar(RETICULATE_PYTHON = "managed", .local_envir = env)
+  # no backend chosen yet, as in a fresh R session
+  .gpu$backend <- NULL
+  withr::defer(.gpu$backend <- NULL, envir = env)
   testthat::local_mocked_bindings(
     platform = function() c(sysname = sysname, machine = machine),
     require_birdnet_extra = function(extra) cap$extra <- extra,
@@ -73,13 +76,33 @@ test_that("Linux pt keeps a UV_TORCH_BACKEND the user already set", {
   expect_equal(Sys.getenv("UV_TORCH_BACKEND"), "rocm6.4")
 })
 
-test_that("Linux pb requires [and-cuda]", {
+test_that("Linux pb requires [and-cuda] and leaves out TensorFlow 2.21.0", {
   withr::local_envvar(UV_TORCH_BACKEND = NA)
   cap <- local_gpu_mocks()
   expect_invisible(birdnet_use_gpu("pb"))
   expect_equal(cap$extra, "and-cuda")
-  expect_null(cap$required)
+  expect_equal(cap$required, "tensorflow!=2.21.0")
   expect_equal(Sys.getenv("UV_TORCH_BACKEND", unset = NA), NA_character_)
+})
+
+test_that("a second, different backend in one session is an error", {
+  withr::local_envvar(UV_TORCH_BACKEND = NA)
+  cap <- local_gpu_mocks()
+  birdnet_use_gpu("pb")
+  expect_error(
+    birdnet_use_gpu("pt"),
+    "birdnet_use_gpu(\"pb\") was already called in this R session",
+    fixed = TRUE
+  )
+  expect_equal(cap$extra, "and-cuda")
+  # the same backend again is fine
+  expect_true(birdnet_use_gpu("pb"))
+})
+
+test_that("a failed call does not count as the session's backend", {
+  cap <- local_gpu_mocks(sysname = "Darwin", machine = "arm64")
+  expect_error(birdnet_use_gpu("pt"), "No automatic GPU setup")
+  expect_true(birdnet_use_gpu("pb"))
 })
 
 test_that("macOS arm64 pb requires [tf] and tensorflow-metal", {
