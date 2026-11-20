@@ -18,3 +18,7 @@
 ^test\.npz$
 ^test\.parquet$
 ^test\.csv$
+^\.superpowers$
+^inst/python/__pycache__$
+^tests/TEST_PLAN\.md$
+^.*\.code-workspace$

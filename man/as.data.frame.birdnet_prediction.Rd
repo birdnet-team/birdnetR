@@ -10,7 +10,7 @@
 \method{as.data.frame}{birdnet_prediction_geo}(x, row.names = NULL, optional = FALSE, ...)
 }
 \arguments{
-\item{x}{A BirdNET prediction object (as returned by \code{predict()}).}
+\item{x}{A BirdNET prediction object (as returned by \code{\link[=birdnet_predict]{birdnet_predict()}}).}
 
 \item{row.names}{\code{NULL} or a character vector giving the row names for the
 data frame. Not used.}
@@ -28,10 +28,10 @@ Convert predictions from a geo or acoustic model to a data frame.
 \examples{
 \dontrun{
 # Load a BirdNET acoustic model
-model <- load_birdnet(type = "acoustic")
+model <- birdnet_load()
 # Predict species from audio files
 audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
-predictions <- predict(model, files = audio_file)
+predictions <- birdnet_predict(model, files = audio_file)
 # Convert predictions to a data frame
 as.data.frame(predictions)
 }

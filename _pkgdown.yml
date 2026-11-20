@@ -21,25 +21,34 @@ articles:
   contents:
   - birdnetR
   - workflow
+- title: Setup and models
+  navbar: Setup and models
+  contents:
+  - installation
+  - models
+  - gpu
   - Troubleshoot
 reference:
-- title: Model Loading
+- title: Model loading
 - contents:
-  - load_birdnet
-  - load_perch
-  - load_custom
-  - supported_model_configurations
+  - birdnet_load
+  - birdnet_load_perch
+  - birdnet_load_custom
+  - birdnet_inspect_custom
+  - birdnet_list_models
+  - birdnet_list_languages
 - title: Prediction
 - contents:
-  - starts_with("predict.")
+  - starts_with("birdnet_predict")
   - as.data.frame.birdnet_prediction
-  - write_predictions
-- title: Encoding
+  - birdnet_write
+- title: Embeddings
 - contents:
-  - encode
+  - birdnet_encode
   - as.data.frame.birdnet_encoding
 - title: Helpers
 - contents:
-  - supported_languages
-  - get_species_list
-  - birdnet_version
+  - birdnet_list_species
+  - birdnet_sitrep
+  - birdnet_use_gpu
+  - print.birdnet_model

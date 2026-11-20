@@ -1,0 +1,81 @@
+---
+title: "Models and backends"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Models and backends}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+## Models
+
+| Model | Load with | Classes | License of the model files |
+|---|---|---|---|
+| BirdNET+ V3.0 acoustic (default) | `birdnet_load()` | about 11,700 | Apache 2.0 |
+| BirdNET+ V3.0 geo | `birdnet_load(type = "geo")` | about 14,000 | CC BY-NC-SA 4.0 |
+| BirdNET V2.4 acoustic | `birdnet_load(version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
+| BirdNET V2.4 geo | `birdnet_load(type = "geo", version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
+| Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
+
+CC BY-NC-SA 4.0 allows non-commercial use only; educational and research use counts as non-commercial. See the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). For details on each model (sample rates, segment lengths, embedding sizes), see the [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
+
+
+## Variants: `birdnet_list_models()`
+
+Each model comes in several variants. `birdnet_list_models()` lists every variant the installed `birdnet` Python package can load. `compact = TRUE` combines rows that differ only in precision or library into one row:
+
+```{r list_models}
+birdnet_list_models(compact = TRUE)
+#>        type  version backend          needs      precision library
+#> 8  acoustic      2.4      pb             tf           fp32    <NA>
+#> 3  acoustic      2.4      tf           base fp16:fp32:int8  litert
+#> 13 acoustic      2.4      tf             tf fp16:fp32:int8  tflite
+#> 1  acoustic      3.0    onnx           base      fp16:fp32    <NA>
+#> 10 acoustic      3.0      pb             tf           fp32    <NA>
+#> 6  acoustic      3.0      pt             pt           fp32    <NA>
+#> 5  acoustic      3.0      tf           base      fp16:fp32  litert
+#> 15 acoustic      3.0      tf             tf      fp16:fp32  tflite
+#> 12 acoustic perch_v2      pb             tf           fp32    <NA>
+#> 9       geo      2.4      pb             tf           fp32    <NA>
+#> 4       geo      2.4      tf           base           fp32  litert
+#> 14      geo      2.4      tf             tf           fp32  tflite
+#> 2       geo      3.0    onnx           base      fp16:fp32    <NA>
+#> 11      geo      3.0      pb             tf           fp32    <NA>
+#> 7       geo      3.0      pt             pt           fp32    <NA>
+#> 16      geo      3.0      tf tf (2.18-2.19) fp16:fp32:int8  tflite
+```
+
+The columns match the arguments of `birdnet_load()`:
+
+- `type`: `"acoustic"` (audio) or `"geo"` (location and week).
+- `version`: `"3.0"`, `"2.4"`, or `"perch_v2"`. Load Perch with `birdnet_load_perch()`, everything else with `birdnet_load()`.
+- `backend`: the format of the model file and the software that runs it.
+  - `"onnx"`: ONNX Runtime. The default for V3.0.
+  - `"tf"`: a TensorFlow Lite file. The default for V2.4. CPU only.
+  - `"pb"`: a TensorFlow SavedModel (Protobuf). Can run on a GPU.
+  - `"pt"`: PyTorch. Can run on a GPU.
+- `library`: only for `backend = "tf"`, the interpreter for the TensorFlow Lite file. `"litert"` (Google's LiteRT) is part of the default installation; `"tflite"` is TensorFlow's own interpreter. birdnetR uses LiteRT on every platform that has it. LiteRT is not available on Intel Macs and Windows on ARM.
+- `precision`: how precisely the model's numbers are stored. `"fp32"` is the full model. `"fp16"` and `"int8"` are smaller and can be faster, and their scores can differ slightly from `"fp32"`.
+- `needs`: what the variant needs on top of the default installation.
+  - `"base"`: nothing; it runs out of the box.
+  - `"tf"`: TensorFlow (about 600 MB).
+  - `"pt"`: PyTorch (several GB with GPU support, much less for the CPU-only version).
+  - `"tf (2.18-2.19)"`: TensorFlow 2.18 or 2.19 exactly. birdnetR's automatic install picks the newest TensorFlow, so this variant only works in a Python environment you manage yourself.
+
+For example:
+
+```{r load_variants}
+birdnet_load(version = "2.4", precision = "int8")  # needs: base
+birdnet_load(backend = "pt")                       # needs: pt
+birdnet_load(type = "geo", version = "2.4", backend = "pb")  # needs: tf
+```
+
+When a variant needs TensorFlow or PyTorch, birdnetR installs it automatically the first time you load the model. See [Installation and setup](installation.html#extra-downloads) for the download sizes, the CPU-only PyTorch build, and your own Python environment. To run models on a GPU, see the [GPU](gpu.html) article.
