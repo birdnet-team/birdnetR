@@ -30,7 +30,7 @@ test_that(".birdnet_py_spec() accepts a valid exact pin", {
 })
 
 test_that(".birdnet_py_spec() warns and falls back for a two-segment version pin", {
-  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "==0.2"), {
+  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "==1.5"), {
     expect_warning(
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
@@ -40,7 +40,7 @@ test_that(".birdnet_py_spec() warns and falls back for a two-segment version pin
 })
 
 test_that(".birdnet_py_spec() warns and falls back for a pin missing the operator", {
-  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "0.2.16"), {
+  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "1.5.0"), {
     expect_warning(
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
@@ -50,7 +50,7 @@ test_that(".birdnet_py_spec() warns and falls back for a pin missing the operato
 })
 
 test_that(".birdnet_py_spec() warns and falls back for a range specifier", {
-  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = ">=0.2.14,<0.3"), {
+  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = ">=1.5.1,<1.6"), {
     expect_warning(
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
@@ -60,7 +60,7 @@ test_that(".birdnet_py_spec() warns and falls back for a range specifier", {
 })
 
 test_that(".birdnet_py_spec() warns and falls back when package name is included", {
-  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "birdnet==0.2.16"), {
+  withr::with_envvar(c(BIRDNETR_BIRDNET_VERSION = "birdnet==1.5.0"), {
     expect_warning(
       spec <- birdnetR:::.birdnet_py_spec(),
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION"
@@ -128,4 +128,15 @@ test_that("is_intel_mac() builds on platform()", {
   expect_true(intel("Darwin", "x86_64"))
   expect_false(intel("Darwin", "arm64"))
   expect_false(intel("Linux", "x86_64"))
+})
+
+test_that("use_private_keras_home() keeps a user's KERAS_HOME", {
+  withr::with_envvar(c(KERAS_HOME = "/my/keras"), {
+    birdnetR:::use_private_keras_home()
+    expect_equal(Sys.getenv("KERAS_HOME"), "/my/keras")
+  })
+  withr::with_envvar(c(KERAS_HOME = NA), {
+    birdnetR:::use_private_keras_home()
+    expect_equal(Sys.getenv("KERAS_HOME"), tools::R_user_dir("birdnetR", "config"))
+  })
 })

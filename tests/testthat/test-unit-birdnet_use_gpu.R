@@ -11,6 +11,8 @@ local_gpu_mocks <- function(
   cap <- new.env()
   cap$extra <- NULL
   cap$required <- NULL
+  # what .onLoad sets unless the user chose their own Python
+  withr::local_envvar(RETICULATE_PYTHON = "managed", .local_envir = env)
   testthat::local_mocked_bindings(
     platform = function() c(sysname = sysname, machine = machine),
     require_birdnet_extra = function(extra) cap$extra <- extra,
@@ -32,6 +34,14 @@ test_that("birdnet_use_gpu() errors once Python is running", {
     "must be called before Python starts (before loading a model or calling other birdnetR functions that use Python)",
     fixed = TRUE
   )
+  expect_null(cap$extra)
+})
+
+test_that("birdnet_use_gpu() warns and declares nothing with the user's own Python", {
+  cap <- local_gpu_mocks()
+  withr::local_envvar(RETICULATE_PYTHON = "/my/env/bin/python")
+  expect_warning(out <- birdnet_use_gpu("pt"), "your own Python environment")
+  expect_false(out)
   expect_null(cap$extra)
 })
 

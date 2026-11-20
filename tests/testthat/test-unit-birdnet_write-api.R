@@ -1,20 +1,31 @@
-test_that("resolve_save_format infers format from file extension", {
-  expect_equal(resolve_save_format("out.csv", NULL), "csv")
-  expect_equal(resolve_save_format("out.parquet", NULL), "parquet")
-  expect_equal(resolve_save_format("out.npz", NULL), "npz")
+test_that("resolve_save_format takes the format from the file extension", {
+  expect_equal(resolve_save_format("out.csv"), "csv")
+  expect_equal(resolve_save_format("out.parquet"), "parquet")
+  expect_equal(resolve_save_format("out.npz"), "npz")
 })
 
-test_that("resolve_save_format uses explicit format over extension", {
-  expect_equal(resolve_save_format("out.csv", "parquet"), "parquet")
-  expect_equal(resolve_save_format("out.npz", "csv"), "csv")
+# The Python writers refuse any other extension, so R stops first.
+test_that("resolve_save_format needs a lower-case .csv, .parquet or .npz extension", {
+  msg <- "`file` must end in `.csv`, `.parquet` or `.npz`"
+  expect_error(resolve_save_format("out.xyz"), msg, fixed = TRUE)
+  expect_error(resolve_save_format("out"), msg, fixed = TRUE)
+  expect_error(resolve_save_format("OUT.CSV"), msg, fixed = TRUE)
+  expect_error(resolve_save_format(1), "`file` must be a file path", fixed = TRUE)
 })
 
-test_that("resolve_save_format errors on unknown extension without explicit format", {
-  expect_error(resolve_save_format("out.xyz", NULL), "Cannot infer format")
+test_that("birdnet_write has no format argument", {
+  expect_named(formals(birdnet_write), c("x", "file", "..."))
 })
 
-test_that("resolve_save_format errors on unsupported explicit format", {
-  expect_error(resolve_save_format("out.csv", "json"), "Unsupported format")
+test_that("birdnet_write expands ~ before the path reaches Python", {
+  seen <- NULL
+  pred <- structure(
+    list(py_predictions = list(to_csv = function(path, ...) seen <<- path)),
+    class = c("birdnet_prediction_acoustic", "birdnet_prediction")
+  )
+  out <- birdnet_write(pred, "~/results.csv")
+  expect_equal(seen, path.expand("~/results.csv"))
+  expect_equal(out, path.expand("~/results.csv"))
 })
 
 test_that("birdnet_write dispatches to correct Python method for each format", {
@@ -101,7 +112,7 @@ test_that("birdnet_write returns file path invisibly", {
     class = c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
 
-  result <- birdnet_write(pred, "results.csv")
+  expect_invisible(result <- birdnet_write(pred, "results.csv"))
   expect_equal(result, "results.csv")
 })
 

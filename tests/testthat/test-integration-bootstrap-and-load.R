@@ -161,24 +161,7 @@ test_that("birdnet_load_custom() errors when model path does not exist", {
     birdnet_load_custom(
       model = "/nonexistent/path/model.tflite",
       species_list = "/nonexistent/path/species.txt"
-    )
-  )
-})
-
-test_that("birdnet_load_custom() errors when species_list is missing", {
-  skip_if_not(is_full_test_env(), "Not in full test environment")
-
-  expect_error(
-    birdnet_load_custom(model = "/some/path/model.tflite"),
-    "must be provided"
-  )
-})
-
-test_that("birdnet_load_custom() errors when model is missing", {
-  skip_if_not(is_full_test_env(), "Not in full test environment")
-
-  expect_error(
-    birdnet_load_custom(species_list = "/some/path/species.txt"),
-    "must be provided"
+    ),
+    "does not exist"
   )
 })

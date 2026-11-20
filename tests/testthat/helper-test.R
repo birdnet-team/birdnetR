@@ -24,40 +24,8 @@ create_mock_py_object <- function(attributes = list()) {
 #' @return Function that returns TRUE for mock objects and real Python objects
 mock_is_py_object <- function() {
   function(object) {
-    inherits(object, "mock_py_object") ||
-      inherits(object, "birdnet_py_mock") ||
-      reticulate::py_is_null_xptr(object) == FALSE
+    inherits(object, "mock_py_object")
   }
-}
-
-#' Create a mock BirdNET model for unit testing
-#'
-#' Creates a mock model that doesn't require Python dependencies or
-#' actual model initialization. Use this in unit tests.
-#'
-#' @param version Version string
-#' @param language Language code
-#' @param model_type Type of model (acoustic, geo, etc.)
-#' @return A mock model object that can be used for testing
-create_mock_model <- function(
-  version = "2.4",
-  language = "en_us",
-  model_type = "acoustic"
-) {
-  mock_py_obj <- create_mock_py_object()
-
-  structure(
-    list(
-      py_model = mock_py_obj,
-      model_type = model_type,
-      model_version = version,
-      language = language
-    ),
-    class = c(
-      paste0("birdnet_model_", model_type),
-      "birdnet_model"
-    )
-  )
 }
 
 #' SECTION 2: SHARED TEST RESOURCES
@@ -66,67 +34,22 @@ create_mock_model <- function(
 # Lazy-loaded models - only initialized when needed
 .test_models <- new.env()
 
-#' Get an acoustic model for integration testing
+#' Get a cached model for integration testing
 #'
-#' Returns a cached BirdNET 3.0 acoustic model loaded via birdnet_load(), or
-#' initializes a new one. Skips the test if the model cannot be loaded.
-#' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
-#' @return An acoustic model or skips the test
-get_test_acoustic_model <- function(skip_if_not_available = TRUE) {
-  if (!exists("acoustic_new", envir = .test_models)) {
-    if (is_full_test_env()) {
-      tryCatch(
-        {
-          model <- suppressMessages(birdnet_load(type = "acoustic"))
-          assign("acoustic_new", model, envir = .test_models)
-        },
-        error = function(e) {
-          if (skip_if_not_available) {
-            skip(paste("Failed to load acoustic model:", e$message))
-          }
-          return(NULL)
-        }
-      )
-    } else {
-      if (skip_if_not_available) {
-        skip("Not in a full test environment - acoustic model not available")
-      }
-      return(NULL)
-    }
+#' Skips when integration tests are disabled. A model that fails to load is an
+#' error, so the calling test fails.
+#' @param type "acoustic" or "geo"
+#' @return A BirdNET 3.0 model loaded with birdnet_load()
+get_test_model <- function(type) {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+  if (is.null(.test_models[[type]])) {
+    .test_models[[type]] <- suppressMessages(birdnet_load(type = type))
   }
-  get("acoustic_new", envir = .test_models)
+  .test_models[[type]]
 }
 
-#' Get a geo model for integration testing
-#'
-#' Returns a cached BirdNET 3.0 geo model loaded via birdnet_load(), or
-#' initializes a new one. Skips the test if the model cannot be loaded.
-#' @param skip_if_not_available If TRUE, skips the test if model can't be loaded
-#' @return A geo model or skips the test
-get_test_geo_model <- function(skip_if_not_available = TRUE) {
-  if (!exists("geo_new", envir = .test_models)) {
-    if (is_full_test_env()) {
-      tryCatch(
-        {
-          model <- suppressMessages(birdnet_load(type = "geo"))
-          assign("geo_new", model, envir = .test_models)
-        },
-        error = function(e) {
-          if (skip_if_not_available) {
-            skip(paste("Failed to load geo model:", e$message))
-          }
-          return(NULL)
-        }
-      )
-    } else {
-      if (skip_if_not_available) {
-        skip("Not in a full test environment - geo model not available")
-      }
-      return(NULL)
-    }
-  }
-  get("geo_new", envir = .test_models)
-}
+get_test_acoustic_model <- function() get_test_model("acoustic")
+get_test_geo_model <- function() get_test_model("geo")
 
 #' Get standard test audio file path
 #'

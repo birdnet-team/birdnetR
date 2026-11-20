@@ -244,14 +244,14 @@ test_that("birdnet_encode.birdnet_model_acoustic validates power-user params", {
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
 
-  expect_error(birdnet_encode(model, files = tmp, n_producers = 0L))
-  expect_error(birdnet_encode(model, files = tmp, batch_size = 0L))
-  expect_error(birdnet_encode(model, files = tmp, prefetch_ratio = -1L))
-  expect_error(birdnet_encode(model, files = tmp, speed = 0))
-  expect_error(birdnet_encode(model, files = tmp, speed = 101))
-  expect_error(birdnet_encode(model, files = tmp, half_precision = 1L))
-  expect_error(birdnet_encode(model, files = tmp, max_audio_duration_min = 0))
-  expect_error(birdnet_encode(model, files = tmp, max_audio_duration_min = -5))
+  expect_error(birdnet_encode(model, files = tmp, n_producers = 0L), "`n_producers` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, batch_size = 0L), "`batch_size` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, prefetch_ratio = -1L), "`prefetch_ratio` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, speed = 0), "`speed` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, speed = 101), "`speed` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, half_precision = 1L), "`half_precision` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, max_audio_duration_min = 0), "`max_audio_duration_min` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, max_audio_duration_min = -5), "`max_audio_duration_min` must be", fixed = TRUE)
 })
 
 test_that("birdnet_encode.birdnet_model_acoustic omits segment_size_s and device when NULL, forwards them when set", {
@@ -286,8 +286,8 @@ test_that("birdnet_encode.birdnet_model_acoustic omits segment_size_s and device
   expect_equal(captured_args$device, "GPU")
   expect_identical(captured_args$n_workers, 1L)
 
-  expect_error(birdnet_encode(model, files = tmp, segment_size_s = 0))
-  expect_error(birdnet_encode(model, files = tmp, device = character()))
+  expect_error(birdnet_encode(model, files = tmp, segment_size_s = 0), "`segment_size_s` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, device = character()), "`device` must be", fixed = TRUE)
 })
 
 test_that("the old encode() name is gone", {
@@ -373,62 +373,6 @@ test_that("as.data.frame.birdnet_encoding errors when no results available", {
   expect_error(as.data.frame(enc), "No encoding results available")
 })
 
-test_that("df_utils.encodings_to_dict converts structured array to R-friendly dict", {
-  skip_if_not_installed("reticulate")
-  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
-
-  mock_enc <- reticulate::py_run_string(
-    "
-import numpy as np
-
-class MockEncoding:
-    def to_structured_array(self):
-        emb_dim = 3
-        dtype = [
-            ('input', object),
-            ('start_time', np.float32),
-            ('end_time', np.float32),
-            ('embedding', np.float32, emb_dim),
-        ]
-        arr = np.empty(2, dtype=dtype)
-        arr['input'] = ['/path/a.wav', '/path/a.wav']
-        arr['start_time'] = [0.0, 3.0]
-        arr['end_time'] = [3.0, 6.0]
-        arr['embedding'] = [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
-        return arr
-",
-    convert = FALSE
-  )
-
-  helper <- reticulate::import_from_path(
-    "df_utils",
-    system.file("python", package = "birdnetR")
-  )
-
-  result <- helper$encodings_to_dict(mock_enc$MockEncoding())
-
-  expect_type(result, "list")
-  expect_named(result, c("input", "start_time", "end_time", "embedding"))
-  expect_type(result$input, "character")
-  expect_length(result$input, 2)
-
-  # embedding should be a list of numeric vectors
-  expect_type(result$embedding, "list")
-  expect_length(result$embedding, 2)
-  expect_equal(
-    as.numeric(result$embedding[[1]]),
-    c(0.1, 0.2, 0.3),
-    tolerance = 1e-4
-  )
-
-  # Must produce a valid data.frame
-  scalar_data <- result[names(result) != "embedding"]
-  df <- as.data.frame(scalar_data, stringsAsFactors = FALSE)
-  df$embedding <- result$embedding
-  expect_s3_class(df, "data.frame")
-  expect_equal(nrow(df), 2)
-})
-
 test_that("birdnet_encode.birdnet_model_acoustic expands ~ in file paths before forwarding them", {
   skip_on_os("windows") # ~ expansion follows HOME on Unix only
   captured_args <- NULL
@@ -454,4 +398,16 @@ test_that("birdnet_encode.birdnet_model_acoustic expands ~ in file paths before 
 
   birdnet_encode(model, files = "~/tilde.wav")
   expect_equal(captured_args[[1]][[1]], file.path(home, "tilde.wav"))
+})
+
+test_that("birdnet_encode() rejects unknown arguments and bad `files`", {
+  model <- structure(
+    list(py_model = list(encode = function(...) stop("must not be called"))),
+    class = c("birdnet_model_acoustic", "birdnet_model")
+  )
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  expect_error(birdnet_encode(model, files = tmp, chunk_overlap_s = 1), "Unknown argument: `chunk_overlap_s`", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = character()), "`files` must be", fixed = TRUE)
+  expect_error(birdnet_encode(model, files = tmp, n_workers = 0), "`n_workers` must be", fixed = TRUE)
 })

@@ -73,7 +73,13 @@ test_that("birdnet_load() forwards precision, language and an explicit library",
     type = "acoustic", version = "2.4", backend = "tf",
     library = "tflite", precision = "int8", language = "de"
   )
-  expect_s3_class(m, c("birdnet_model_acoustic_v2_4", "birdnet_model_acoustic", "birdnet_model"))
+  expect_equal(
+    class(m),
+    c(
+      "birdnet_model_acoustic_v2_4", "birdnet_model_acoustic", "birdnet_model_tf",
+      "birdnet_model_v2_4", "birdnet_model"
+    )
+  )
   expect_equal(m$model_type, "acoustic")
   expect_equal(m$model_version, "2.4")
   expect_equal(m$precision, "int8")
@@ -159,9 +165,26 @@ test_that("pb and pt backends require their extras before loading", {
   expect_equal(cap$captured_extra, "pt")
 })
 
-test_that("birdnet_load() rejects a version without a default backend", {
+test_that("birdnet_load() names the valid versions for an unknown one", {
   local_loader_mocks()
-  expect_error(birdnet_load(version = "9.9"), "backend")
+  expect_error(birdnet_load(version = "9.9"), "`version` must be \"3.0\" or \"2.4\", not \"9.9\".", fixed = TRUE)
+  # the spelling of birdnetR 0.3.2
+  expect_error(birdnet_load(version = "v2.4"), "not \"v2.4\"", fixed = TRUE)
+})
+
+test_that("backend must be a single string", {
+  local_loader_mocks()
+  expect_error(birdnet_load(backend = c("tf", "pb")), "`backend` must be", fixed = TRUE)
+  expect_error(birdnet_load_custom("m.tflite", "l.txt", backend = NULL), "`backend` must be", fixed = TRUE)
+})
+
+test_that("the geo 3.0 TFLite model defaults to the tflite library, not LiteRT", {
+  cap <- local_loader_mocks()
+  m <- birdnet_load(type = "geo", backend = "tf")
+  expect_equal(cap$captured_load$library, "tflite")
+  expect_equal(cap$captured_extra, "tf")
+  birdnet_load(type = "geo", version = "2.4")
+  expect_equal(cap$captured_load$library, "litert")
 })
 
 test_that("birdnet_load_perch() requires [tf] and forwards device", {
@@ -181,7 +204,7 @@ test_that("birdnet_load_perch() requires [tf] and forwards device", {
 
 test_that("birdnet_load_perch() stops early on Intel macOS, before declaring TensorFlow", {
   cap <- local_loader_mocks(litert = FALSE)
-  expect_error(birdnet_load_perch(), "not supported on Intel macOS")
+  expect_error(birdnet_load_perch(), "not supported on Intel Macs")
   expect_null(cap$captured_extra)
   expect_null(cap$captured_perch)
 })
@@ -201,7 +224,13 @@ test_that("birdnet_load_custom() defaults to version auto and has no classifier_
   expect_equal(cap$captured_custom$library, "litert")
   expect_true(cap$captured_custom$check_validity)
   expect_null(cap$captured_custom$is_raven)
-  expect_s3_class(m, c("birdnet_model_custom", "birdnet_model"))
+  expect_equal(
+    class(m),
+    c(
+      "birdnet_model_acoustic_v2_4", "birdnet_model_acoustic", "birdnet_model_tf",
+      "birdnet_model_v2_4", "birdnet_model_custom", "birdnet_model"
+    )
+  )
   expect_true(m$custom)
   # version "auto" is replaced by the version the Python model reports
   expect_equal(m$model_version, "2.4")
@@ -238,9 +267,10 @@ test_that("birdnet_load_custom(is_raven = TRUE) requires [tf] and forwards is_ra
   expect_null(cap$captured_custom$library)
 })
 
-test_that("birdnet_load_custom() errors when species_list is missing", {
+test_that("birdnet_load_custom() errors when model or species_list is missing", {
   local_loader_mocks()
-  expect_error(birdnet_load_custom(model = "m.tflite"), "species_list")
+  expect_error(birdnet_load_custom(model = "m.tflite"), "must be provided")
+  expect_error(birdnet_load_custom(species_list = "l.txt"), "must be provided")
 })
 
 test_that("birdnet_inspect_custom() returns the CustomTFLiteInfo fields as a list", {

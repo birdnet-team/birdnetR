@@ -156,6 +156,10 @@ test_that("birdnet_load_custom() loads a custom 2.4 classifier that predicts", {
 
   expect_s3_class(model, "birdnet_model_custom")
   expect_true(model$custom)
+
+  info <- birdnet_inspect_custom(normalizePath(model_file))
+  expect_equal(info$version, "2.4")
+  expect_equal(info$n_species, length(birdnet_list_species(model)))
   df <- as.data.frame(birdnet_predict(model, files = test_audio_file()))
   expect_named(df, acoustic_columns)
   expect_gt(nrow(df), 0)
@@ -226,4 +230,95 @@ test_that("birdnet_write() saves geo predictions to CSV", {
   saved <- read.csv(tmp)
   expect_true(nrow(saved) > 0)
   expect_true(all(c("species_name", "confidence") %in% names(saved)))
+})
+
+# -- Result saving: every format ------------------------------------------
+
+test_that("birdnet_write() writes every supported format", {
+  model <- get_test_acoustic_model()
+  audio_file <- test_audio_file()
+  dir <- withr::local_tempdir()
+
+  results <- list(
+    predictions = birdnet_predict(model, files = audio_file),
+    embeddings = birdnet_encode(model, files = audio_file),
+    geo = birdnet_predict(get_test_geo_model(), latitude = 50.83, longitude = 12.92)
+  )
+  for (name in names(results)) {
+    formats <- if (name == "geo") c("csv", "npz") else c("csv", "parquet", "npz")
+    for (format in formats) {
+      out <- file.path(dir, paste0(name, ".", format))
+      birdnet_write(results[[name]], out)
+      expect_gt(file.size(out), 0, label = paste("size of", basename(out)))
+    }
+  }
+})
+
+# -- Optional arguments reach Python --------------------------------------
+
+# The unit tests only check the argument names birdnetR sends. These calls
+# fail if the birdnet Python package renames or drops one of them.
+test_that("birdnet_predict() and birdnet_encode() accept every optional argument", {
+  model <- get_test_acoustic_model()
+  audio_file <- test_audio_file()
+  species <- birdnet_list_species(model)
+
+  pred <- birdnet_predict(
+    model,
+    files = audio_file,
+    min_confidence = 0.2,
+    min_confidence_custom = stats::setNames(list(0.5), species[1]),
+    top_k = NULL,
+    overlap = 1,
+    apply_sigmoid = TRUE,
+    sigmoid_sensitivity = 1,
+    bandpass_fmin = 100,
+    bandpass_fmax = 12000,
+    species_list = species[1:500],
+    progress = "minimal",
+    n_producers = 1,
+    n_workers = 1,
+    batch_size = 2,
+    prefetch_ratio = 1,
+    speed = 1,
+    half_precision = FALSE,
+    max_audio_duration_min = 10,
+    apply_softmax = FALSE,
+    segment_size_s = 3,
+    device = "CPU"
+  )
+  expect_named(as.data.frame(pred), acoustic_columns)
+
+  enc <- birdnet_encode(
+    model,
+    files = audio_file,
+    overlap = 1,
+    bandpass_fmin = 100,
+    bandpass_fmax = 12000,
+    progress = "minimal",
+    n_producers = 1,
+    n_workers = 1,
+    batch_size = 2,
+    prefetch_ratio = 1,
+    speed = 1,
+    half_precision = FALSE,
+    max_audio_duration_min = 10,
+    segment_size_s = 3,
+    device = "CPU"
+  )
+  expect_gt(nrow(as.data.frame(enc)), 0)
+})
+
+test_that("geo birdnet_predict() accepts every optional argument", {
+  pred <- birdnet_predict(
+    get_test_geo_model(),
+    latitude = 50.83,
+    longitude = 12.92,
+    week = NULL,
+    min_confidence = 0.1,
+    half_precision = FALSE,
+    year_round_aggregation = "average",
+    device = "CPU"
+  )
+  expect_gt(nrow(as.data.frame(pred)), 0)
 })

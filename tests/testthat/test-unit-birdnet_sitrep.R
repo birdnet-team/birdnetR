@@ -21,7 +21,7 @@ fake_py_config <- function() {
 # A stand-in for reticulate::import() that serves importlib.metadata and
 # importlib.util. `installed` are the modules find_spec() finds (it returns
 # NULL for the others, as reticulate converts Python None to NULL).
-fake_import <- function(bn_version = "0.2.16", installed = character()) {
+fake_import <- function(bn_version = "1.5.0", installed = character()) {
   function(module, ...) {
     switch(
       module,
@@ -48,7 +48,7 @@ test_that("birdnet_sitrep() returns correct structure when Python is available",
   expect_named(result, fields)
   expect_identical(result$python_version, "3.12.3")
   expect_equal(result$python_executable, "/usr/bin/python3")
-  expect_equal(result$birdnet_version, "0.2.16")
+  expect_equal(result$birdnet_version, "1.5.0")
 })
 
 test_that("birdnet_sitrep() returns NA with warning when Python is unavailable", {
@@ -104,7 +104,7 @@ test_that("birdnet_sitrep() returns NA birdnet_version when birdnet is not insta
 test_that("birdnet_sitrep() returns character values for the three fields", {
   local_mocked_bindings(
     py_config = fake_py_config,
-    import = fake_import("0.2.17"),
+    import = fake_import("1.5.1"),
     .package = "reticulate"
   )
 
@@ -167,7 +167,7 @@ test_that("print.birdnet_sitrep() prints one line per field", {
 
   expect_output(print(s), "python_version: 3.12.3")
   expect_output(print(s), "python_executable: /usr/bin/python3")
-  expect_output(print(s), "birdnet_version: 0.2.16")
+  expect_output(print(s), "birdnet_version: 1.5.0")
   expect_output(print(s), "runtimes: onnxruntime, ai_edge_litert")
 
   expect_output(res <- withVisible(print(s)))

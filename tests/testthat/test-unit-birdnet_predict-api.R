@@ -19,8 +19,8 @@ test_that("predict.birdnet_model_acoustic wraps result in correct class", {
   file.create(tmp)
 
   result <- birdnet_predict(model, files = tmp)
-  expect_s3_class(
-    result,
+  expect_equal(
+    class(result),
     c("birdnet_prediction_acoustic", "birdnet_prediction")
   )
   expect_false(is.null(result$py_predictions))
@@ -80,7 +80,7 @@ test_that("predict.birdnet_model_geo wraps result in correct class", {
   )
 
   result <- birdnet_predict(model, latitude = 50.8, longitude = 12.9)
-  expect_s3_class(result, c("birdnet_prediction_geo", "birdnet_prediction"))
+  expect_equal(class(result), c("birdnet_prediction_geo", "birdnet_prediction"))
   expect_false(is.null(result$py_predictions))
 })
 
@@ -379,32 +379,32 @@ test_that("predict.birdnet_model_acoustic validates power-user params", {
 
   # n_producers must be integer >= 1
 
-  expect_error(birdnet_predict(model, files = tmp, n_producers = 0L))
-  expect_error(birdnet_predict(model, files = tmp, n_producers = 1.5))
-  expect_error(birdnet_predict(model, files = tmp, n_producers = c(1L, 2L)))
-  expect_error(birdnet_predict(model, files = tmp, n_producers = NA_integer_))
+  expect_error(birdnet_predict(model, files = tmp, n_producers = 0L), "`n_producers` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, n_producers = 1.5), "`n_producers` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, n_producers = c(1L, 2L)), "`n_producers` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, n_producers = NA_integer_), "`n_producers` must be", fixed = TRUE)
 
   # batch_size must be integer >= 1
-  expect_error(birdnet_predict(model, files = tmp, batch_size = 0L))
-  expect_error(birdnet_predict(model, files = tmp, batch_size = c(1L, 2L)))
+  expect_error(birdnet_predict(model, files = tmp, batch_size = 0L), "`batch_size` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, batch_size = c(1L, 2L)), "`batch_size` must be", fixed = TRUE)
 
   # prefetch_ratio must be integer >= 0
-  expect_error(birdnet_predict(model, files = tmp, prefetch_ratio = -1L))
+  expect_error(birdnet_predict(model, files = tmp, prefetch_ratio = -1L), "`prefetch_ratio` must be", fixed = TRUE)
 
   # speed must be numeric in [0.01, 100]
-  expect_error(birdnet_predict(model, files = tmp, speed = 0))
-  expect_error(birdnet_predict(model, files = tmp, speed = 101))
-  expect_error(birdnet_predict(model, files = tmp, speed = c(1, 2)))
-  expect_error(birdnet_predict(model, files = tmp, speed = NA_real_))
+  expect_error(birdnet_predict(model, files = tmp, speed = 0), "`speed` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, speed = 101), "`speed` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, speed = c(1, 2)), "`speed` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, speed = NA_real_), "`speed` must be", fixed = TRUE)
 
   # half_precision must be logical
-  expect_error(birdnet_predict(model, files = tmp, half_precision = 1L))
-  expect_error(birdnet_predict(model, files = tmp, half_precision = c(TRUE, FALSE)))
-  expect_error(birdnet_predict(model, files = tmp, half_precision = NA))
+  expect_error(birdnet_predict(model, files = tmp, half_precision = 1L), "`half_precision` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, half_precision = c(TRUE, FALSE)), "`half_precision` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, half_precision = NA), "`half_precision` must be", fixed = TRUE)
 
   # max_audio_duration_min must be > 0
-  expect_error(birdnet_predict(model, files = tmp, max_audio_duration_min = 0))
-  expect_error(birdnet_predict(model, files = tmp, max_audio_duration_min = -5))
+  expect_error(birdnet_predict(model, files = tmp, max_audio_duration_min = 0), "`max_audio_duration_min` must be", fixed = TRUE)
+  expect_error(birdnet_predict(model, files = tmp, max_audio_duration_min = -5), "`max_audio_duration_min` must be", fixed = TRUE)
 })
 
 test_that("predict.birdnet_model_geo uses min_confidence = 0.03 by default", {
@@ -484,125 +484,20 @@ test_that("predict.birdnet_model_geo validates half_precision", {
     latitude = 50.8,
     longitude = 12.9,
     half_precision = 1L
-  ))
+  ), "`half_precision` must be", fixed = TRUE)
   expect_error(birdnet_predict(
     model,
     latitude = 50.8,
     longitude = 12.9,
     half_precision = c(TRUE, FALSE)
-  ))
+  ), "`half_precision` must be", fixed = TRUE)
   expect_error(birdnet_predict(
     model,
     latitude = 50.8,
     longitude = 12.9,
     half_precision = NA
-  ))
+  ), "`half_precision` must be", fixed = TRUE)
 })
-
-test_that("df_utils.predictions_to_dict converts structured array to R-friendly dict", {
-  skip_if_not_installed("reticulate")
-  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
-
-  # Build a numpy structured array matching birdnet's geo format
-  mock_pred <- reticulate::py_run_string(
-    "
-import numpy as np
-
-class MockGeoPred:
-    def to_structured_array(self, **kwargs):
-        dtype = [('species_name', '<U20'), ('confidence', np.float32)]
-        arr = np.empty(2, dtype=dtype)
-        arr['species_name'] = ['Blue Jay', 'House Sparrow']
-        arr['confidence'] = [0.85, 0.50]
-        return arr
-",
-    convert = FALSE
-  )
-
-  helper <- reticulate::import_from_path(
-    "df_utils",
-    system.file("python", package = "birdnetR")
-  )
-
-  result <- helper$predictions_to_dict(mock_pred$MockGeoPred())
-
-  # Result should be a plain R list
-  expect_type(result, "list")
-  expect_named(result, c("species_name", "confidence"))
-
-  # String column must be character vector of correct length
-  expect_type(result$species_name, "character")
-  expect_length(result$species_name, 2)
-  expect_equal(result$species_name, c("Blue Jay", "House Sparrow"))
-
-  # Numeric column
-  expect_type(result$confidence, "double")
-  expect_length(result$confidence, 2)
-  expect_equal(as.numeric(result$confidence), c(0.85, 0.50), tolerance = 1e-4)
-
-  # Must produce a valid data.frame
-  df <- as.data.frame(result, stringsAsFactors = FALSE)
-  expect_s3_class(df, "data.frame")
-  expect_equal(nrow(df), 2)
-  expect_true(all(sapply(df, length) == nrow(df)))
-})
-
-test_that("df_utils.predictions_to_dict handles multi-file object-dtype input column", {
-  skip_if_not_installed("reticulate")
-  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
-
-  # Build a structured array with object-dtype "input" column (as
-  # AcousticFilePredictionResult produces) containing two distinct file paths
-  mock_pred <- reticulate::py_run_string(
-    "
-import numpy as np
-
-class MockMultiFilePred:
-    def to_structured_array(self, **kwargs):
-        dtype = [
-            ('input', object),
-            ('start_time', np.float32),
-            ('end_time', np.float32),
-            ('species_name', object),
-            ('confidence', np.float32),
-        ]
-        arr = np.empty(3, dtype=dtype)
-        arr['input'] = ['/path/a.wav', '/path/a.wav', '/path/b.wav']
-        arr['start_time'] = [0.0, 3.0, 0.0]
-        arr['end_time'] = [3.0, 6.0, 3.0]
-        arr['species_name'] = ['Blue Jay', 'House Sparrow', 'Blue Jay']
-        arr['confidence'] = [0.85, 0.50, 0.70]
-        return arr
-",
-    convert = FALSE
-  )
-
-  helper <- reticulate::import_from_path(
-    "df_utils",
-    system.file("python", package = "birdnetR")
-  )
-
-  result <- helper$predictions_to_dict(mock_pred$MockMultiFilePred())
-
-  # input column must be a plain character vector
-
-  expect_type(result$input, "character")
-  expect_length(result$input, 3)
-  expect_equal(result$input, c("/path/a.wav", "/path/a.wav", "/path/b.wav"))
-
-  # species_name column must also be character
-  expect_type(result$species_name, "character")
-
-  # should produce a valid data.frame
-  df <- as.data.frame(result, stringsAsFactors = FALSE)
-  expect_s3_class(df, "data.frame")
-
-  expect_equal(nrow(df), 3)
-  # Both files present
-  expect_equal(sort(unique(df$input)), c("/path/a.wav", "/path/b.wav"))
-})
-
-# --- Regression: integer-like doubles must be coerced to R integer ----------
 
 test_that("predict.birdnet_model_acoustic coerces integer-like doubles to integer", {
   captured_args <- NULL
@@ -781,10 +676,10 @@ test_that("new acoustic arguments are validated", {
   m <- local_capturing_model("acoustic")
   tmp <- withr::local_tempfile(fileext = ".wav")
   file.create(tmp)
-  expect_error(birdnet_predict(m$model, files = tmp, apply_softmax = "yes"))
-  expect_error(birdnet_predict(m$model, files = tmp, segment_size_s = 0))
-  expect_error(birdnet_predict(m$model, files = tmp, sigmoid_sensitivity = -1))
-  expect_error(birdnet_predict(m$model, files = tmp, device = character()))
+  expect_error(birdnet_predict(m$model, files = tmp, apply_softmax = "yes"), "`apply_softmax` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, segment_size_s = 0), "`segment_size_s` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, sigmoid_sensitivity = -1), "`sigmoid_sensitivity` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, device = character()), "`device` must be", fixed = TRUE)
 })
 
 test_that("geo forwards year_round_aggregation and device when set, omits them when NULL", {
@@ -797,42 +692,13 @@ test_that("geo forwards year_round_aggregation and device when set, omits them w
   )
   expect_equal(m$cap$args$year_round_aggregation, "average")
   expect_equal(m$cap$args$device, "CPU")
-  expect_error(birdnet_predict(m$model, latitude = 50.8, longitude = 12.9, year_round_aggregation = "median"))
+  expect_error(birdnet_predict(m$model, latitude = 50.8, longitude = 12.9, year_round_aggregation = "median"), "should be one of")
 })
 
 test_that("predict() methods are gone", {
   ns <- asNamespace("birdnetR")
   expect_false(exists("predict.birdnet_model_acoustic", envir = ns, inherits = FALSE))
   expect_false(exists("predict.birdnet_model_geo", envir = ns, inherits = FALSE))
-})
-
-test_that("predictions_to_dict keeps column names for an empty result", {
-  skip_if_not_installed("reticulate")
-  skip_if_not(is_full_test_env(), "Needs real Python (set BIRDNETR_RUN_INTEGRATION_TESTS=true)")
-
-  mock_pred <- reticulate::py_run_string(
-    "
-import numpy as np
-
-class MockEmptyPred:
-    def to_structured_array(self, **kwargs):
-        dtype = [
-            ('input', object),
-            ('start_time', np.float32),
-            ('end_time', np.float32),
-            ('species_name', object),
-            ('confidence', np.float32),
-        ]
-        return np.empty(0, dtype=dtype)
-",
-    convert = FALSE
-  )
-  helper <- reticulate::import_from_path("df_utils", system.file("python", package = "birdnetR"))
-
-  df <- as.data.frame(helper$predictions_to_dict(mock_pred$MockEmptyPred()), stringsAsFactors = FALSE)
-  expect_named(df, c("input", "start_time", "end_time", "species_name", "confidence"))
-  expect_equal(nrow(df), 0L)
-  expect_type(df$input, "character")
 })
 
 test_that("predict.birdnet_model_acoustic expands ~ in file paths before forwarding them", {
@@ -860,4 +726,87 @@ test_that("predict.birdnet_model_acoustic expands ~ in file paths before forward
 
   birdnet_predict(model, files = "~/tilde.wav")
   expect_equal(captured_args[[1]][[1]], file.path(home, "tilde.wav"))
+})
+
+test_that("unknown arguments are an error instead of vanishing in `...`", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  # argument names of birdnetR 0.3.2
+  expect_error(
+    birdnet_predict(m$model, files = tmp, filter_species = "a_b", chunk_overlap_s = 1),
+    "Unknown arguments: `filter_species`, `chunk_overlap_s`",
+    fixed = TRUE
+  )
+  expect_error(birdnet_predict(m$model, files = tmp, topk = 1), "Unknown argument: `topk`", fixed = TRUE)
+  expect_null(m$cap$args)
+
+  geo <- local_capturing_model("geo")
+  expect_error(
+    birdnet_predict(geo$model, latitude = 50.8, longitude = 12.9, weak = 18),
+    "Unknown argument: `weak`",
+    fixed = TRUE
+  )
+})
+
+test_that("files may be a list of paths, but not empty or non-character", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  birdnet_predict(m$model, files = list(tmp, tmp))
+  expect_equal(m$cap$args[[1]], list(tmp, tmp))
+  expect_error(birdnet_predict(m$model, files = character()), "`files` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = 1), "`files` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = NA_character_), "`files` must be", fixed = TRUE)
+})
+
+test_that("species_list becomes a Python set and min_confidence_custom a dict", {
+  m <- local_capturing_model("acoustic")
+  testthat::local_mocked_bindings(
+    py_builtins = list(
+      set = function(x) structure(list(x), class = "fake_set"),
+      dict = function(x) structure(list(x), class = "fake_dict")
+    ),
+    .package = "birdnetR"
+  )
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+
+  birdnet_predict(m$model, files = tmp)
+  expect_null(m$cap$args$custom_species_list)
+  expect_null(m$cap$args$custom_confidence_thresholds)
+  expect_true(all(c("custom_species_list", "custom_confidence_thresholds") %in% names(m$cap$args)))
+
+  birdnet_predict(
+    m$model, files = tmp,
+    species_list = c("a_A", "b_B"), min_confidence_custom = list(a_A = 0.5)
+  )
+  expect_s3_class(m$cap$args$custom_species_list, "fake_set")
+  expect_equal(m$cap$args$custom_species_list[[1]], list("a_A", "b_B"))
+  expect_s3_class(m$cap$args$custom_confidence_thresholds, "fake_dict")
+  expect_equal(m$cap$args$custom_confidence_thresholds[[1]], list(a_A = 0.5))
+
+  expect_error(birdnet_predict(m$model, files = tmp, species_list = 1:2), "`species_list` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, species_list = character()), "`species_list` must be", fixed = TRUE)
+  expect_error(
+    birdnet_predict(m$model, files = tmp, min_confidence_custom = c(a_A = 0.5)),
+    "`min_confidence_custom` must be",
+    fixed = TRUE
+  )
+})
+
+test_that("basic acoustic and geo arguments are checked with a message that names them", {
+  m <- local_capturing_model("acoustic")
+  tmp <- withr::local_tempfile(fileext = ".wav")
+  file.create(tmp)
+  expect_error(birdnet_predict(m$model, files = tmp, min_confidence = "0.5"), "`min_confidence` must be a number.", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, top_k = 1.5), "`top_k` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, overlap = "1"), "`overlap` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, bandpass_fmin = 0.5), "`bandpass_fmin` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, n_workers = 0), "`n_workers` must be", fixed = TRUE)
+  expect_error(birdnet_predict(m$model, files = tmp, progress = "loud"), "should be one of")
+
+  geo <- local_capturing_model("geo")
+  expect_error(birdnet_predict(geo$model, latitude = "50", longitude = 12.9), "`latitude` must be", fixed = TRUE)
+  expect_error(birdnet_predict(geo$model, latitude = 50.8, longitude = 12.9, week = 1.5), "`week` must be", fixed = TRUE)
 })

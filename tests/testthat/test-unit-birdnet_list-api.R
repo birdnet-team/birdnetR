@@ -6,10 +6,10 @@ local_model_rows <- function(env = parent.frame()) {
     get_df_helper = function() {
       list(official_model_rows = function() {
         list(
-          type = c("acoustic", "acoustic", "geo", "acoustic", "acoustic"),
-          version = c("3.0", "2.4", "3.0", "2.4", "3.0"),
-          backend = c("onnx", "tf", "tf", "pb", "pt"),
-          precision = c("fp32", "int8", "fp32", "fp32", "fp32")
+          type = c("acoustic", "acoustic", "acoustic", "geo", "acoustic", "acoustic"),
+          version = c("3.0", "2.4", "2.4", "3.0", "2.4", "3.0"),
+          backend = c("onnx", "tf", "tf", "tf", "pb", "pt"),
+          precision = c("fp32", "int8", "fp32", "fp32", "fp32", "fp32")
         )
       })
     },
@@ -60,6 +60,10 @@ test_that("birdnet_list_models(compact = TRUE) collapses precisions", {
   x <- birdnet_list_models(compact = TRUE)
   expect_named(x, c("type", "version", "backend", "needs", "precision", "library"), ignore.order = TRUE)
   expect_equal(anyDuplicated(x[c("type", "version", "backend", "needs")]), 0L)
+  a24 <- x[x$version == "2.4" & x$backend == "tf", ]
+  expect_equal(a24$precision, c("fp32:int8", "fp32:int8"))
+  expect_setequal(a24$library, c("litert", "tflite"))
+  expect_true(is.na(x$library[x$backend == "onnx"]))
 })
 
 test_that("birdnet_list_languages() picks the per-version list and rejects unknown versions", {
