@@ -29,7 +29,7 @@ Version: 0.3.3.9000
 
 ## pkgdown documentation
 
-pkgdown deploys **only from `main`** via GitHub Actions. The version in `DESCRIPTION` determines which variant is published:
+pkgdown deploys **only from `main`** via GitHub Actions (`pkgdown-dev.yaml`). The version in `DESCRIPTION` determines which variant is published:
 
 | Version on `main` | Docs destination | URL |
 |-------------------|-----------------|-----|
@@ -38,7 +38,9 @@ pkgdown deploys **only from `main`** via GitHub Actions. The version in `DESCRIP
 
 This is handled automatically by `_pkgdown.yml` with `development: mode: auto`. No manual configuration is needed — just keep the version in `DESCRIPTION` consistent with the conventions above.
 
-Feature/fix branches and `release/*` branches do **not** trigger pkgdown builds.
+Pull requests into `main` build the site as a check but do not deploy it. Pushes to feature/fix and `release/*` branches do not build it.
+
+Publishing a GitHub release also rebuilds the stable docs from the release tag (`pkgdown-release.yaml`). You can run that workflow by hand with a tag, too.
 
 This also aligns with `pak::pak("birdnet-team/birdnetR")`, which installs from the default branch (`main`).
 

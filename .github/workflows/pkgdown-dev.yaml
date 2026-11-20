@@ -1,10 +1,12 @@
 # Development docs workflow
 #
 # Deployment strategy:
-#   - Builds pkgdown site from the `main` branch (development version)
-#   - Deploys built docs into gh-pages/dev (i.e. the site root /dev/)
-#   - `clean: false` ensures stable docs at the root are never deleted
-#   - Does NOT deploy on pull_request events (build-only for validation)
+#   - Builds the pkgdown site from `main`, or from the PR on pull requests
+#   - Deploys only from `main`. `development: mode: auto` puts a .9000
+#     version under docs/dev (site /dev/) and a release version under docs/
+#     (site root)
+#   - `clean: false` keeps whatever this build does not overwrite
+#   - Pull requests build the site as a check but do not deploy it
 #
 # Companion workflow: pkgdown-release.yaml handles stable docs at the root.
 on:
@@ -29,8 +31,6 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -47,16 +47,10 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
-      # Stage docs into deploy/dev so only the /dev sub-path is updated
-      - name: Stage dev docs
-        run: |
-          mkdir -p deploy/dev
-          cp -r docs/. deploy/dev/
-
-      - name: Deploy dev docs to gh-pages /dev 🚀
-        if: github.event_name != 'pull_request'
+      - name: Deploy docs to gh-pages 🚀
+        if: github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4.5.0
         with:
           clean: false
           branch: gh-pages
-          folder: deploy
+          folder: docs
