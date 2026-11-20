@@ -5,50 +5,51 @@
 \alias{birdnet_write.birdnet_prediction_geo}
 \alias{birdnet_write.birdnet_prediction}
 \alias{birdnet_write.birdnet_encoding}
-\title{Write BirdNET predictions or encodings to file}
+\title{Write BirdNET predictions or embeddings to a file}
 \usage{
-birdnet_write(x, file, format = NULL, ...)
+birdnet_write(x, file, ...)
 
-\method{birdnet_write}{birdnet_prediction_geo}(x, file, format = NULL, ...)
+\method{birdnet_write}{birdnet_prediction_geo}(x, file, ...)
 
-\method{birdnet_write}{birdnet_prediction}(x, file, format = NULL, ...)
+\method{birdnet_write}{birdnet_prediction}(x, file, ...)
 
-\method{birdnet_write}{birdnet_encoding}(x, file, format = NULL, ...)
+\method{birdnet_write}{birdnet_encoding}(x, file, ...)
 }
 \arguments{
 \item{x}{A prediction or encoding object (from \code{\link[=birdnet_predict]{birdnet_predict()}} or
 \code{\link[=birdnet_encode]{birdnet_encode()}}).}
 
-\item{file}{Output file path.}
-
-\item{format}{Output file format. If \code{NULL} (default), inferred from
-the file extension. Explicit values: \code{"csv"}, \code{"parquet"},
-\code{"npz"}.}
+\item{file}{Output file path. It must end in \code{.csv}, \code{.parquet} or \code{.npz}
+(lower case); the extension selects the format.}
 
 \item{...}{Additional arguments passed to the underlying Python method.}
 }
 \value{
-Invisibly returns the output file path.
+Invisibly returns the output file path, with \code{~} expanded.
 }
 \description{
-Write prediction or encoding results to disk using the underlying Python
-result object. The format can be inferred from the file extension or
-specified explicitly.
+Writes predictions or embeddings to disk straight from Python,
+without converting them to an R data frame first. The file extension selects
+the format.
 }
 \details{
 Supported formats by result type:
 \itemize{
 \item \strong{Acoustic predictions}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
 \item \strong{Geo predictions}: CSV (\code{.csv}), NumPy (\code{.npz})
-\item \strong{Encodings}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
+\item \strong{Embeddings}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
 }
 }
 \examples{
 \dontrun{
-birdnet_write(pred, "results.csv")
-birdnet_write(pred, "results.parquet")
-birdnet_write(pred, "results.npz")
-birdnet_write(pred, "output.csv", format = "csv")
-birdnet_write(enc, "embeddings.parquet")
+model <- birdnet_load()
+audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+
+predictions <- birdnet_predict(model, files = audio_file)
+birdnet_write(predictions, file.path(tempdir(), "results.csv"))
+birdnet_write(predictions, file.path(tempdir(), "results.parquet"))
+
+embeddings <- birdnet_encode(model, files = audio_file)
+birdnet_write(embeddings, file.path(tempdir(), "embeddings.npz"))
 }
 }

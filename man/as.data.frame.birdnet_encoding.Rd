@@ -2,7 +2,7 @@
 % Please edit documentation in R/encode.R
 \name{as.data.frame.birdnet_encoding}
 \alias{as.data.frame.birdnet_encoding}
-\title{Convert BirdNET encoding results to a data frame}
+\title{Convert BirdNET embeddings to a data frame}
 \usage{
 \method{as.data.frame}{birdnet_encoding}(x, row.names = NULL, optional = FALSE, ...)
 }
@@ -17,12 +17,12 @@ for the data frame. Not used.}
 \item{...}{Additional arguments (ignored).}
 }
 \value{
-A data frame containing the encoding results. Columns
+A data frame containing the embeddings. Columns
 include \code{input}, \code{start_time}, \code{end_time}, and \code{embedding}
 (a list column of numeric vectors).
 }
 \description{
-Convert encoding results from an acoustic model to a data frame.
+Convert the embeddings from an acoustic model to a data frame.
 Each row represents one audio segment. The \code{embedding} column is
 returned as a list of numeric vectors (one per segment).
 }

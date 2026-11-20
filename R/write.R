@@ -1,35 +1,35 @@
-#' Write BirdNET predictions or encodings to file
+#' Write BirdNET predictions or embeddings to a file
 #'
-#' Write prediction or encoding results to disk using the underlying Python
-#' result object. The format can be inferred from the file extension or
-#' specified explicitly.
+#' Writes predictions or embeddings to disk straight from Python,
+#' without converting them to an R data frame first. The file extension selects
+#' the format.
 #'
 #' Supported formats by result type:
-#' \itemize{
-#'   \item \strong{Acoustic predictions}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
-#'   \item \strong{Geo predictions}: CSV (\code{.csv}), NumPy (\code{.npz})
-#'   \item \strong{Encodings}: CSV (\code{.csv}), Parquet (\code{.parquet}), NumPy (\code{.npz})
-#' }
+#' * **Acoustic predictions**: CSV (`.csv`), Parquet (`.parquet`), NumPy (`.npz`)
+#' * **Geo predictions**: CSV (`.csv`), NumPy (`.npz`)
+#' * **Embeddings**: CSV (`.csv`), Parquet (`.parquet`), NumPy (`.npz`)
 #'
 #' @param x A prediction or encoding object (from [birdnet_predict()] or
 #'   [birdnet_encode()]).
-#' @param file Output file path.
-#' @param format Output file format. If \code{NULL} (default), inferred from
-#'   the file extension. Explicit values: \code{"csv"}, \code{"parquet"},
-#'   \code{"npz"}.
+#' @param file Output file path. It must end in `.csv`, `.parquet` or `.npz`
+#'   (lower case); the extension selects the format.
 #' @param ... Additional arguments passed to the underlying Python method.
-#' @return Invisibly returns the output file path.
+#' @return Invisibly returns the output file path, with `~` expanded.
 #' @examples
 #' \dontrun{
-#' birdnet_write(pred, "results.csv")
-#' birdnet_write(pred, "results.parquet")
-#' birdnet_write(pred, "results.npz")
-#' birdnet_write(pred, "output.csv", format = "csv")
-#' birdnet_write(enc, "embeddings.parquet")
+#' model <- birdnet_load()
+#' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+#'
+#' predictions <- birdnet_predict(model, files = audio_file)
+#' birdnet_write(predictions, file.path(tempdir(), "results.csv"))
+#' birdnet_write(predictions, file.path(tempdir(), "results.parquet"))
+#'
+#' embeddings <- birdnet_encode(model, files = audio_file)
+#' birdnet_write(embeddings, file.path(tempdir(), "embeddings.npz"))
 #' }
 #' @export
 #' @rdname birdnet_write
-birdnet_write <- function(x, file, format = NULL, ...) {
+birdnet_write <- function(x, file, ...) {
   UseMethod("birdnet_write")
 }
 
@@ -39,16 +39,15 @@ birdnet_write <- function(x, file, format = NULL, ...) {
 birdnet_write.birdnet_prediction_geo <- function(
   x,
   file,
-  format = NULL,
   ...
 ) {
-  format <- resolve_save_format(file, format)
-  if (format == "parquet") {
+  if (resolve_save_format(file) == "parquet") {
     stop(
-      "Parquet format is not supported for geo predictions. Use 'csv' or 'npz'."
+      "Parquet format is not supported for geo predictions. Use CSV or NPZ.",
+      call. = FALSE
     )
   }
-  birdnet_write.birdnet_prediction(x, file, format = format, ...)
+  birdnet_write.birdnet_prediction(x, file, ...)
 }
 
 #' @rdname birdnet_write
@@ -57,13 +56,12 @@ birdnet_write.birdnet_prediction_geo <- function(
 birdnet_write.birdnet_prediction <- function(
   x,
   file,
-  format = NULL,
   ...
 ) {
-  format <- resolve_save_format(file, format)
+  format <- resolve_save_format(file)
   py_result <- x$py_predictions
   if (is.null(py_result)) {
-    stop("No prediction results available.")
+    stop("No prediction results available.", call. = FALSE)
   }
   write_py_result(py_result, file, format, ...)
 }
@@ -74,13 +72,12 @@ birdnet_write.birdnet_prediction <- function(
 birdnet_write.birdnet_encoding <- function(
   x,
   file,
-  format = NULL,
   ...
 ) {
-  format <- resolve_save_format(file, format)
+  format <- resolve_save_format(file)
   py_result <- x$py_encodings
   if (is.null(py_result)) {
-    stop("No encoding results available.")
+    stop("No encoding results available.", call. = FALSE)
   }
   write_py_result(py_result, file, format, ...)
 }
@@ -93,6 +90,8 @@ birdnet_write.birdnet_encoding <- function(
 #' @return Invisibly returns `file`.
 #' @noRd
 write_py_result <- function(py_result, file, format, ...) {
+  # Python does not expand `~`
+  file <- path.expand(file)
   if (format == "csv") {
     py_result$to_csv(file, ...)
   } else if (format == "parquet") {
@@ -104,34 +103,22 @@ write_py_result <- function(py_result, file, format, ...) {
 }
 
 
-#' Infer save format from file extension or validate explicit format
+#' The save format, taken from the extension of `file`
+#'
+#' The Python writers refuse a file whose extension is not exactly their own
+#' (`.csv`, `.parquet`, `.npz`), so R checks it first.
 #' @param file Output file path.
-#' @param format Explicit format or NULL.
-#' @return Validated format string.
+#' @return The format: "csv", "parquet" or "npz".
 #' @noRd
-resolve_save_format <- function(file, format) {
-  valid_formats <- c("csv", "parquet", "npz")
-  if (is.null(format)) {
-    ext <- tolower(tools::file_ext(file))
-    ext_map <- c(csv = "csv", parquet = "parquet", npz = "npz")
-    if (!(ext %in% names(ext_map))) {
-      stop(
-        "Cannot infer format from file extension '.",
-        ext,
-        "'. Use an unambiguous extension (.csv, .parquet, .npz)",
-        " or specify `format` explicitly."
-      )
-    }
-    format <- ext_map[[ext]]
-  }
-  if (!(format %in% valid_formats)) {
+resolve_save_format <- function(file) {
+  check_arg(is_string(file), "file", "a file path")
+  ext <- tools::file_ext(file)
+  if (!(ext %in% c("csv", "parquet", "npz"))) {
     stop(
-      "Unsupported format: '",
-      format,
-      "'. Use one of: ",
-      paste(valid_formats, collapse = ", "),
-      "."
+      "`file` must end in `.csv`, `.parquet` or `.npz`, not \"",
+      basename(file), "\".",
+      call. = FALSE
     )
   }
-  format
+  ext
 }

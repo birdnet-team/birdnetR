@@ -61,7 +61,7 @@ def encodings_to_dict(py_encodings: Any) -> dict[str, Any]:
     for name in dtype_names:
         column = structured[name]
         if column.ndim > 1:
-            # Multi-dimensional columns (e.g. embedding): materialise as
+            # Multi-dimensional columns (e.g. embedding): materialize as
             # plain Python lists so reticulate converts element-wise.
             result[name] = column.tolist()
         elif column.dtype.kind in ("U", "O"):
@@ -99,7 +99,7 @@ def predictions_to_dict(py_predictions: Any, **kwargs: Any) -> dict[str, Any]:
     for name in dtype_names:
         column = structured[name]
         if column.ndim > 1:
-            # Multi-dimensional columns: materialise as plain Python lists
+            # Multi-dimensional columns: materialize as plain Python lists
             # so reticulate converts element-wise.
             result[name] = column.tolist()
         elif column.dtype.kind in ("U", "O"):
@@ -130,13 +130,21 @@ def official_model_rows() -> dict[str, list[str]]:
     """
     from birdnet import model_loader
 
+    table = getattr(model_loader, "_OFFICIAL_MODELS", None)
+    if table is None:
+        raise RuntimeError(
+            "birdnetR cannot read the model list of this version of the birdnet "
+            "Python package. Update birdnetR, or look the models up at "
+            "https://birdnet-team.github.io/birdnet/models.html"
+        )
+
     rows: dict[str, list[str]] = {
         "type": [],
         "version": [],
         "backend": [],
         "precision": [],
     }
-    for (model_type, version, backend), spec in model_loader._OFFICIAL_MODELS.items():
+    for (model_type, version, backend), spec in table.items():
         for precision in spec.backends:
             rows["type"].append(str(model_type))
             rows["version"].append(str(version))

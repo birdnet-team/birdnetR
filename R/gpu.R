@@ -6,8 +6,8 @@
 #' packages are resolved when Python starts, so afterwards it is too late and
 #' the function errors (restart R and call it first).
 #'
-#' Choose one backend per call. TensorFlow (`"pb"`) and PyTorch (`"pt"`) each
-#' pull their own CUDA wheels, and installing both can conflict.
+#' Choose one backend per R session. TensorFlow (`"pb"`) and PyTorch (`"pt"`)
+#' each bring their own CUDA libraries, and installing both can conflict.
 #'
 #' Requirements by platform:
 #' * **Linux, `"pt"`** (default): installs `birdnet[pt]`. If the environment
@@ -29,13 +29,16 @@
 #' use `device = "GPU"` in [birdnet_predict()] and [birdnet_encode()].
 #'
 #' @param backend `"pt"` (PyTorch, default) or `"pb"` (TensorFlow).
-#' @return Invisibly returns `TRUE`.
+#' @return Invisibly returns `TRUE`. If `RETICULATE_PYTHON` points at your own
+#'   Python environment, birdnetR cannot install anything there: the function
+#'   warns and returns `FALSE`.
 #' @examples
 #' \dontrun{
 #' # at the top of a script, before loading any model
 #' birdnet_use_gpu("pt")
 #' model <- birdnet_load("acoustic", "3.0", backend = "pt")
-#' pred <- birdnet_predict(model, "soundscape.wav", device = "GPU")
+#' audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+#' pred <- birdnet_predict(model, audio_file, device = "GPU")
 #'
 #' # AMD GPU (experimental)
 #' Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")
@@ -44,6 +47,16 @@
 #' @export
 birdnet_use_gpu <- function(backend = c("pt", "pb")) {
   backend <- match.arg(backend)
+
+  if (Sys.getenv("RETICULATE_PYTHON") != "managed") {
+    warning(
+      "`RETICULATE_PYTHON` points at your own Python environment, so ",
+      "birdnet_use_gpu() cannot install the GPU packages. ",
+      "Install them there yourself; see vignette('gpu', package = 'birdnetR').",
+      call. = FALSE
+    )
+    return(invisible(FALSE))
+  }
 
   if (reticulate::py_available()) {
     stop(

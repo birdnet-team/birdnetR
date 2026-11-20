@@ -33,7 +33,7 @@ could not be determined.}
 \code{print()} returns \code{x}, invisibly.
 }
 \description{
-Summarises the Python environment birdnetR runs on: the Python version and
+Summarizes the Python environment birdnetR runs on: the Python version and
 path, the installed \code{birdnet} Python package version, and which inference
 runtimes are installed. Useful for debugging environment issues.
 }

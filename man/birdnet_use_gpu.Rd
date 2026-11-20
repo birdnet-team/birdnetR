@@ -10,7 +10,9 @@ birdnet_use_gpu(backend = c("pt", "pb"))
 \item{backend}{\code{"pt"} (PyTorch, default) or \code{"pb"} (TensorFlow).}
 }
 \value{
-Invisibly returns \code{TRUE}.
+Invisibly returns \code{TRUE}. If \code{RETICULATE_PYTHON} points at your own
+Python environment, birdnetR cannot install anything there: the function
+warns and returns \code{FALSE}.
 }
 \description{
 Declares the Python packages BirdNET needs to run on a GPU. Call it once at
@@ -20,8 +22,8 @@ packages are resolved when Python starts, so afterwards it is too late and
 the function errors (restart R and call it first).
 }
 \details{
-Choose one backend per call. TensorFlow (\code{"pb"}) and PyTorch (\code{"pt"}) each
-pull their own CUDA wheels, and installing both can conflict.
+Choose one backend per R session. TensorFlow (\code{"pb"}) and PyTorch (\code{"pt"})
+each bring their own CUDA libraries, and installing both can conflict.
 
 Requirements by platform:
 \itemize{
@@ -49,7 +51,8 @@ use \code{device = "GPU"} in \code{\link[=birdnet_predict]{birdnet_predict()}} a
 # at the top of a script, before loading any model
 birdnet_use_gpu("pt")
 model <- birdnet_load("acoustic", "3.0", backend = "pt")
-pred <- birdnet_predict(model, "soundscape.wav", device = "GPU")
+audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
+pred <- birdnet_predict(model, audio_file, device = "GPU")
 
 # AMD GPU (experimental)
 Sys.setenv(UV_TORCH_BACKEND = "rocm7.2")

@@ -6,7 +6,7 @@
 \alias{birdnetR}
 \title{BirdNET for R}
 \description{
-\code{birdnetR} is a wrapper around the python package \code{birdnet}.
+birdnetR is a wrapper around the Python package \code{birdnet}.
 }
 \seealso{
 Useful links:
@@ -18,7 +18,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Felix Günther \email{felix.guenther@informatik.tu-chemnitz.de}
+\strong{Maintainer}: Felix Günther \email{felix.gnthr@gmail.com}
 
 Authors:
 \itemize{

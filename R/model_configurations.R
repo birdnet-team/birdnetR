@@ -85,7 +85,7 @@ birdnet_list_models <- function(compact = FALSE) {
   is_tf <- rows$backend == "tf"
   is_geo_30 <- rows$type == "geo" & rows$version == "3.0"
   # tf rows run on the TFLite interpreter (needs TensorFlow) or on LiteRT
-  # (base install); upstream refuses LiteRT for geo 3.0.
+  # (default installation); upstream refuses LiteRT for geo 3.0.
   litert <- rows[is_tf & !is_geo_30, , drop = FALSE]
   litert$library <- rep("litert", nrow(litert))
   rows$library <- ifelse(is_tf, "tflite", NA_character_)
@@ -142,7 +142,7 @@ birdnet_list_languages <- function(version = "3.0") {
     "3.0" = py_birdnet_globals$VALID_MODEL_LANGUAGES_V3_0,
     "2.4" = py_birdnet_globals$VALID_MODEL_LANGUAGES_V2_4,
     stop(
-      "Unknown model version '", version, "'. Use \"3.0\" or \"2.4\".",
+      "`version` must be \"3.0\" or \"2.4\", not \"", version, "\".",
       call. = FALSE
     )
   )

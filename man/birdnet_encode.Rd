@@ -30,17 +30,15 @@ birdnet_encode(model, ...)
 \item{model}{A BirdNET model object of class \code{birdnet_model_acoustic}, see
 \code{\link[=birdnet_load]{birdnet_load()}}, \code{\link[=birdnet_load_perch]{birdnet_load_perch()}} and \code{\link[=birdnet_load_custom]{birdnet_load_custom()}}.}
 
-\item{...}{Additional arguments passed to the generic (currently
-unused).}
+\item{...}{Not used. Passing any other argument is an error.}
 
 \item{files}{A character vector of one or more file paths to audio
-files. When multiple files are provided the resulting data frame
-(via \code{\link[=as.data.frame]{as.data.frame()}}) includes an \code{input} column identifying the
-source file for each row.}
+files. The resulting data frame (via \code{\link[=as.data.frame]{as.data.frame()}}) has an \code{input}
+column that names the source file of each row.}
 
 \item{overlap}{A numeric value specifying the overlap duration in
-seconds between consecutive time intervals. Must be smaller than the
-segment length (3 s for BirdNET 2.4; see \code{segment_size_s} for 3.0).}
+seconds between consecutive segments. Must be smaller than the
+segment length (3 s for BirdNET V2.4; see \code{segment_size_s} for V3.0).}
 
 \item{bandpass_fmin, bandpass_fmax}{An integer value to set minimum and
 maximum frequencies for the bandpass filter (in Hz).}
@@ -49,38 +47,41 @@ maximum frequencies for the bandpass filter (in Hz).}
 reporting. Options are \code{"minimal"}, \code{"progress"}, or
 \code{"benchmark"}.}
 
-\item{n_producers}{An integer specifying the number of threads for
-producing audio batches. Must be >= 1. If \code{NULL} (default), the
-Python backend default is used.}
+\item{n_producers}{An integer specifying the number of processes that
+read and prepare audio batches. Must be >= 1. If \code{NULL} (default), the
+default of the \code{birdnet} Python package is used.}
 
-\item{n_workers}{An integer specifying the number of backend workers
+\item{n_workers}{An integer specifying the number of worker processes
 for parallel inference. Each worker loads its own copy of the model. If
-\code{NULL} (default), the Python backend auto-detects based on available CPU
-cores and memory; with a GPU \code{device}, one worker per device.}
+\code{NULL} (default), \code{birdnet} chooses based on available CPU cores and
+memory; with a GPU \code{device}, one worker per device.}
 
 \item{batch_size}{An integer specifying the number of audio segments
-evaluated per inference call. Must be >= 1. If \code{NULL} (default),
-the Python backend default is used.}
+evaluated per inference call. Must be >= 1. The BirdNET+ V3.0 \code{"pb"}
+and \code{"tf"} models only accept 1; use \code{n_workers} for parallelism there.
+If \code{NULL} (default), the default of the \code{birdnet} Python package (1) is
+used.}
 
 \item{prefetch_ratio}{An integer specifying how many batches to
 decode ahead of processing. Must be >= 0. If \code{NULL} (default),
-the Python backend default is used.}
+the default of the \code{birdnet} Python package is used.}
 
 \item{speed}{A numeric value for the resampling multiplier to
 accommodate different recording speeds. Must be in the interval
-[0.01, 100]. If \code{NULL} (default), the Python backend default
-is used.}
+[0.01, 100]. If \code{NULL} (default), the default of the \code{birdnet}
+Python package is used.}
 
-\item{half_precision}{A logical value indicating whether to use
-float16 where supported for inference. If \code{NULL} (default), the
-Python backend default is used.}
+\item{half_precision}{A logical value indicating whether to store the
+model's outputs as float16 (inference itself runs at the model's
+precision). If \code{NULL} (default), the default of the \code{birdnet} Python
+package is used.}
 
-\item{max_audio_duration_min}{A numeric value specifying the maximum
-total audio duration per call in minutes. Must be > 0. If \code{NULL}
-(default), no limit is applied.}
+\item{max_audio_duration_min}{A numeric value specifying the longest
+single input in minutes. Must be > 0. If \code{NULL} (default), no limit is
+applied.}
 
-\item{segment_size_s}{A numeric value: length of the analysed segments in
-seconds (BirdNET 3.0 only; it accepts variable-length input). If \code{NULL}
+\item{segment_size_s}{A numeric value: length of the analyzed segments in
+seconds (BirdNET+ V3.0 only; it accepts variable-length input). If \code{NULL}
 (default), the model's own default is used.}
 
 \item{device}{A character string, \code{"CPU"} or \code{"GPU"} (or a vector of
@@ -88,7 +89,7 @@ devices). If \code{NULL} (default), the CPU is used. See \code{\link[=birdnet_us
 }
 \value{
 An S3 object of class \code{birdnet_encoding} containing the
-encoding results. Use \code{\link[=as.data.frame]{as.data.frame()}} to convert to a data
+embeddings. Use \code{\link[=as.data.frame]{as.data.frame()}} to convert to a data
 frame.
 }
 \description{

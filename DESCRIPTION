@@ -1,11 +1,11 @@
 Type: Package
 Package: birdnetR
-Title: Deep Learning for Automated (Bird) Sound Identification
+Title: Identify Birds and Other Animals by Sound with 'BirdNET'
 Version: 0.3.3.9000
 Authors@R: c(
-    person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
+    person("Felix", "Günther", , "felix.gnthr@gmail.com", role = c("aut", "cre")),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
-    person("BirdNET", "Team", role = "aut")
+    person("BirdNET Team", role = "aut")
   )
 Description: Identify birds and many other animals by their sounds with
     'BirdNET', a deep learning model introduced by Kahl et al. (2021)
@@ -19,11 +19,8 @@ URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/b
 Depends:
     R (>= 4.1)
 Imports:
-    reticulate (>= 1.46)
+    reticulate (>= 1.47)
 Suggests:
-    arrow,
-    curl,
-    devtools,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
@@ -32,7 +29,6 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 BugReports: https://github.com/birdnet-team/birdnetR/issues

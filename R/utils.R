@@ -1,6 +1,6 @@
 #' Report the Python environment
 #'
-#' Summarises the Python environment birdnetR runs on: the Python version and
+#' Summarizes the Python environment birdnetR runs on: the Python version and
 #' path, the installed `birdnet` Python package version, and which inference
 #' runtimes are installed. Useful for debugging environment issues.
 #'
@@ -143,9 +143,151 @@ is_scalar_number <- function(x) {
 }
 
 
+# Check whether an object is a single non-missing string.
+is_string <- function(x) {
+  is.character(x) && length(x) == 1L && !is.na(x)
+}
+
+
 # Check whether an object is a single non-missing logical value.
 is_scalar_logical <- function(x) {
   is.logical(x) && length(x) == 1L && !is.na(x)
+}
+
+
+# Stop with "`arg` must be <what>." unless `ok` is TRUE.
+check_arg <- function(ok, arg, what) {
+  if (!isTRUE(ok)) {
+    stop("`", arg, "` must be ", what, ".", call. = FALSE)
+  }
+}
+
+
+# `NULL`, or a whole number of at least `min`.
+is_null_or_count <- function(x, min) {
+  is.null(x) || (is_scalar_integer(x) && x >= min)
+}
+
+
+# The methods take `...` only to match their generic. A misspelled or renamed
+# argument would vanish in it and the call would run on defaults.
+check_dots_empty <- function(...) {
+  if (...length() == 0L) {
+    return(invisible())
+  }
+  args <- names(list(...))
+  if (is.null(args)) {
+    args <- rep("", ...length())
+  }
+  args <- ifelse(nzchar(args), paste0("`", args, "`"), "(unnamed)")
+  stop(
+    "Unknown argument", if (length(args) > 1L) "s", ": ",
+    paste(args, collapse = ", "), ". ",
+    "Check the spelling; some arguments were renamed in birdnetR 1.0 (see NEWS).",
+    call. = FALSE
+  )
+}
+
+
+# Audio file paths as an unnamed list, so reticulate passes a Python list[str]
+# whatever the length. `~` is expanded here because Python does not do it.
+check_files <- function(files) {
+  files <- unlist(files, use.names = FALSE)
+  check_arg(
+    is.character(files) && length(files) > 0L && !anyNA(files),
+    "files", "a character vector of audio file paths"
+  )
+  missing <- files[!file.exists(files)]
+  if (length(missing) > 0L) {
+    stop(
+      "The following audio file(s) do not exist:\n",
+      paste0("  - ", missing, collapse = "\n"),
+      call. = FALSE
+    )
+  }
+  as.list(path.expand(files))
+}
+
+
+# Check the arguments birdnet_predict() and birdnet_encode() share and return
+# them as keyword arguments for Python. NULLs are dropped, so Python uses its
+# own defaults. Whole numbers become integers: reticulate passes an R double
+# as a Python float.
+inference_kwargs <- function(
+  overlap,
+  bandpass_fmin,
+  bandpass_fmax,
+  progress,
+  n_producers,
+  n_workers,
+  batch_size,
+  prefetch_ratio,
+  speed,
+  half_precision,
+  max_audio_duration_min,
+  segment_size_s,
+  device
+) {
+  count <- "a whole number of at least 1 or `NULL`"
+  check_arg(is_scalar_number(overlap), "overlap", "a number")
+  check_arg(is_scalar_integer(bandpass_fmin), "bandpass_fmin", "a whole number")
+  check_arg(is_scalar_integer(bandpass_fmax), "bandpass_fmax", "a whole number")
+  check_arg(is_null_or_count(n_producers, 1), "n_producers", count)
+  check_arg(is_null_or_count(n_workers, 1), "n_workers", count)
+  check_arg(is_null_or_count(batch_size, 1), "batch_size", count)
+  check_arg(
+    is_null_or_count(prefetch_ratio, 0),
+    "prefetch_ratio", "a whole number of at least 0 or `NULL`"
+  )
+  check_arg(
+    is.null(speed) || (is_scalar_number(speed) && speed >= 0.01 && speed <= 100),
+    "speed", "a number between 0.01 and 100 or `NULL`"
+  )
+  check_arg(
+    is.null(half_precision) || is_scalar_logical(half_precision),
+    "half_precision", "`TRUE`, `FALSE` or `NULL`"
+  )
+  check_arg(
+    is.null(max_audio_duration_min) ||
+      (is_scalar_number(max_audio_duration_min) && max_audio_duration_min > 0),
+    "max_audio_duration_min", "a number above 0 or `NULL`"
+  )
+  check_arg(
+    is.null(segment_size_s) ||
+      (is_scalar_number(segment_size_s) && segment_size_s > 0),
+    "segment_size_s", "a number above 0 or `NULL`"
+  )
+  check_arg(
+    is.null(device) || is_valid_device(device),
+    "device", "\"CPU\", \"GPU\" or a character vector of devices, or `NULL`"
+  )
+
+  # birdnet sizes n_workers by CPU cores, and each worker loads its own model
+  # copy onto the device: on a GPU that is one worker per device
+  if (is.null(n_workers) && any(grepl("GPU", device))) {
+    n_workers <- length(device)
+  }
+
+  int <- function(x) if (!is.null(x)) as.integer(x)
+  c(
+    list(
+      overlap_duration_s = overlap,
+      bandpass_fmin = as.integer(bandpass_fmin),
+      bandpass_fmax = as.integer(bandpass_fmax),
+      show_stats = progress
+    ),
+    compact_nulls(list(
+      n_producers = int(n_producers),
+      n_workers = int(n_workers),
+      batch_size = int(batch_size),
+      prefetch_ratio = int(prefetch_ratio),
+      speed = speed,
+      half_precision = half_precision,
+      max_audio_duration_min = max_audio_duration_min,
+      segment_size_s = segment_size_s,
+      device = device
+    ))
+  )
 }
 
 

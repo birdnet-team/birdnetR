@@ -34,73 +34,70 @@
 \item{model}{A BirdNET model object of class \code{birdnet_model_acoustic}, see \code{\link[=birdnet_load]{birdnet_load()}}, \code{\link[=birdnet_load_perch]{birdnet_load_perch()}} and \code{\link[=birdnet_load_custom]{birdnet_load_custom()}}.}
 
 \item{files}{A character vector of one or more file paths to audio
-files. When multiple files are provided, the returned prediction
-object will contain results for all files; the resulting data frame
-(via \code{\link[=as.data.frame]{as.data.frame()}}) includes an \code{input} column identifying the
-source file for each prediction row.}
+files. The resulting data frame (via \code{\link[=as.data.frame]{as.data.frame()}}) has an \code{input}
+column that names the source file of each row.}
 
 \item{min_confidence}{A numeric value to set the minimum confidence threshold for predictions.}
 
 \item{min_confidence_custom}{A named list where each element is a single numeric value to set custom minimum confidence thresholds for specific species. A custom threshold will override the default one.}
 
-\item{top_k}{An integer specifying the number of top predictions to return for each time interval if above minimum confidence threshold. \code{NULL} returns every species above the threshold.}
+\item{top_k}{An integer specifying the number of top predictions to return for each segment if above minimum confidence threshold. \code{NULL} returns every species above the threshold.}
 
-\item{overlap}{A numeric value specifying the overlap duration in seconds between consecutive time intervals. Must be smaller than the segment length (3 s for BirdNET 2.4; see \code{segment_size_s} for 3.0).}
+\item{overlap}{A numeric value specifying the overlap duration in seconds between consecutive segments. Must be smaller than the segment length (3 s for BirdNET V2.4; see \code{segment_size_s} for V3.0).}
 
 \item{apply_sigmoid}{A logical value indicating whether to apply a sigmoid function to the confidence scores. If \code{NULL} (default), the model's own default is used.}
 
-\item{sigmoid_sensitivity}{A numeric value that adjusts the sensitivity of the sigmoid function. Must be in the interval [0.5, 1.5]. If \code{NULL} (default), the model's own default (1.0) is used.}
+\item{sigmoid_sensitivity}{A numeric value that shifts the sigmoid scores, see Details. Must be in the interval [0.5, 1.5]. If \code{NULL} (default), the model's own default (1.0) is used.}
 
-\item{bandpass_fmin, bandpass_fmax}{A integer value to set minimum and maximum frequencies for the bandpass filter (in Hz).}
+\item{bandpass_fmin, bandpass_fmax}{An integer value to set minimum and maximum frequencies for the bandpass filter (in Hz).}
 
 \item{species_list}{A character vector or list of species names to filter the predictions. If \code{NULL}, all species are considered.}
 
-\item{progress}{A character string specifying the type of progress reporting. Options are "minimal", "progress", or "benchmark".}
+\item{progress}{A character string specifying the type of progress reporting. Options are \code{"minimal"}, \code{"progress"}, or \code{"benchmark"}.}
 
-\item{n_producers}{An integer specifying the number of threads for producing audio batches. Must be >= 1. If \code{NULL} (default), the Python backend default is used.}
+\item{n_producers}{An integer specifying the number of processes that read and prepare audio batches. Must be >= 1. If \code{NULL} (default), the default of the \code{birdnet} Python package is used.}
 
-\item{n_workers}{An integer specifying the number of backend workers for parallel inference. Each worker loads its own copy of the model. If \code{NULL} (default), the Python backend auto-detects based on available CPU cores and memory; with a GPU \code{device}, one worker per device.}
+\item{n_workers}{An integer specifying the number of worker processes for parallel inference. Each worker loads its own copy of the model. If \code{NULL} (default), \code{birdnet} chooses based on available CPU cores and memory; with a GPU \code{device}, one worker per device.}
 
-\item{batch_size}{An integer specifying the number of audio segments evaluated per inference call. Must be >= 1. If \code{NULL} (default), the Python backend default is used.}
+\item{batch_size}{An integer specifying the number of audio segments evaluated per inference call. Must be >= 1. The BirdNET+ V3.0 \code{"pb"} and \code{"tf"} models only accept 1; use \code{n_workers} for parallelism there. If \code{NULL} (default), the default of the \code{birdnet} Python package (1) is used.}
 
-\item{prefetch_ratio}{An integer specifying how many batches to decode ahead of processing. Must be >= 0. If \code{NULL} (default), the Python backend default is used.}
+\item{prefetch_ratio}{An integer specifying how many batches to decode ahead of processing. Must be >= 0. If \code{NULL} (default), the default of the \code{birdnet} Python package is used.}
 
-\item{speed}{A numeric value for the resampling multiplier to accommodate different recording speeds. Must be in the interval [0.01, 100]. If \code{NULL} (default), the Python backend default is used.}
+\item{speed}{A numeric value for the resampling multiplier to accommodate different recording speeds. Must be in the interval [0.01, 100]. If \code{NULL} (default), the default of the \code{birdnet} Python package is used.}
 
-\item{half_precision}{A logical value indicating whether to use float16 where supported for inference. If \code{NULL} (default), the Python backend default is used.}
+\item{half_precision}{A logical value indicating whether to store the model's outputs as float16 (inference itself runs at the model's precision). If \code{NULL} (default), the default of the \code{birdnet} Python package is used.}
 
-\item{max_audio_duration_min}{A numeric value specifying the maximum total audio duration per call in minutes. Must be > 0. If \code{NULL} (default), no limit is applied.}
+\item{max_audio_duration_min}{A numeric value specifying the longest single input in minutes. Must be > 0. If \code{NULL} (default), no limit is applied.}
 
-\item{apply_softmax}{A logical value. If \code{TRUE}, scores become a softmax over the model's logits (e.g. for Perch v2). Not supported by models that apply the sigmoid inside the model (BirdNET 3.0, Raven exports). If \code{NULL} (default), the model's own default (\code{FALSE}) is used.}
+\item{apply_softmax}{A logical value. If \code{TRUE}, scores become a softmax over the model's logits (e.g. for Perch v2). Not supported by models that apply the sigmoid inside the model (BirdNET+ V3.0, Raven exports). If \code{NULL} (default), the model's own default (\code{FALSE}) is used.}
 
-\item{segment_size_s}{A numeric value: length of the analysed segments in seconds (BirdNET 3.0 only; it accepts variable-length input). If \code{NULL} (default), the model's own default is used.}
+\item{segment_size_s}{A numeric value: length of the analyzed segments in seconds (BirdNET+ V3.0 only; it accepts variable-length input). If \code{NULL} (default), the model's own default is used.}
 
 \item{device}{A character string, \code{"CPU"} or \code{"GPU"} (or a vector of devices). If \code{NULL} (default), the CPU is used. See \code{\link[=birdnet_use_gpu]{birdnet_use_gpu()}}.}
 
-\item{...}{Additional arguments passed to the generic (currently unused).}
+\item{...}{Not used. Passing any other argument is an error.}
 }
 \value{
 An S3 object of class \code{birdnet_prediction_acoustic} and \code{birdnet_prediction} containing the prediction results.
 }
 \description{
-Identifies species in audio files with an acoustic model (BirdNET 3.0 or
-2.4, Perch v2 or a custom classifier).
+Identifies species in audio files with an acoustic model (BirdNET+ V3.0,
+BirdNET V2.4, Perch v2 or a custom classifier).
 }
 \details{
-\subsection{Sigmoid Activation}{
+\subsection{Confidence scores}{
 
 With \code{apply_sigmoid = NULL} (default) each model uses its own default:
-BirdNET and custom models apply the sigmoid, Perch v2 does not.
-When \code{apply_sigmoid = TRUE}, the raw logit scores from the linear classifier are passed
-through a sigmoid function, scaling them into the range [0, 1]. This unitless confidence
-score reflects BirdNET's certainty in its prediction (it is not a direct probability of species presence).
-Adjusting the \code{sigmoid_sensitivity} parameter modifies the score distribution:
-\itemize{
-\item Values \strong{< 1} tend to produce more extreme scores (closer to 0 or 1).
-\item Values \strong{> 1} result in scores that are more moderate (centered around intermediate values).
-}
+BirdNET models and custom classifiers return sigmoid scores between 0 and 1,
+Perch v2 returns raw model outputs (logits). A score reflects how certain the
+model is. It is not the probability that the species is present.
 
-For additional details on BirdNET confidence scores and guidelines for converting them to probabilities, see Wood & Kahl (2024).
+\code{sigmoid_sensitivity} shifts the scores: values above 1 raise them, values
+below 1 lower them (the logits are shifted by
+\code{10 * (sigmoid_sensitivity - 1)} before the sigmoid). It has no effect with
+\code{apply_sigmoid = FALSE}.
+
+For guidelines on BirdNET scores and on converting them to probabilities, see Wood & Kahl (2024).
 }
 }
 \examples{

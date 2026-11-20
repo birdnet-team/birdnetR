@@ -1,8 +1,6 @@
 #' BirdNET for R
 #'
-#' `birdnetR` is a wrapper around the python package `birdnet`.
-#'
-#' @import reticulate
+#' birdnetR is a wrapper around the Python package `birdnet`.
 #'
 #' @docType package
 #' @keywords internal
@@ -10,11 +8,7 @@
 #' @aliases birdnetR
 "_PACKAGE"
 
-## usethis namespace: start
-#' @importFrom reticulate py_require import
-## usethis namespace: end
-
-# Import the necessary Python modules layzily in .onLoad
+# Import the necessary Python modules lazily in .onLoad
 py_birdnet <- NULL
 py_birdnet_globals <- NULL
 py_builtins <- NULL
@@ -105,6 +99,18 @@ use_managed_python <- function() {
 }
 
 
+#' Keep Keras out of the user's home directory
+#'
+#' Keras writes its config to `~/.keras` unless `KERAS_HOME` points elsewhere.
+#' A `KERAS_HOME` the user set is kept.
+#' @noRd
+use_private_keras_home <- function() {
+  if (!nzchar(Sys.getenv("KERAS_HOME"))) {
+    Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
+  }
+}
+
+
 #' Initialize birdnetR Package
 #'
 #' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
@@ -114,8 +120,7 @@ use_managed_python <- function() {
 #' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
-  # set the KERAS_HOME environment variable (dont't write to user home)
-  Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
+  use_private_keras_home()
 
   # use reticulate's self-managed, ephemeral virtual environment unless the
   # user pointed RETICULATE_PYTHON at their own Python

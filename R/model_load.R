@@ -52,7 +52,7 @@ construct_model_class <- function(
 # `switch()` matches numbers by position, so `version = 3.0` would silently
 # become "3"; refuse anything that is not a single string.
 check_version <- function(version) {
-  if (!is.character(version) || length(version) != 1L || is.na(version)) {
+  if (!is_string(version)) {
     stop(
       "`version` must be a string, e.g. \"3.0\" or \"2.4\".",
       call. = FALSE
@@ -65,6 +65,10 @@ check_version <- function(version) {
 # Default backend for an official model version: 3.0 runs on the base
 # install via ONNX, 2.4 via the tf backend (LiteRT where available).
 resolve_backend <- function(version, backend) {
+  check_arg(
+    is.null(backend) || is_string(backend),
+    "backend", "a string or `NULL`"
+  )
   if (!is.null(backend)) {
     return(backend)
   }
@@ -73,15 +77,14 @@ resolve_backend <- function(version, backend) {
     "3.0" = "onnx",
     "2.4" = "tf",
     stop(
-      "No default backend for version '", version, "'. ",
-      "Set `backend`; see birdnet_list_models().",
+      "`version` must be \"3.0\" or \"2.4\", not \"", version, "\".",
       call. = FALSE
     )
   )
 }
 
 
-# Is LiteRT part of the base install? Never starts Python: before it runs,
+# Is LiteRT part of the default installation? Never starts Python: before it runs,
 # decide by platform (mirrors the wheel marker of `ai-edge-litert` in birdnet
 # 1.5: Linux, macOS arm64, Windows x86-64); afterwards, look the module up
 # without importing it.
@@ -113,7 +116,7 @@ resolve_library <- function(backend, library) {
 }
 
 
-# Which birdnet extra a backend needs on top of the base install, if any.
+# Which birdnet extra a backend needs on top of the default installation, if any.
 needed_extra <- function(backend, library, is_raven = NULL) {
   if (backend == "pb" || identical(library, "tflite") || isTRUE(is_raven)) {
     return("tf")
@@ -156,19 +159,20 @@ require_extra_for <- function(backend, library, is_raven = NULL) {
 #' `version`: `"3.0"` (BirdNET+ V3.0, the default) or `"2.4"`.
 #'
 #' `backend`:
-#' * `"onnx"`: ONNX Runtime (3.0 only). Part of the base install; the default for 3.0.
-#' * `"tf"`: TensorFlow Lite model, CPU only. The default for 2.4.
+#' * `"onnx"`: ONNX Runtime (3.0 only). Part of the default installation; the default for 3.0.
+#' * `"tf"`: TensorFlow Lite (TFLite) model, CPU only. The default for 2.4.
 #' * `"pt"`: PyTorch (3.0 only), CPU or GPU. Installs `birdnet[pt]` on first use.
 #' * `"pb"`: TensorFlow SavedModel (Protobuf), CPU or GPU. Installs `birdnet[tf]` on first use.
 #'
 #' If `backend` is `NULL`, it follows the version: `"onnx"` for 3.0 and `"tf"` for 2.4.
 #'
 #' `library` only applies to `backend = "tf"`:
-#' * `"litert"`: the LiteRT interpreter, part of the base install where it has wheels.
+#' * `"litert"`: the LiteRT interpreter, part of the default installation on the platforms listed below.
 #' * `"tflite"`: TensorFlow's own interpreter. Installs `birdnet[tf]` on first use.
 #'
 #' If `library` is `NULL`, LiteRT is used where it is available (Linux, macOS on
-#' Apple silicon, Windows on x86-64), otherwise `"tflite"`.
+#' Apple silicon, Windows on x86-64), otherwise `"tflite"`. The geo 3.0 model
+#' always uses `"tflite"`.
 #'
 #' `precision`: `"fp32"`, `"fp16"` or `"int8"`; not every model supports every precision.
 #'
@@ -176,13 +180,13 @@ require_extra_for <- function(backend, library, is_raven = NULL) {
 #' are not part of the default installation. They are added automatically the
 #' first time a model needs them, which can take a while.
 #'
-#' The Perch v2 model is not supported on Intel macOS.
+#' The Perch v2 model is not supported on Intel Macs.
 #'
 #' Use [birdnet_list_models()] for all valid combinations and which ones need
 #' an extra download.
 #'
 #' @param type character. `"acoustic"` or `"geo"`.
-#' @param version character. Model version, e.g. `"3.0"` or `"2.4"`. For custom models `"auto"` reads it from the file (TFLite only).
+#' @param version character. Model version, `"3.0"` or `"2.4"`. For custom classifiers `"auto"` reads it from the file (TFLite only).
 #' @param backend character or `NULL`. `"onnx"`, `"tf"`, `"pt"` or `"pb"`.
 #' @param library character or `NULL`. `"litert"` or `"tflite"`. Only applies to `backend = "tf"`.
 #' @param precision character. `"fp32"`, `"fp16"` or `"int8"`.
@@ -198,15 +202,22 @@ require_extra_for <- function(backend, library, is_raven = NULL) {
 #'
 #' @examples
 #' \dontrun{
-#' # BirdNET 3.0 acoustic model (default)
+#' # BirdNET+ V3.0 acoustic model (default)
 #' model <- birdnet_load()
 #'
-#' # BirdNET 2.4 and the 3.0 geo model
+#' # BirdNET V2.4 and the V3.0 geo model
 #' model_24 <- birdnet_load(version = "2.4")
 #' geo <- birdnet_load(type = "geo")
 #'
 #' # Perch v2
 #' perch <- birdnet_load_perch()
+#'
+#' # A custom classifier trained with BirdNET-Analyzer: describe it, then load it
+#' birdnet_inspect_custom("path/to/CustomClassifier.tflite")
+#' custom <- birdnet_load_custom(
+#'   model = "path/to/CustomClassifier.tflite",
+#'   species_list = "path/to/CustomClassifier_Labels.txt"
+#' )
 #' }
 NULL
 
@@ -224,6 +235,10 @@ birdnet_load <- function(
 ) {
   check_version(version)
   backend <- resolve_backend(version, backend)
+  if (is.null(library) && identical(c(type, version, backend), c("geo", "3.0", "tf"))) {
+    # the birdnet Python package refuses LiteRT for this model
+    library <- "tflite"
+  }
   library <- resolve_library(backend, library)
   require_extra_for(backend, library)
 
@@ -252,7 +267,7 @@ birdnet_load <- function(
 #' @export
 birdnet_load_perch <- function(device = "CPU") {
   if (is_intel_mac()) {
-    stop("The Perch v2 model is not supported on Intel macOS.", call. = FALSE)
+    stop("The Perch v2 model is not supported on Intel Macs.", call. = FALSE)
   }
   require_birdnet_extra("tf")
   py_model <- py_birdnet$load_perch_v2(device)
@@ -280,10 +295,10 @@ birdnet_load_perch <- function(device = "CPU") {
 
 
 #' @rdname birdnet_load
-#' @param model character. Path to the custom model: a `.tflite` file for `backend = "tf"`, a directory for `backend = "pb"`.
-#' @param species_list character. Path to the species list (labels) file of the custom model.
+#' @param model character. Path to the custom classifier: a `.tflite` file for `backend = "tf"`, a directory for `backend = "pb"`.
+#' @param species_list character. Path to the label file of the custom classifier.
 #' @param check_validity logical. Check that the model can be loaded before using it.
-#' @param is_raven logical or `NULL`. Set `TRUE` for a Raven export (`backend = "pb"`).
+#' @param is_raven logical or `NULL`. Only for `backend = "pb"`: is the classifier a Raven export? `NULL` (default) uses the default of the `birdnet` Python package: `TRUE` for a 2.4 classifier, `FALSE` for a 3.0 one. Set `FALSE` for a 2.4 classifier that is not a Raven export.
 #' @export
 birdnet_load_custom <- function(
   model,
@@ -300,6 +315,7 @@ birdnet_load_custom <- function(
     stop("Both `model` and `species_list` must be provided.", call. = FALSE)
   }
   check_version(version)
+  check_arg(is_string(backend), "backend", "a string")
   # Python does not expand `~`
   model <- path.expand(model)
   species_list <- path.expand(species_list)

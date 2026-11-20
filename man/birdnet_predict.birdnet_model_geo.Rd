@@ -27,13 +27,13 @@
 
 \item{min_confidence}{A numeric value to set the minimum confidence threshold for predictions.}
 
-\item{half_precision}{A logical value indicating whether to use float16 where supported for inference. If \code{NULL} (default), the Python backend default is used.}
+\item{half_precision}{A logical value indicating whether to store the model's outputs as float16 (inference itself runs at the model's precision). If \code{NULL} (default), the default of the \code{birdnet} Python package is used.}
 
 \item{year_round_aggregation}{\code{"max"} or \code{"average"}: how weekly scores are combined when \code{week = NULL}. If \code{NULL} (default), the model's own default (\code{"max"}) is used.}
 
 \item{device}{A character string, \code{"CPU"} or \code{"GPU"}. If \code{NULL} (default), the CPU is used.}
 
-\item{...}{Additional arguments passed to the generic (currently unused).}
+\item{...}{Not used. Passing any other argument is an error.}
 }
 \value{
 An S3 object of class \code{birdnet_prediction_geo} and \code{birdnet_prediction} containing the prediction results.

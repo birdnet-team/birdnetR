@@ -35,7 +35,7 @@ birdnet_inspect_custom(model, library = NULL)
 \arguments{
 \item{type}{character. \code{"acoustic"} or \code{"geo"}.}
 
-\item{version}{character. Model version, e.g. \code{"3.0"} or \code{"2.4"}. For custom models \code{"auto"} reads it from the file (TFLite only).}
+\item{version}{character. Model version, \code{"3.0"} or \code{"2.4"}. For custom classifiers \code{"auto"} reads it from the file (TFLite only).}
 
 \item{backend}{character or \code{NULL}. \code{"onnx"}, \code{"tf"}, \code{"pt"} or \code{"pb"}.}
 
@@ -47,13 +47,13 @@ birdnet_inspect_custom(model, library = NULL)
 
 \item{device}{character. \code{"CPU"} (default) or \code{"GPU"} (see \code{\link[=birdnet_use_gpu]{birdnet_use_gpu()}}).}
 
-\item{model}{character. Path to the custom model: a \code{.tflite} file for \code{backend = "tf"}, a directory for \code{backend = "pb"}.}
+\item{model}{character. Path to the custom classifier: a \code{.tflite} file for \code{backend = "tf"}, a directory for \code{backend = "pb"}.}
 
-\item{species_list}{character. Path to the species list (labels) file of the custom model.}
+\item{species_list}{character. Path to the label file of the custom classifier.}
 
 \item{check_validity}{logical. Check that the model can be loaded before using it.}
 
-\item{is_raven}{logical or \code{NULL}. Set \code{TRUE} for a Raven export (\code{backend = "pb"}).}
+\item{is_raven}{logical or \code{NULL}. Only for \code{backend = "pb"}: is the classifier a Raven export? \code{NULL} (default) uses the default of the \code{birdnet} Python package: \code{TRUE} for a 2.4 classifier, \code{FALSE} for a 3.0 one. Set \code{FALSE} for a 2.4 classifier that is not a Raven export.}
 }
 \value{
 A BirdNET model object (S3 class \code{birdnet_model} with type-, backend- and version-specific subclasses).
@@ -89,8 +89,8 @@ with \code{\link[=suppressMessages]{suppressMessages()}}.
 
 \code{backend}:
 \itemize{
-\item \code{"onnx"}: ONNX Runtime (3.0 only). Part of the base install; the default for 3.0.
-\item \code{"tf"}: TensorFlow Lite model, CPU only. The default for 2.4.
+\item \code{"onnx"}: ONNX Runtime (3.0 only). Part of the default installation; the default for 3.0.
+\item \code{"tf"}: TensorFlow Lite (TFLite) model, CPU only. The default for 2.4.
 \item \code{"pt"}: PyTorch (3.0 only), CPU or GPU. Installs \code{birdnet[pt]} on first use.
 \item \code{"pb"}: TensorFlow SavedModel (Protobuf), CPU or GPU. Installs \code{birdnet[tf]} on first use.
 }
@@ -99,12 +99,13 @@ If \code{backend} is \code{NULL}, it follows the version: \code{"onnx"} for 3.0 
 
 \code{library} only applies to \code{backend = "tf"}:
 \itemize{
-\item \code{"litert"}: the LiteRT interpreter, part of the base install where it has wheels.
+\item \code{"litert"}: the LiteRT interpreter, part of the default installation on the platforms listed below.
 \item \code{"tflite"}: TensorFlow's own interpreter. Installs \code{birdnet[tf]} on first use.
 }
 
 If \code{library} is \code{NULL}, LiteRT is used where it is available (Linux, macOS on
-Apple silicon, Windows on x86-64), otherwise \code{"tflite"}.
+Apple silicon, Windows on x86-64), otherwise \code{"tflite"}. The geo 3.0 model
+always uses \code{"tflite"}.
 
 \code{precision}: \code{"fp32"}, \code{"fp16"} or \code{"int8"}; not every model supports every precision.
 
@@ -112,21 +113,28 @@ Heavy runtimes (TensorFlow for \code{"pb"}, \code{"tflite"} and Perch; PyTorch f
 are not part of the default installation. They are added automatically the
 first time a model needs them, which can take a while.
 
-The Perch v2 model is not supported on Intel macOS.
+The Perch v2 model is not supported on Intel Macs.
 
 Use \code{\link[=birdnet_list_models]{birdnet_list_models()}} for all valid combinations and which ones need
 an extra download.
 }
 \examples{
 \dontrun{
-# BirdNET 3.0 acoustic model (default)
+# BirdNET+ V3.0 acoustic model (default)
 model <- birdnet_load()
 
-# BirdNET 2.4 and the 3.0 geo model
+# BirdNET V2.4 and the V3.0 geo model
 model_24 <- birdnet_load(version = "2.4")
 geo <- birdnet_load(type = "geo")
 
 # Perch v2
 perch <- birdnet_load_perch()
+
+# A custom classifier trained with BirdNET-Analyzer: describe it, then load it
+birdnet_inspect_custom("path/to/CustomClassifier.tflite")
+custom <- birdnet_load_custom(
+  model = "path/to/CustomClassifier.tflite",
+  species_list = "path/to/CustomClassifier_Labels.txt"
+)
 }
 }
