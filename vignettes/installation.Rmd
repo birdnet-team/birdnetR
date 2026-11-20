@@ -39,7 +39,7 @@ Python package with [uv](https://docs.astral.sh/uv/) and keeps them in a cache.
 The first setup takes a few minutes; later sessions reuse the cache and start
 within seconds.
 
-The default setup contains ONNX Runtime and LiteRT. It runs BirdNET+ V3.0 and
+The default installation contains ONNX Runtime and LiteRT. It runs BirdNET+ V3.0 and
 BirdNET V2.4, and custom TFLite classifiers trained on V2.4.
 
 `birdnet_sitrep()` shows which Python and which `birdnet` version birdnetR
@@ -48,7 +48,7 @@ uses (see [Troubleshoot](Troubleshoot.html#reporting-a-problem)).
 
 ## Extra downloads
 
-Some models need TensorFlow or PyTorch on top of the default setup:
+Some models need TensorFlow or PyTorch on top of the default installation:
 
 | You load | birdnetR installs | Download |
 |---|---|---|
@@ -83,6 +83,9 @@ sessions use it afterwards.
 
 ### Intel Macs
 
+birdnetR is not tested on Intel Macs. If something does not work there,
+please [report it](https://github.com/birdnet-team/birdnetR/issues).
+
 On Intel Macs, TensorFlow can only be added before Python starts. If you load
 a model that needs TensorFlow after Python has started (for example after
 loading another model), birdnetR stops with:
@@ -93,6 +96,22 @@ On Intel Macs, TensorFlow must be added before Python starts. Restart R and make
 
 Restart R and load the TensorFlow model first. Perch v2 does not run on Intel
 Macs at all.
+
+
+## Pinning the `birdnet` version
+
+birdnetR installs the newest `birdnet` Python package from 1.5 up to, but not
+including, 2.0. To stay on one exact version, for example to reproduce earlier
+results, set the environment variable `BIRDNETR_BIRDNET_VERSION` before you
+load birdnetR, in your `.Renviron` file or with `Sys.setenv()`:
+
+```{r}
+Sys.setenv(BIRDNETR_BIRDNET_VERSION = "==1.5.0")
+library(birdnetR)
+```
+
+Only an exact version of the form `==x.y.z` is accepted. Anything else gives a
+warning and the default range is used.
 
 
 ## Your own Python environment

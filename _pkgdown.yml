@@ -42,7 +42,7 @@ reference:
   - starts_with("birdnet_predict")
   - as.data.frame.birdnet_prediction
   - birdnet_write
-- title: Encoding
+- title: Embeddings
 - contents:
   - birdnet_encode
   - as.data.frame.birdnet_encoding

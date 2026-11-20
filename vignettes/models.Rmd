@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 | BirdNET V2.4 geo | `birdnet_load(type = "geo", version = "2.4")` | 6,522 | CC BY-NC-SA 4.0 |
 | Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
 
-CC BY-NC-SA 4.0 allows non-commercial use only; educational and research use count as non-commercial. See the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). For details on each model (sample rates, segment lengths, embedding sizes), see the [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
+CC BY-NC-SA 4.0 allows non-commercial use only; educational and research use counts as non-commercial. See the [license section of the Python package](https://github.com/birdnet-team/birdnet#license). For details on each model (sample rates, segment lengths, embedding sizes), see the [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
 
 
 ## Variants: `birdnet_list_models()`

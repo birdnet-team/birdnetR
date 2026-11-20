@@ -68,6 +68,11 @@ the GPU is used:
 predictions <- birdnet_predict(model, files, device = "GPU", batch_size = 32L)
 ```
 
+Larger batches work with the PyTorch (`"pt"`) and ONNX Runtime (`"onnx"`)
+backends, with BirdNET V2.4 and with Perch v2. The BirdNET+ V3.0 model on the
+TensorFlow backend (`"pb"`) only accepts `batch_size = 1`. Tune `n_workers`
+there and skip the `batch_size` steps below.
+
 The best values depend on your GPU, so time a sample of your data (for
 example 30 minutes of audio):
 

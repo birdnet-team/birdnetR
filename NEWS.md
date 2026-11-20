@@ -5,7 +5,7 @@ birdnetR 1.0 is a breaking release. It wraps version 1.5 of the Python
 functions have new `birdnet_<verb>` names. The old functions are removed
 without a deprecation cycle; the table below maps them to the new ones.
 
-## Upgrading from birdnetR 0.3.2
+## Upgrading from birdnetR 0.x
 
 | 0.3.2 | 1.0.0 |
 |---|---|
@@ -15,7 +15,7 @@ without a deprecation cycle; the table below maps them to the new ones.
 | `birdnet_model_custom(classifier_folder, classifier_name)` | `birdnet_load_custom(model = "<folder>/<name>.tflite", species_list = "<folder>/<name>_Labels.txt")` |
 | `predict_species_from_audio_file(model, audio_file)` | `birdnet_predict(model, files = audio_file)`, then `as.data.frame()` |
 | `predict_species_at_location_and_time(model, latitude, longitude, week)` | `birdnet_predict(model, latitude = , longitude = , week = )`, then `as.data.frame()` |
-| `labels_path(model)`, `read_labels(species_file)` | `birdnet_list_species(model)` |
+| `labels_path(model)`, `read_labels(species_file)` | `birdnet_list_species(model)`; read your own list file with `readLines()` |
 | `available_languages(version)` | `birdnet_list_languages(version)` |
 | `get_top_prediction()` | Removed; use `dplyr::slice_max()` or birdnetTools |
 | `install_arrow()` | Removed; not needed |
@@ -49,6 +49,7 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
 
 ## Breaking changes
 
+- Requires R >= 4.1 and reticulate >= 1.47.
 - Requires the Python package `birdnet` >= 1.5 (< 2) and Python 3.11 to 3.13.
   reticulate installs both on first use, as before.
 - `birdnet_load()` loads BirdNET+ V3.0 by default. Use `version = "2.4"` for the
@@ -65,15 +66,17 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   `top_k = NULL` for that.
 - `apply_sigmoid` and `sigmoid_sensitivity` default to `NULL`, which means
   each model uses its own default.
-- Loading the protobuf model on macOS no longer installs `tensorflow-metal`.
+- Loading the Protobuf model on macOS no longer installs `tensorflow-metal`.
   Use `birdnet_use_gpu("pb")` for GPU support.
 
 ## New features
 
 - BirdNET+ V3.0 acoustic and geo models. They run on ONNX Runtime, which is
   part of the default installation on every platform.
+- `birdnet_load()` gains `precision` (`"fp32"`, `"fp16"`, `"int8"`) and
+  `library` (the TFLite interpreter: LiteRT or TensorFlow's own).
 - `birdnet_load_perch()` loads Google's Perch v2 acoustic model (not supported
-  on Intel macOS).
+  on Intel Macs).
 - `birdnet_encode()` returns embeddings (one vector per audio segment).
 - `birdnet_load_custom()` loads classifiers trained with BirdNET-Analyzer on
   the 2.4 or 3.0 base model. `version = "auto"` reads the base version from a
@@ -82,8 +85,7 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   `backend = "pb"` and `is_raven = TRUE`: scores span the full 0 to 1 range
   (the sigmoid is applied once), species names come from the label file
   without its id column, and `birdnet_encode()` does not work with them.
-- Smaller default installation: the base install contains ONNX Runtime and
-  LiteRT only. TensorFlow (for Perch, `backend = "pb"` and Raven exports) and
+- Smaller default installation: it contains ONNX Runtime and LiteRT only. TensorFlow (for Perch, `backend = "pb"` and Raven exports) and
   PyTorch (for `backend = "pt"`) are installed automatically the first time a
   model needs them.
 - `birdnet_list_models()` lists every model combination the installed Python
@@ -93,14 +95,16 @@ For BirdNET models, `species_name` is `"<scientific name>_<common name>"`.
   common names and the classes of a loaded model.
 - `birdnet_predict()` for acoustic models accepts several files at once and
   gains `top_k`, `min_confidence_custom`, `apply_softmax`, `segment_size_s`
-  (3.0 only), `device`, and settings for speed and memory (`n_workers`,
-  `n_producers`, `prefetch_ratio`, `speed`, `half_precision`,
+  (3.0 only), `device`, `progress`, and settings for speed and memory
+  (`n_workers`, `n_producers`, `prefetch_ratio`, `speed`, `half_precision`,
   `max_audio_duration_min`). Settings left at `NULL` use the Python defaults.
 - `birdnet_predict()` for geo models gains `year_round_aggregation` (how
   weekly scores are combined when `week = NULL`), `half_precision` and
   `device`.
 - `birdnet_write()` writes predictions and embeddings straight from Python to
   CSV, Parquet or NumPy (`.npz`) files.
+- The environment variable `BIRDNETR_BIRDNET_VERSION` pins the version of the
+  `birdnet` Python package, for example `"==1.5.0"`.
 - `birdnet_sitrep()` reports the Python version and path, the `birdnet`
   version and the installed runtimes. Include its output in bug reports.
 - `birdnet_use_gpu()` sets up GPU support (PyTorch on Linux, TensorFlow on

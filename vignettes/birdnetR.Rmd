@@ -39,7 +39,7 @@ pak::pak("birdnet-team/birdnetR")
 
 <div style="padding: 15px; margin-bottom: 20px; border: 1px solid #bce8f1; border-radius: 4px; background-color: #d9edf7; color: #31708f;">
 <strong>Note</strong><br>
- You don't need to install Python yourself. On first use, birdnetR sets up Python and the `birdnet` package for you. The first setup takes a few minutes. TensorFlow or PyTorch are downloaded only when you first load a model that needs them. See [Installation and setup](installation.html) for details.
+ You don't need to install Python yourself. On first use, birdnetR sets up Python and the `birdnet` package for you. The first setup takes a few minutes. TensorFlow and PyTorch are downloaded only when you first load a model that needs them. See [Installation and setup](installation.html) for details.
 </div>
 
 
@@ -56,7 +56,7 @@ model <- birdnet_load()
 
 Every load prints one line: the model, its backend, precision, language and number of classes. Use `suppressMessages(birdnet_load())` to load quietly. `print(model)` shows the same line again.
 
-BirdNET+ V3.0 recognises about 11,700 classes, including many non-bird animals such as frogs, insects and mammals. The exact number depends on the model release.
+BirdNET+ V3.0 recognizes about 11,700 classes, including many non-bird animals such as frogs, insects and mammals. The exact number depends on the model release.
 
 
 ### Identify species in an audio file
@@ -94,7 +94,7 @@ If several species score above `min_confidence` in the same segment, you get one
 
 ### Process many files
 
-Pass a vector of paths to analyse several files in one call:
+Pass a vector of paths to analyze several files in one call:
 
 ```{r several_files}
 files <- list.files("recordings", pattern = "\\.wav$", full.names = TRUE)
@@ -132,7 +132,7 @@ iteration replaces the previous prediction object.
 | Format  | Best for | Notes |
 |---------|----------|-------|
 | CSV     | birdnetTools, quick inspection, other software | Human-readable; largest file size |
-| Parquet | Large datasets analysed in R or Python | Columnar; much smaller than CSV |
+| Parquet | Large datasets analyzed in R or Python | Columnar; much smaller than CSV |
 | NPZ     | NumPy-based pipelines | Compact; requires Python to read |
 
 Parquet is not supported for geo predictions; use CSV or NPZ instead.
@@ -189,7 +189,7 @@ model_24 <- birdnet_load(version = "2.4")
 #> BirdNET acoustic 2.4 · tf/litert · fp32 · en_us · 6,522 classes
 ```
 
-[Perch v2](https://www.kaggle.com/models/google/bird-vocalization-classifier) is an acoustic model by Google with 14,795 classes (birds and other animals). It analyses 5-second segments.
+[Perch v2](https://www.kaggle.com/models/google/bird-vocalization-classifier) is an acoustic model by Google with 14,795 classes (birds and other animals). It analyzes 5-second segments.
 
 ```{r perch}
 perch <- birdnet_load_perch()
@@ -312,7 +312,7 @@ str(info)
 - `supports_encoding`: whether `birdnet_encode()` works with it.
 - `input_samples`: the number of audio samples per segment (`NULL` if any length is accepted).
 
-To load it, give the paths to the model file and the species list file. birdnetR reads the base version from the file:
+To load it, give the paths to the model file and the label file. birdnetR reads the base version from the file:
 
 ```{r init_custom_model}
 custom_model <- birdnet_load_custom(
@@ -354,7 +354,7 @@ Each model comes in several variants (backends and precisions). The [Models and 
 
 ## Next steps
 
-To filter, visualise, or validate your predictions, use the
+To filter, visualize, or validate your predictions, use the
 [birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html) package.
 It filters detections by species, confidence or date, draws heatmaps, and has
 an interactive app for reviewing detections and setting a confidence threshold

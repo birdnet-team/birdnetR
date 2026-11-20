@@ -28,7 +28,7 @@ A typical R workflow looks like this:
    or `birdnet_load_custom()`.
 3. Run `birdnet_predict()` on your audio files and save the results with
    `birdnet_write()`.
-4. Read the results into **birdnetTools** for filtering, visualisation, and
+4. Read the results into **birdnetTools** for filtering, visualization, and
    validation.
 
 For code examples, see the
@@ -80,7 +80,7 @@ It provides functions for:
 
 - combining outputs from multiple files or recording sessions,
 - filtering detections by species, confidence score, date, or time of day,
-- visualising temporal detection patterns as heatmaps,
+- visualizing temporal detection patterns as heatmaps,
 - running an interactive Shiny app to review and label detections,
 - calculating species-specific confidence thresholds to achieve a target
   precision.
@@ -91,13 +91,11 @@ with any BirdNET-style data frame.
 ### Handing results to birdnetTools
 
 birdnetR keeps the column names of the Python package: `input`, `start_time`,
-`end_time`, `species_name` and `confidence`. The next birdnetTools release
-(after 0.1.0) recognises these columns, so you can pass birdnetR output to it
-directly.
+`end_time`, `species_name` and `confidence`.
 
-birdnetTools 0.1.0 and older expect a `filepath` column and the species name
-split into `scientific_name` and `common_name`. Add these columns before you
-pass the data on. The species name is split at its first underscore:
+birdnetTools expects a `filepath` column and the species name split into
+`scientific_name` and `common_name`. Add these columns before you pass the
+data on. The species name is split at its first underscore:
 
 ```{r rename_for_birdnettools}
 df <- as.data.frame(predictions)

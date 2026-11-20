@@ -42,8 +42,8 @@ Please include this output when you
 
 After birdnetR has installed TensorFlow or PyTorch during a session (see
 [Extra downloads](installation.html#extra-downloads)), `python_executable`
-points to a different folder than before. That is expected: reticulate adds the new packages as an
-extra layer on top of the existing environment.
+points to a different folder than before. That is expected: reticulate adds
+the new packages as an extra layer on top of the existing environment.
 
 
 ## Long wait on the first load
@@ -54,23 +54,16 @@ birdnetR is downloading Python packages, and for TensorFlow or PyTorch that is
 [Download progress](installation.html#download-progress).
 
 
-## Long pause after prediction
+## `as.data.frame()` is slow on large results
 
-If you notice a long pause after BirdNET has finished processing your audio but before you get the results, this is probably the conversion from Python to R in `as.data.frame()`. This is particularly noticeable when:
+`birdnet_predict()` keeps its results in Python. `as.data.frame()` copies
+them into R, which takes time and memory when there are many detections, for
+example with many hours of audio, a low `min_confidence` or `top_k = NULL`.
 
-- processing long audio files (> 20 minutes),
-- using low confidence thresholds that generate many predictions (`min_confidence < 0.1`),
-- working with little memory.
-
-### Solution: use `birdnet_write()`
-
-For large results, use `birdnet_write()` to write them directly from Python to a file (CSV, Parquet, or NumPy) without converting them to an R data frame first.
+If you don't need the results in R right away, write them to a file instead.
+`birdnet_write()` writes CSV, Parquet or NumPy files straight from Python:
 
 ```{r}
-model <- birdnet_load()
-predictions <- birdnet_predict(model, audio_path)
-
-# Write directly from Python - no R conversion needed
 birdnet_write(predictions, "results.csv")
 ```
 

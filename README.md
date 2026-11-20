@@ -6,13 +6,15 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/birdnetR)](https://CRAN.R-project.org/package=birdnetR)
 <!-- badges: end -->
 
-> [!NOTE]
-> **birdnetR 1.0 is a breaking release.** All functions have new
-> `birdnet_<verb>` names, and BirdNET+ V3.0 is the default model. If you are
-> upgrading from 0.x, see [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x) below.
+> **Note:** This README describes the development version, birdnetR 1.0. It is
+> a breaking release and not on CRAN yet: all functions have new
+> `birdnet_<verb>` names, and BirdNET+ V3.0 is the default model. CRAN still
+> has 0.3.2, which is documented at <https://birdnet-team.github.io/birdnetR/>.
+> If you are upgrading from 0.x, see
+> [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x) below.
 
 `birdnetR` brings [BirdNET](https://birdnet.cornell.edu/) to R. BirdNET is a deep learning model that identifies birds and many other animals by their sounds.
-birdnetR helps you analyse audio from bioacoustic projects, from a few recordings to large datasets, even without a background in computer science.
+birdnetR helps you analyze audio from bioacoustic projects, from a few recordings to large datasets, even without a background in computer science.
 
 `birdnetR` wraps the `birdnet` [Python package](https://github.com/birdnet-team/birdnet) and sets up Python for you. With it you can:
 
@@ -26,27 +28,27 @@ To train custom classifiers, use BirdNET-Analyzer directly.
 
 ## Installation
 
-Install the released version from CRAN:
-
-```r
-install.packages("birdnetR")
-```
-<br>
-or install the development version from GitHub with:
+Install the development version (1.0) from GitHub:
 
 ```r
 pak::pak("birdnet-team/birdnetR")
 ```
 
+The released version on CRAN is still 0.3.2, with the old function names:
+
+```r
+install.packages("birdnetR")
+```
+
 You don't need to install Python yourself. On first use, birdnetR sets up Python
 and the `birdnet` package for you (through
 [reticulate](https://rstudio.github.io/reticulate/)). The first setup takes a
-few minutes. The default setup is small. TensorFlow (about 600 MB) or PyTorch are
-downloaded only when you first load a model that needs them.
+few minutes. The default installation is small. TensorFlow (about 600 MB) and PyTorch
+are downloaded only when you first load a model that needs them.
 
-[Installation and setup](https://birdnet-team.github.io/birdnetR/articles/installation.html)
+[Installation and setup](https://birdnet-team.github.io/birdnetR/dev/articles/installation.html)
 covers these extra downloads, your own Python environment and working offline.
-For GPUs, see the [GPU](https://birdnet-team.github.io/birdnetR/articles/gpu.html)
+For GPUs, see the [GPU](https://birdnet-team.github.io/birdnetR/dev/articles/gpu.html)
 article.
 
 
@@ -111,7 +113,7 @@ df <- as.data.frame(predictions)
 | Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
 
 `birdnet_list_models()` lists every backend and precision you can choose. The
-[Models and backends](https://birdnet-team.github.io/birdnetR/articles/models.html)
+[Models and backends](https://birdnet-team.github.io/birdnetR/dev/articles/models.html)
 article explains them. For details on each model, see the
 [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
 
@@ -129,9 +131,10 @@ their replacements:
 | `birdnet_model_custom()` | `birdnet_load_custom()` |
 | `predict_species_from_audio_file()` | `birdnet_predict(model, files = ...)` |
 | `predict_species_at_location_and_time()` | `birdnet_predict(model, latitude = ..., longitude = ...)` |
-| `labels_path()` / `read_labels()` | `birdnet_list_species(model)` |
+| `labels_path()` / `read_labels()` | `birdnet_list_species(model)`; read your own list file with `readLines()` |
 | `available_languages()` | `birdnet_list_languages()` |
-| `get_top_prediction()` | Removed; use `dplyr` or `birdnetTools` |
+| `get_top_prediction()` | Removed; use `dplyr` or birdnetTools |
+| `install_arrow()` | Removed; not needed |
 
 Predictions now come back as an object (convert with `as.data.frame()`), and
 the output columns follow the Python package (`input`, `start_time`,
@@ -144,7 +147,7 @@ arguments and all other changes.
 `birdnetR` is part of a set of related tools:
 
 - **[BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer)** — the upstream desktop/CLI application for custom classifier training and advanced BirdNET features.
-- **[birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html)** — an R package for post-processing and validating BirdNET predictions: filtering, visualisation, and interactive threshold setting.
+- **[birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html)** — an R package for post-processing and validating BirdNET predictions: filtering, visualization, and interactive threshold setting.
 
 
 ## Citation
