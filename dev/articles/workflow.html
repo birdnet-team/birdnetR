@@ -185,10 +185,22 @@ The species name is split at its first underscore:</p>
 <span><span class="va">df</span><span class="op">$</span><span class="va">common_name</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">sub</a></span><span class="op">(</span><span class="st">"^[^_]*_"</span>, <span class="st">""</span>, <span class="va">df</span><span class="op">$</span><span class="va">species_name</span><span class="op">)</span></span></code></pre></div>
 <p>Perch v2 names are scientific names only, so for Perch output both
 new columns hold the scientific name.</p>
-<p>The same works for results written to CSV files and read back with
-<code>birdnetTools::birdnet_combine()</code>. The times in CSV files are
-text (see <a href="birdnetR.html#process-many-files">Process many
-files</a>).</p>
+<p>For results written to CSV files with <code><a href="../reference/birdnet_write.html">birdnet_write()</a></code>,
+don’t use <code>birdnetTools::birdnet_combine()</code> to read them
+back. The times in CSV files are text such as <code>"00:00:01.50"</code>
+(see <a href="birdnetR.html#process-many-files">Process many files</a>),
+and <code>birdnet_combine()</code> reads them as clock times without the
+hundredths, so 1.5 seconds becomes 1. Read the files with
+<code><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv()</a></code> and convert the times to seconds, then add the
+columns as above:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">files</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="st">"results"</span>, pattern <span class="op">=</span> <span class="st">"\\.csv$"</span>, full.names <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">files</span>, <span class="va">read.csv</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">start_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">as.difftime</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">start_time</span>, format <span class="op">=</span> <span class="st">"%H:%M:%OS"</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">df</span><span class="op">$</span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/difftime.html" class="external-link">as.difftime</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">end_time</span>, format <span class="op">=</span> <span class="st">"%H:%M:%OS"</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>Reading birdnetR output directly in birdnetTools is discussed in <a href="https://github.com/birdnet-team/birdnetTools/issues/34" class="external-link">birdnetTools
+issue #34</a>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
