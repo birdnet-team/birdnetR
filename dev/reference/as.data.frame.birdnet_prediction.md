@@ -17,7 +17,7 @@ as.data.frame(x, row.names = NULL, optional = FALSE, ...)
 - x:
 
   A BirdNET prediction object (as returned by
-  [`predict()`](https://rdrr.io/r/stats/predict.html)).
+  [`birdnet_predict()`](https://birdnet-team.github.io/birdnetR/dev/reference/birdnet_predict.md)).
 
 - row.names:
 
@@ -41,10 +41,10 @@ A data frame containing the prediction results.
 ``` r
 if (FALSE) { # \dontrun{
 # Load a BirdNET acoustic model
-model <- load_birdnet(type = "acoustic")
+model <- birdnet_load()
 # Predict species from audio files
 audio_file <- system.file("extdata", "soundscape.mp3", package = "birdnetR")
-predictions <- predict(model, files = audio_file)
+predictions <- birdnet_predict(model, files = audio_file)
 # Convert predictions to a data frame
 as.data.frame(predictions)
 } # }

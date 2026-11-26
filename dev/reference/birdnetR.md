@@ -1,6 +1,6 @@
 # BirdNET for R
 
-`birdnetR` is a wrapper around the python package `birdnet`.
+birdnetR is a wrapper around the Python package `birdnet`.
 
 ## See also
 
@@ -14,7 +14,7 @@ Useful links:
 
 ## Author
 
-**Maintainer**: Felix Günther <felix.guenther@informatik.tu-chemnitz.de>
+**Maintainer**: Felix Günther <felix.gnthr@gmail.com>
 
 Authors:
 

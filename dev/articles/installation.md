@@ -1,0 +1,141 @@
+# Installation and setup
+
+## Installing birdnetR
+
+Install the released version from CRAN:
+
+``` r
+
+install.packages("birdnetR")
+```
+
+or the development version from GitHub:
+
+``` r
+
+pak::pak("birdnet-team/birdnetR")
+```
+
+## How Python is set up
+
+You don’t need to install Python yourself. birdnetR uses
+[`reticulate::py_require()`](https://rstudio.github.io/reticulate/reference/py_require.html):
+the first time you use birdnetR, reticulate downloads Python and the
+`birdnet` Python package with [uv](https://docs.astral.sh/uv/) and keeps
+them in a cache. The first setup takes a few minutes; later sessions
+reuse the cache and start within seconds.
+
+The default installation contains ONNX Runtime and LiteRT. It runs
+BirdNET+ V3.0 and BirdNET V2.4, and custom TFLite classifiers trained on
+V2.4.
+
+[`birdnet_sitrep()`](https://birdnet-team.github.io/birdnetR/dev/reference/birdnet_sitrep.md)
+shows which Python and which `birdnet` version birdnetR uses (see
+[Troubleshoot](https://birdnet-team.github.io/birdnetR/dev/articles/Troubleshoot.html#reporting-a-problem)).
+
+## Extra downloads
+
+Some models need TensorFlow or PyTorch on top of the default
+installation:
+
+| You load | birdnetR installs | Download |
+|----|----|----|
+| [`birdnet_load_perch()`](https://birdnet-team.github.io/birdnetR/dev/reference/birdnet_load.md) | TensorFlow | about 600 MB |
+| `birdnet_load(backend = "pb")`, Raven exports | TensorFlow | about 600 MB |
+| `backend = "tf"` with `library = "tflite"`, or where LiteRT is not available (Intel Macs, Windows on ARM) | TensorFlow | about 600 MB |
+| `birdnet_load(backend = "pt")` | PyTorch | several GB with GPU support (about 6 GB for AMD GPUs), much less for the CPU-only version |
+
+birdnetR installs these the first time you load such a model, even in
+the middle of an R session. That first load takes longer. The `needs`
+column of
+[`birdnet_list_models()`](https://birdnet-team.github.io/birdnetR/dev/reference/birdnet_list_models.md)
+shows which model needs what (see [Models and
+backends](https://birdnet-team.github.io/birdnetR/dev/articles/models.md)).
+
+On Linux, uv installs the CUDA build of PyTorch by default, which is
+several GB even if you have no GPU. To get the CPU-only build, run
+`Sys.setenv(UV_TORCH_BACKEND = "cpu")` before the first birdnetR call.
+
+### Download progress
+
+uv draws progress bars only when R runs in a terminal. In RStudio,
+Positron and other IDE consoles, it prints one line when a large
+download starts and one when it ends, with nothing in between, for
+example:
+
+    Downloading torch (846.0MiB)
+     Downloaded torch
+
+A large download can take several minutes. To see the progress, do the
+first load in R running in a terminal. The download is cached, so your
+IDE sessions use it afterwards.
+
+### Intel Macs
+
+birdnetR is not tested on Intel Macs. If something does not work there,
+please [report it](https://github.com/birdnet-team/birdnetR/issues).
+
+On Intel Macs, TensorFlow can only be added before Python starts. If you
+load a model that needs TensorFlow after Python has started (for example
+after loading another model), birdnetR stops with:
+
+    On Intel Macs, TensorFlow must be added before Python starts. Restart R and make this load your first birdnetR call.
+
+Restart R and load the TensorFlow model first. Perch v2 does not run on
+Intel Macs at all.
+
+## Pinning the `birdnet` version
+
+birdnetR installs the newest `birdnet` Python package from 1.5 up to,
+but not including, 2.0. To stay on one exact version, for example to
+reproduce earlier results, set the environment variable
+`BIRDNETR_BIRDNET_VERSION` before you load birdnetR, in your `.Renviron`
+file or with [`Sys.setenv()`](https://rdrr.io/r/base/Sys.setenv.html):
+
+``` r
+
+Sys.setenv(BIRDNETR_BIRDNET_VERSION = "==1.5.0")
+library(birdnetR)
+```
+
+Only an exact version of the form `==x.y.z` is accepted. Anything else
+gives a warning and the default range is used.
+
+## Your own Python environment
+
+If you set `RETICULATE_PYTHON` to the Python of your own virtual
+environment, birdnetR uses that environment and does not change it. This
+also means it can’t install the extras there. Install them yourself, for
+example with `reticulate::virtualenv_install("my-env", "birdnet[tf]")`
+for TensorFlow or `"birdnet[pt]"` for PyTorch. If a runtime is missing,
+the `birdnet` Python package stops with an error that names it.
+
+`RETICULATE_PYTHON` must be set before Python starts: in your
+`.Renviron` file, or with
+[`Sys.setenv()`](https://rdrr.io/r/base/Sys.setenv.html) before you load
+the first model.
+[`reticulate::use_virtualenv()`](https://rstudio.github.io/reticulate/reference/use_python.html)
+alone does not work with birdnetR, because birdnetR sets
+`RETICULATE_PYTHON` to reticulate’s managed environment when it is
+unset, and `RETICULATE_PYTHON` takes precedence.
+
+Some GPU setups need your own environment; see the
+[GPU](https://birdnet-team.github.io/birdnetR/dev/articles/gpu.md)
+article.
+
+## Working offline
+
+Models are downloaded the first time you load them. Run your analysis
+once while online, so that Python, the Python packages and the models
+are on disk.
+
+When the environment variable `BIRDNET_OFFLINE` is `1`, the `birdnet`
+Python package never tries to download anything. A model that is not on
+disk then stops with an error that names its download URL. Set the
+variable before you load a model:
+
+``` r
+
+Sys.setenv(BIRDNET_OFFLINE = "1")
+model <- birdnet_load()
+```
