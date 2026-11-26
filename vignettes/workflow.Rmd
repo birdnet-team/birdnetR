@@ -108,6 +108,21 @@ df$common_name <- sub("^[^_]*_", "", df$species_name)
 Perch v2 names are scientific names only, so for Perch output both new
 columns hold the scientific name.
 
-The same works for results written to CSV files and read back with
-`birdnetTools::birdnet_combine()`. The times in CSV files are text (see
-[Process many files](birdnetR.html#process-many-files)).
+For results written to CSV files with `birdnet_write()`, don't use
+`birdnetTools::birdnet_combine()` to read them back. The times in CSV files are
+text such as `"00:00:01.50"` (see
+[Process many files](birdnetR.html#process-many-files)), and
+`birdnet_combine()` reads them as clock times without the hundredths, so 1.5
+seconds becomes 1. Read the files with `read.csv()` and convert the times to
+seconds, then add the columns as above:
+
+```{r read_csv_for_birdnettools}
+files <- list.files("results", pattern = "\\.csv$", full.names = TRUE)
+df <- do.call(rbind, lapply(files, read.csv))
+
+df$start_time <- as.numeric(as.difftime(df$start_time, format = "%H:%M:%OS", units = "secs"))
+df$end_time <- as.numeric(as.difftime(df$end_time, format = "%H:%M:%OS", units = "secs"))
+```
+
+Reading birdnetR output directly in birdnetTools is discussed in
+[birdnetTools issue #34](https://github.com/birdnet-team/birdnetTools/issues/34).
