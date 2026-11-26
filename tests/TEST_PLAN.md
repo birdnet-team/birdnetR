@@ -12,7 +12,7 @@ Files with prefix `test-unit-*` contain tests that:
 Files with prefix `test-integration-*` contain tests that:
 - Require the full Python BirdNET package
 - May download and initialize real models
-- Are skipped when not in a full test environment
+- Are skipped unless `BIRDNETR_RUN_INTEGRATION_TESTS` is `"true"`
 
 ## Running Tests
 
@@ -20,7 +20,7 @@ Files with prefix `test-integration-*` contain tests that:
 ```r
 devtools::test()
 ```
-This runs all tests, but integration tests are skipped if not in a full test environment.
+This runs all tests; integration tests are skipped unless the environment variable below is set.
 
 ### Unit Tests Only
 ```r
@@ -35,7 +35,11 @@ devtools::test(filter = "^integration")
 
 ## Test Environment Detection
 
-The function `is_full_test_env()` in `test_testing_environment.R` determines whether the environment supports integration tests by checking:
-1. BirdNET Python package is available
-2. Internet connection is available
-3. Optional: explicit environment flag is set
+`is_full_test_env()` in `tests/testthat/helper-test-env.R` is `TRUE` when
+`BIRDNETR_RUN_INTEGRATION_TESTS` is set to `"true"`. Nothing else is checked:
+once the variable is set, a missing Python environment, a failed download or a
+model that does not load fails the tests instead of skipping them.
+
+The custom-classifier test needs `dev/rc_20240214/`, which is not part of the
+built package. It runs with `devtools::test()` in a source checkout and skips
+under `R CMD check`.

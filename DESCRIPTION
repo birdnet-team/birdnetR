@@ -1,26 +1,26 @@
 Type: Package
 Package: birdnetR
-Title: Deep Learning for Automated (Bird) Sound Identification
-Version: 0.3.2.9000
+Title: Identify Birds and Other Animals by Sound with 'BirdNET'
+Version: 0.3.3.9000
 Authors@R: c(
-    person("Felix", "Günther", , "felix.guenther@informatik.tu-chemnitz.de", role = "cre"),
+    person("Felix", "Günther", , "felix.gnthr@gmail.com", role = c("aut", "cre")),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),
-    person("BirdNET", "Team", role = "aut")
+    person("BirdNET Team", role = "aut")
   )
-Description: Use 'BirdNET', a state-of-the-art deep learning classifier, to automatically identify (bird) sounds.
-    Analyze bioacoustic datasets without any computer science background using a pre-trained model or a custom trained classifier.
-    Predict bird species occurrence based on location and week of the year.
-    Kahl, S., Wood, C. M., Eibl, M., & Klinck, H. (2021) <doi:10.1016/j.ecoinf.2021.101236>.
+Description: Identify birds and many other animals by their sounds with
+    'BirdNET', a deep learning model introduced by Kahl et al. (2021)
+    <doi:10.1016/j.ecoinf.2021.101236>. Analyze audio recordings with the
+    'BirdNET' models, Google's 'Perch' model or custom classifiers, predict
+    which species to expect at a place and time of year, and extract
+    embeddings for further analyses. Wraps the 'birdnet' 'Python' package;
+    'Python' itself is set up automatically.
 License: MIT + file LICENSE
 URL: https://birdnet-team.github.io/birdnetR/, https://github.com/birdnet-team/birdnetR
 Depends:
     R (>= 4.1)
 Imports:
-    reticulate (>= 1.46)
+    reticulate (>= 1.47)
 Suggests:
-    arrow,
-    curl,
-    devtools,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
@@ -29,7 +29,6 @@ VignetteBuilder:
     knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 BugReports: https://github.com/birdnet-team/birdnetR/issues

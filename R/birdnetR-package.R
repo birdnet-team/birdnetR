@@ -1,8 +1,6 @@
 #' BirdNET for R
 #'
-#' `birdnetR` is a wrapper around the python package `birdnet`.
-#'
-#' @import reticulate
+#' birdnetR is a wrapper around the Python package `birdnet`.
 #'
 #' @docType package
 #' @keywords internal
@@ -10,11 +8,7 @@
 #' @aliases birdnetR
 "_PACKAGE"
 
-## usethis namespace: start
-#' @importFrom reticulate py_require import
-## usethis namespace: end
-
-# Import the necessary Python modules layzily in .onLoad
+# Import the necessary Python modules lazily in .onLoad
 py_birdnet <- NULL
 py_birdnet_globals <- NULL
 py_builtins <- NULL
@@ -23,16 +17,16 @@ py_builtins <- NULL
 #' Build the birdnet Python package requirement spec for py_require()
 #'
 #' Returns a pip-compatible version specifier string for the birdnet Python
-#' package. By default this is a bounded range (e.g. `"birdnet>=0.2.16,<0.3"`).
+#' package. By default this is a bounded range (e.g. `"birdnet>=1.5,<2"`).
 #'
 #' If the environment variable `BIRDNETR_BIRDNET_VERSION` is set to a valid
-#' exact pin (e.g. `"==0.2.16"`), that pin is used instead. Invalid values
+#' exact pin (e.g. `"==1.5.0"`), that pin is used instead. Invalid values
 #' produce a warning and fall back to the default range.
 #'
 #' @return A single character string suitable for `reticulate::py_require()`.
 #' @noRd
 .birdnet_py_spec <- function() {
-  default_spec <- "birdnet>=0.2.16,<0.3"
+  default_spec <- "birdnet>=1.5,<2"
 
   override <- trimws(Sys.getenv("BIRDNETR_BIRDNET_VERSION", unset = ""))
   if (nchar(override) == 0L) {
@@ -45,7 +39,7 @@ py_builtins <- NULL
       "Ignoring invalid BIRDNETR_BIRDNET_VERSION='",
       override,
       "'. ",
-      "Expected a simple exact pin like '==0.2.16'. ",
+      "Expected a simple exact pin like '==1.5.0'. ",
       "Falling back to default: '",
       default_spec,
       "'.",
@@ -58,6 +52,65 @@ py_builtins <- NULL
 }
 
 
+#' Declare an optional birdnet extra (e.g. TensorFlow) on demand
+#'
+#' Before Python starts, adds `birdnet[<extra>]` with the same version spec as
+#' the base requirement, so upstream's platform pins apply. Once Python runs,
+#' reticulate only accepts new package names (an extra on `birdnet` counts as
+#' a change), so the extra's own package is declared instead and reticulate
+#' layers it on top of the running environment (spec section 8.1).
+#'
+#' @param extra One of `"tf"`, `"pt"`; `"and-cuda"` only before Python starts.
+#' @return `invisible(NULL)`
+#' @noRd
+require_birdnet_extra <- function(extra) {
+  if (!reticulate::py_available()) {
+    reticulate::py_require(
+      sub("^birdnet", paste0("birdnet[", extra, "]"), .birdnet_py_spec())
+    )
+  } else if (extra == "tf" && is_intel_mac()) {
+    # birdnet[tf] also pins pyarrow<26 here, which can't change once Python runs
+    stop(
+      "On Intel Macs, TensorFlow must be added before Python starts. ",
+      "Restart R and make this load your first birdnetR call.",
+      call. = FALSE
+    )
+  } else {
+    # mirrors birdnet[tf] / birdnet[pt] in birdnet 1.5
+    reticulate::py_require(c(tf = "tensorflow>=2.8.0", pt = "torch>=2.0.0")[[extra]])
+  }
+  invisible(NULL)
+}
+
+
+#' @noRd
+is_intel_mac <- function() {
+  p <- platform()
+  p[["sysname"]] == "Darwin" && p[["machine"]] == "x86_64"
+}
+
+
+#' Use reticulate's managed environment unless the user chose their own Python
+#' @noRd
+use_managed_python <- function() {
+  if (!nzchar(Sys.getenv("RETICULATE_PYTHON"))) {
+    Sys.setenv(RETICULATE_PYTHON = "managed")
+  }
+}
+
+
+#' Keep Keras out of the user's home directory
+#'
+#' Keras writes its config to `~/.keras` unless `KERAS_HOME` points elsewhere.
+#' A `KERAS_HOME` the user set is kept.
+#' @noRd
+use_private_keras_home <- function() {
+  if (!nzchar(Sys.getenv("KERAS_HOME"))) {
+    Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
+  }
+}
+
+
 #' Initialize birdnetR Package
 #'
 #' Sets up the Python environment and imports required modules when the birdnetR package is loaded.
@@ -67,16 +120,18 @@ py_builtins <- NULL
 #' @param ... Additional arguments.
 #' @noRd
 .onLoad <- function(libname, pkgname, ...) {
-  # set the KERAS_HOME environment variable (dont't write to user home)
-  Sys.setenv(KERAS_HOME = tools::R_user_dir("birdnetR", "config"))
+  use_private_keras_home()
 
-  # force reticulate to use an self-managed, ephemeral virtual environment
-  Sys.setenv(RETICULATE_PYTHON = "managed")
+  # use reticulate's self-managed, ephemeral virtual environment unless the
+  # user pointed RETICULATE_PYTHON at their own Python
+  use_managed_python()
 
   # Versions of Python and BirdNET; numpy is automatically installed by `reticulate`.
-  # The default spec uses a bounded range (>=0.2.16,<0.3) so that upstream
+  # The default spec uses a bounded range (>=1.5,<2) so that upstream
   # bugfix releases are picked up without a CRAN re-submission.
-  # Set BIRDNETR_BIRDNET_VERSION (e.g. "==0.2.16") to override.
+  # Set BIRDNETR_BIRDNET_VERSION (e.g. "==1.5.0") to override.
+  # Python stays below 3.14: extras such as birdnet[tf] may be added after
+  # Python has started and must resolve on the same interpreter.
   reticulate::py_require(
     .birdnet_py_spec(),
     python_version = ">=3.11,<3.14"

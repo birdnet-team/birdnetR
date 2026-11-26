@@ -1,20 +1,22 @@
-#' Get the species list from a loaded BirdNET model
+#' List the species of a loaded model
 #'
-#' Returns the full species list from a loaded model as a character vector.
-#' Works for both pretrained and custom models.
+#' Returns all classes a loaded model can predict, in model order. Works for
+#' official, Perch and custom models. Use entries of this list for the
+#' `species_list` argument of [birdnet_predict()].
 #'
-#' @param model A BirdNET model object returned by [load_birdnet()] or [load_custom()].
-#' @return A character vector of species names in model order.
+#' @param model A BirdNET model object, see [birdnet_load()].
+#' @return A character vector of species names (`"<scientific>_<common>"` for
+#'   BirdNET models).
 #' @export
 #' @examples
 #' \dontrun{
-#' model <- load_birdnet(type = "acoustic")
-#' species <- get_species_list(model)
+#' model <- birdnet_load()
+#' species <- birdnet_list_species(model)
 #' head(species)
 #' }
-get_species_list <- function(model) {
+birdnet_list_species <- function(model) {
   if (!inherits(model, "birdnet_model")) {
-    stop("`model` must be a BirdNET model object.")
+    stop("`model` must be a BirdNET model object.", call. = FALSE)
   }
   # Convert OrderedSet to Python list first so reticulate returns a character
   # vector instead of the repr string.

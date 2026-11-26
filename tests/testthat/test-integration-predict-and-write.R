@@ -1,16 +1,25 @@
-# Integration tests for predict(), as.data.frame(), and write_predictions().
+# Integration tests for birdnet_predict(), birdnet_encode(), as.data.frame(),
+# and birdnet_write().
 # These tests require a working Python environment with birdnet installed,
 # internet access for model downloads, and BIRDNETR_RUN_INTEGRATION_TESTS=TRUE.
 
+acoustic_columns <- c(
+  "input",
+  "start_time",
+  "end_time",
+  "species_name",
+  "confidence"
+)
+
 # -- Acoustic prediction --------------------------------------------------
 
-test_that("predict() on acoustic model returns a prediction object", {
+test_that("birdnet_predict() on acoustic model returns a prediction object", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_acoustic_model()
   audio_file <- test_audio_file()
 
-  pred <- predict(model, files = audio_file)
+  pred <- birdnet_predict(model, files = audio_file)
 
   expect_s3_class(pred, "birdnet_prediction_acoustic")
   expect_s3_class(pred, "birdnet_prediction")
@@ -18,14 +27,24 @@ test_that("predict() on acoustic model returns a prediction object", {
   expect_true(reticulate::is_py_object(pred$py_predictions))
 })
 
+test_that("birdnet_predict() with BirdNET 2.4 returns predictions", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  model <- suppressMessages(birdnet_load(version = "2.4"))
+  df <- as.data.frame(birdnet_predict(model, files = test_audio_file()))
+
+  expect_named(df, acoustic_columns)
+  expect_gt(nrow(df), 0)
+})
+
 # -- Geo prediction --------------------------------------------------------
 
-test_that("predict() on geo model returns a prediction object", {
+test_that("birdnet_predict() on geo model returns a prediction object", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_geo_model()
 
-  pred <- predict(model, latitude = 47.5, longitude = 11.0, week = 18L)
+  pred <- birdnet_predict(model, latitude = 50.83, longitude = 12.92, week = 18L)
 
   expect_s3_class(pred, "birdnet_prediction_geo")
   expect_s3_class(pred, "birdnet_prediction")
@@ -40,16 +59,13 @@ test_that("as.data.frame() on acoustic prediction returns expected columns", {
 
   model <- get_test_acoustic_model()
   audio_file <- test_audio_file()
-  pred <- predict(model, files = audio_file)
+  pred <- birdnet_predict(model, files = audio_file)
 
   df <- as.data.frame(pred)
 
   expect_s3_class(df, "data.frame")
-  expect_true(nrow(df) > 0)
-  expect_true(all(
-    c("input", "start_time", "end_time", "species_name", "confidence") %in%
-      names(df)
-  ))
+  expect_gt(nrow(df), 0)
+  expect_named(df, acoustic_columns)
   expect_type(df$species_name, "character")
   expect_type(df$confidence, "double")
 })
@@ -60,30 +76,132 @@ test_that("as.data.frame() on geo prediction returns expected columns", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_geo_model()
-  pred <- predict(model, latitude = 47.5, longitude = 11.0, week = 18L)
+  pred <- birdnet_predict(model, latitude = 50.83, longitude = 12.92, week = 18L)
 
   df <- as.data.frame(pred)
 
   expect_s3_class(df, "data.frame")
-  expect_true(nrow(df) > 0)
-  expect_true(all(c("species_name", "confidence") %in% names(df)))
+  expect_gt(nrow(df), 0)
+  expect_named(df, c("species_name", "confidence"))
   expect_type(df$species_name, "character")
   expect_type(df$confidence, "double")
 })
 
+# -- Encoding -------------------------------------------------------------
+
+test_that("birdnet_encode() returns embeddings per segment", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  model <- get_test_acoustic_model()
+  enc <- birdnet_encode(model, files = test_audio_file())
+
+  expect_s3_class(enc, "birdnet_encoding")
+
+  df <- as.data.frame(enc)
+
+  expect_gt(nrow(df), 0)
+  expect_named(df, c("input", "start_time", "end_time", "embedding"))
+  expect_type(df$embedding, "list")
+  expect_type(df$embedding[[1]], "double")
+})
+
+# -- Perch ----------------------------------------------------------------
+
+test_that("Perch loads after a 3.0 model in the same session", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  # Load directly (not via the cached helpers, which skip on load errors) so
+  # a failure to load either model or to add TensorFlow fails this test.
+  # Perch needs TensorFlow, which is added to a Python that already ran onnx.
+  audio_file <- test_audio_file()
+  acoustic <- suppressMessages(birdnet_load())
+  expect_gt(
+    nrow(as.data.frame(birdnet_predict(acoustic, files = audio_file))),
+    0
+  )
+
+  expect_message(perch <- birdnet_load_perch(), "Perch v2")
+
+  expect_s3_class(perch, "birdnet_model_perch")
+  expect_s3_class(perch, "birdnet_model_acoustic")
+  df <- as.data.frame(birdnet_predict(perch, files = audio_file))
+  expect_named(df, acoustic_columns)
+  expect_gt(nrow(df), 0)
+})
+
+# -- Custom classifier ----------------------------------------------------
+
+test_that("birdnet_load_custom() loads a custom 2.4 classifier that predicts", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  # dev/ is excluded from the package build
+  model_file <- testthat::test_path(
+    "..", "..", "dev", "rc_20240214", "Custom_Classifier.tflite"
+  )
+  labels_file <- testthat::test_path(
+    "..", "..", "dev", "rc_20240214", "Custom_Classifier_Labels.txt"
+  )
+  skip_if_not(
+    file.exists(model_file) && file.exists(labels_file),
+    "Custom classifier files not found"
+  )
+
+  expect_message(
+    model <- birdnet_load_custom(
+      normalizePath(model_file),
+      normalizePath(labels_file)
+    ),
+    "Custom acoustic 2.4"
+  )
+
+  expect_s3_class(model, "birdnet_model_custom")
+  expect_true(model$custom)
+
+  info <- birdnet_inspect_custom(normalizePath(model_file))
+  expect_equal(info$version, "2.4")
+  expect_equal(info$n_species, length(birdnet_list_species(model)))
+  df <- as.data.frame(birdnet_predict(model, files = test_audio_file()))
+  expect_named(df, acoustic_columns)
+  expect_gt(nrow(df), 0)
+})
+
+# -- Empty results --------------------------------------------------------
+
+test_that("an empty acoustic result keeps its columns and writes a header-only CSV", {
+  skip_if_not(is_full_test_env(), "Not in full test environment")
+
+  model <- get_test_acoustic_model()
+  pred <- birdnet_predict(model, files = test_audio_file(), min_confidence = 0.999)
+
+  df <- as.data.frame(pred)
+
+  expect_s3_class(df, "data.frame")
+  expect_equal(nrow(df), 0)
+  expect_named(df, acoustic_columns)
+
+  tmp <- tempfile(fileext = ".csv")
+  on.exit(unlink(tmp), add = TRUE)
+  birdnet_write(pred, tmp)
+
+  expect_true(file.exists(tmp))
+  lines <- readLines(tmp)
+  expect_length(lines, 1)
+  expect_equal(lines[[1]], paste(acoustic_columns, collapse = ","))
+})
+
 # -- Result saving: acoustic CSV ------------------------------------------
 
-test_that("write_predictions() saves acoustic predictions to CSV", {
+test_that("birdnet_write() saves acoustic predictions to CSV", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_acoustic_model()
   audio_file <- test_audio_file()
-  pred <- predict(model, files = audio_file)
+  pred <- birdnet_predict(model, files = audio_file)
 
   tmp <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp), add = TRUE)
 
-  result_path <- write_predictions(pred, tmp)
+  result_path <- birdnet_write(pred, tmp)
 
   expect_equal(result_path, tmp)
   expect_true(file.exists(tmp))
@@ -96,20 +214,111 @@ test_that("write_predictions() saves acoustic predictions to CSV", {
 
 # -- Result saving: geo CSV -----------------------------------------------
 
-test_that("write_predictions() saves geo predictions to CSV", {
+test_that("birdnet_write() saves geo predictions to CSV", {
   skip_if_not(is_full_test_env(), "Not in full test environment")
 
   model <- get_test_geo_model()
-  pred <- predict(model, latitude = 47.5, longitude = 11.0, week = 18L)
+  pred <- birdnet_predict(model, latitude = 50.83, longitude = 12.92, week = 18L)
 
   tmp <- tempfile(fileext = ".csv")
   on.exit(unlink(tmp), add = TRUE)
 
-  result_path <- write_predictions(pred, tmp)
+  result_path <- birdnet_write(pred, tmp)
 
   expect_equal(result_path, tmp)
   expect_true(file.exists(tmp))
   saved <- read.csv(tmp)
   expect_true(nrow(saved) > 0)
   expect_true(all(c("species_name", "confidence") %in% names(saved)))
+})
+
+# -- Result saving: every format ------------------------------------------
+
+test_that("birdnet_write() writes every supported format", {
+  model <- get_test_acoustic_model()
+  audio_file <- test_audio_file()
+  dir <- withr::local_tempdir()
+
+  results <- list(
+    predictions = birdnet_predict(model, files = audio_file),
+    embeddings = birdnet_encode(model, files = audio_file),
+    geo = birdnet_predict(get_test_geo_model(), latitude = 50.83, longitude = 12.92)
+  )
+  for (name in names(results)) {
+    formats <- if (name == "geo") c("csv", "npz") else c("csv", "parquet", "npz")
+    for (format in formats) {
+      out <- file.path(dir, paste0(name, ".", format))
+      birdnet_write(results[[name]], out)
+      expect_gt(file.size(out), 0, label = paste("size of", basename(out)))
+    }
+  }
+})
+
+# -- Optional arguments reach Python --------------------------------------
+
+# The unit tests only check the argument names birdnetR sends. These calls
+# fail if the birdnet Python package renames or drops one of them.
+test_that("birdnet_predict() and birdnet_encode() accept every optional argument", {
+  model <- get_test_acoustic_model()
+  audio_file <- test_audio_file()
+  species <- birdnet_list_species(model)
+
+  pred <- birdnet_predict(
+    model,
+    files = audio_file,
+    min_confidence = 0.2,
+    min_confidence_custom = stats::setNames(list(0.5), species[1]),
+    top_k = NULL,
+    overlap = 1,
+    apply_sigmoid = TRUE,
+    sigmoid_sensitivity = 1,
+    bandpass_fmin = 100,
+    bandpass_fmax = 12000,
+    species_list = species[1:500],
+    progress = "minimal",
+    n_producers = 1,
+    n_workers = 1,
+    batch_size = 2,
+    prefetch_ratio = 1,
+    speed = 1,
+    half_precision = FALSE,
+    max_audio_duration_min = 10,
+    apply_softmax = FALSE,
+    segment_size_s = 3,
+    device = "CPU"
+  )
+  expect_named(as.data.frame(pred), acoustic_columns)
+
+  enc <- birdnet_encode(
+    model,
+    files = audio_file,
+    overlap = 1,
+    bandpass_fmin = 100,
+    bandpass_fmax = 12000,
+    progress = "minimal",
+    n_producers = 1,
+    n_workers = 1,
+    batch_size = 2,
+    prefetch_ratio = 1,
+    speed = 1,
+    half_precision = FALSE,
+    max_audio_duration_min = 10,
+    segment_size_s = 3,
+    device = "CPU"
+  )
+  expect_gt(nrow(as.data.frame(enc)), 0)
+})
+
+test_that("geo birdnet_predict() accepts every optional argument", {
+  pred <- birdnet_predict(
+    get_test_geo_model(),
+    latitude = 50.83,
+    longitude = 12.92,
+    week = NULL,
+    min_confidence = 0.1,
+    half_precision = FALSE,
+    year_round_aggregation = "average",
+    device = "CPU"
+  )
+  expect_gt(nrow(as.data.frame(pred)), 0)
 })
