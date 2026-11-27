@@ -10,6 +10,14 @@ This guide shows how to load models, identify species in audio files,
 predict species for a location, extract embeddings, and run custom
 classifiers.
 
+birdnetR is one step in the BirdNET tool chain:
+
+1.  *(Optional)* Train a custom classifier with
+    [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer).
+2.  Identify species in your recordings with birdnetR.
+3.  Filter, visualize and validate the detections with
+    [birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html).
+
 ## Installation
 
 Install the released version from CRAN:
@@ -170,10 +178,6 @@ writes Parquet files directly from Python and does not need the `arrow`
 R package. To read them back into R (e.g. with `arrow::read_parquet()`),
 install `arrow` with `install.packages("arrow")`. On Linux, this can
 mean compiling it, which takes several minutes.
-
-To hand the results to birdnetTools, see the
-[workflow](https://birdnet-team.github.io/birdnetR/dev/articles/workflow.md)
-article.
 
 ### Using a custom species list
 
@@ -456,9 +460,6 @@ setting a confidence threshold per species.
 
 More articles:
 
-- [The BirdNET
-  ecosystem](https://birdnet-team.github.io/birdnetR/dev/articles/workflow.md):
-  where birdnetR fits and how to hand results to birdnetTools.
 - [Installation and
   setup](https://birdnet-team.github.io/birdnetR/dev/articles/installation.md):
   extra downloads, your own Python environment, working offline.

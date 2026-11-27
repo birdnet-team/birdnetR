@@ -41,10 +41,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/workflow.html">The BirdNET ecosystem: a workflow overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Setup and models</h6></li>
-    <li><a class="dropdown-item" href="articles/installation.html">Installation and setup</a></li>
+<li><a class="dropdown-item" href="articles/installation.html">Installation and setup</a></li>
     <li><a class="dropdown-item" href="articles/models.html">Models and backends</a></li>
     <li><a class="dropdown-item" href="articles/gpu.html">GPU</a></li>
     <li><a class="dropdown-item" href="articles/Troubleshoot.html">Troubleshoot</a></li>
@@ -91,7 +88,6 @@
 <li>extract embeddings (one feature vector per audio segment) for your own analyses,</li>
 <li>run custom classifiers trained with <a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET-Analyzer</a>.</li>
 </ul>
-<p>To train custom classifiers, use BirdNET-Analyzer directly.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -258,13 +254,13 @@
 <div class="section level2">
 <h2 id="the-birdnet-ecosystem">The BirdNET ecosystem<a class="anchor" aria-label="anchor" href="#the-birdnet-ecosystem"></a>
 </h2>
-<p><code>birdnetR</code> is part of a set of related tools:</p>
-<ul>
+<p>birdnetR is one step in the BirdNET tool chain:</p>
+<ol style="list-style-type: decimal">
 <li>
-<strong><a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET-Analyzer</a></strong> — the upstream desktop/CLI application for custom classifier training and advanced BirdNET features.</li>
-<li>
-<strong><a href="https://birdnet-team.github.io/birdnetTools/index.html" class="external-link">birdnetTools</a></strong> — an R package for post-processing and validating BirdNET predictions: filtering, visualization, and interactive threshold setting.</li>
-</ul>
+<em>(Optional)</em> Train a custom classifier with <a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET-Analyzer</a>.</li>
+<li>Identify species in your recordings with birdnetR.</li>
+<li>Filter, visualize and validate the detections with <a href="https://birdnet-team.github.io/birdnetTools/index.html" class="external-link">birdnetTools</a>.</li>
+</ol>
 </div>
 <div class="section level2">
 <h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>

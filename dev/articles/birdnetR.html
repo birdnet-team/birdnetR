@@ -38,10 +38,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/workflow.html">The BirdNET ecosystem: a workflow overview</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Setup and models</h6></li>
-    <li><a class="dropdown-item" href="../articles/installation.html">Installation and setup</a></li>
+<li><a class="dropdown-item" href="../articles/installation.html">Installation and setup</a></li>
     <li><a class="dropdown-item" href="../articles/models.html">Models and backends</a></li>
     <li><a class="dropdown-item" href="../articles/gpu.html">GPU</a></li>
     <li><a class="dropdown-item" href="../articles/Troubleshoot.html">Troubleshoot</a></li>
@@ -89,6 +86,13 @@
 <code>birdnet</code> Python package from R. This guide shows how to load
 models, identify species in audio files, predict species for a location,
 extract embeddings, and run custom classifiers.</p>
+<p>birdnetR is one step in the BirdNET tool chain:</p>
+<ol style="list-style-type: decimal">
+<li>
+<em>(Optional)</em> Train a custom classifier with <a href="https://github.com/birdnet-team/BirdNET-Analyzer" class="external-link">BirdNET-Analyzer</a>.</li>
+<li>Identify species in your recordings with birdnetR.</li>
+<li>Filter, visualize and validate the detections with <a href="https://birdnet-team.github.io/birdnetTools/index.html" class="external-link">birdnetTools</a>.</li>
+</ol>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -246,7 +250,6 @@ Python and does not need the <code>arrow</code> R package. To read them
 back into R (e.g. with <code>arrow::read_parquet()</code>), install
 <code>arrow</code> with <code>install.packages("arrow")</code>. On
 Linux, this can mean compiling it, which takes several minutes.</p>
-<p>To hand the results to birdnetTools, see the <a href="workflow.html">workflow</a> article.</p>
 </div>
 <div class="section level3">
 <h3 id="using-a-custom-species-list">Using a custom species list<a class="anchor" aria-label="anchor" href="#using-a-custom-species-list"></a>
@@ -504,9 +507,6 @@ heatmaps, and has an interactive app for reviewing detections and
 setting a confidence threshold per species.</p>
 <p>More articles:</p>
 <ul>
-<li>
-<a href="workflow.html">The BirdNET ecosystem</a>: where birdnetR
-fits and how to hand results to birdnetTools.</li>
 <li>
 <a href="installation.html">Installation and setup</a>: extra
 downloads, your own Python environment, working offline.</li>
