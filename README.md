@@ -6,12 +6,8 @@
 [![CRAN status](https://www.r-pkg.org/badges/version/birdnetR)](https://CRAN.R-project.org/package=birdnetR)
 <!-- badges: end -->
 
-> **Note:** This README describes the development version, birdnetR 1.0. It is
-> a breaking release and not on CRAN yet: all functions have new
-> `birdnet_<verb>` names, and BirdNET+ V3.0 is the default model. CRAN still
-> has 0.3.2, which is documented at <https://birdnet-team.github.io/birdnetR/>.
-> If you are upgrading from 0.x, see
-> [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x) below.
+> **Note:** birdnetR 1.0 is a breaking release. If you are upgrading from 0.x,
+> see [Upgrading from birdnetR 0.x](#upgrading-from-birdnetr-0x) below.
 
 `birdnetR` brings [BirdNET](https://birdnet.cornell.edu/) to R. BirdNET is a deep learning model that identifies birds and many other animals by their sounds.
 birdnetR helps you analyze audio from bioacoustic projects, from a few recordings to large datasets, even without a background in computer science.
@@ -26,16 +22,16 @@ birdnetR helps you analyze audio from bioacoustic projects, from a few recording
 
 ## Installation
 
-Install the development version (1.0) from GitHub:
-
-```r
-pak::pak("birdnet-team/birdnetR")
-```
-
-The released version on CRAN is still 0.3.2, with the old function names:
+Install the released version from CRAN:
 
 ```r
 install.packages("birdnetR")
+```
+
+or the development version from GitHub:
+
+```r
+pak::pak("birdnet-team/birdnetR")
 ```
 
 You don't need to install Python yourself. On first use, birdnetR sets up Python
@@ -44,9 +40,9 @@ and the `birdnet` package for you (through
 few minutes. The default installation is small. TensorFlow (about 600 MB) and PyTorch
 are downloaded only when you first load a model that needs them.
 
-[Installation and setup](https://birdnet-team.github.io/birdnetR/dev/articles/installation.html)
+[Installation and setup](https://birdnet-team.github.io/birdnetR/articles/installation.html)
 covers these extra downloads, your own Python environment and working offline.
-For GPUs, see the [GPU](https://birdnet-team.github.io/birdnetR/dev/articles/gpu.html)
+For GPUs, see the [GPU](https://birdnet-team.github.io/birdnetR/articles/gpu.html)
 article.
 
 
@@ -111,7 +107,7 @@ df <- as.data.frame(predictions)
 | Perch v2 (Google) | `birdnet_load_perch()` | 14,795 | CC BY-NC-SA 4.0 |
 
 `birdnet_list_models()` lists every backend and precision you can choose. The
-[Models and backends](https://birdnet-team.github.io/birdnetR/dev/articles/models.html)
+[Models and backends](https://birdnet-team.github.io/birdnetR/articles/models.html)
 article explains them. For details on each model, see the
 [models page of the Python package](https://birdnet-team.github.io/birdnet/models.html).
 

@@ -1,7 +1,7 @@
 Type: Package
 Package: birdnetR
 Title: Identify Birds and Other Animals by Sound with 'BirdNET'
-Version: 0.3.3.9000
+Version: 1.0.0
 Authors@R: c(
     person("Felix", "Günther", , "felix.gnthr@gmail.com", role = c("aut", "cre")),
     person("Stefan", "Kahl", , "stefan.kahl@cornell.edu", role = c("aut", "cph")),

@@ -1,4 +1,4 @@
-# birdnetR (development version)
+# birdnetR 1.0.0 (2026-11-27)
 
 birdnetR 1.0 is a breaking release. It wraps version 1.5 of the Python
 `birdnet` package (0.3.2 used 0.1.7) and loads BirdNET+ V3.0 by default. All

@@ -33,6 +33,11 @@ announce_model <- function(model) {
 #' @param x A BirdNET model object, see [birdnet_load()].
 #' @param ... Ignored.
 #' @return `x`, invisibly.
+#' @examples
+#' \dontrun{
+#' model <- birdnet_load()
+#' print(model)
+#' }
 #' @export
 print.birdnet_model <- function(x, ...) {
   cat(model_description(x), "\n", sep = "")

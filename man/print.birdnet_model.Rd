@@ -18,3 +18,9 @@
 Prints a one-line description of a loaded model: model, version, backend,
 precision, language and number of classes.
 }
+\examples{
+\dontrun{
+model <- birdnet_load()
+print(model)
+}
+}

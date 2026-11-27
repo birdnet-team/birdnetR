@@ -2,23 +2,23 @@
 
 0 errors | 0 warnings | 1 note
 
-* This is a new release.
+* Maintainer email changed from felix.guenther@informatik.tu-chemnitz.de to
+  felix.gnthr@gmail.com. Same maintainer, new address. The old address still
+  receives mail, so the change can be confirmed from it.
 
-## Resubmission 0.3.2
-* **Missing Rd-Tags:**
-  all exported functions document their return value.
-* **Examples for unexported function:**
-  internal functions use the `@noRd` tag. The use of tripple colons (`foo:::function`) in `@examples` was omitted. 
-* **Please do not install packages in your functions, examples or vignette:**
-  Function examples that would install additional software are wrapped in `\dontrun{}` as recommended in
-  [CRAN Cookbook](https://contributor.r-project.org/cran-cookbook/general_issues.html).
-  This applies to most examples because this package is a wrapper around the `birdnet` Python package.
-  Here we use `reticulate::py_require()` (the recommended approach) to install the `birdnet` Python package in a virtual environment.
-  Because this happens on demand, any interaction either installs the Python packag plus its dependencies, or downloads the 
-  BirdNET model.
+## Test environments
 
-## Resubmission 0.3.1
-This is a resubmission. In this version I have:
-- Fixed the issue with the `keras` Python package writting to the user home directory.
-  The packag now uses `tools::R_user_dir()` to set the environemntal variable 'KERAS_HOME'.
-  The package now depends on R >= 4.0
+* local Ubuntu 26.04, R 4.5.2
+* win-builder (devel): TODO
+* mac-builder (release): TODO
+* R-hub: TODO
+
+## Submission notes
+
+* birdnetR 1.0.0 is a major release with breaking changes. It wraps version
+  1.5 of the Python `birdnet` package, and all functions have new names.
+  NEWS.md maps the old names to the new ones.
+* There are no reverse dependencies on CRAN.
+* As in 0.3.2, most examples are wrapped in `\dontrun{}`: they need the
+  `birdnet` Python package and download model files. The package installs
+  its Python dependencies on demand with `reticulate::py_require()`.
