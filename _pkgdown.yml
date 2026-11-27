@@ -20,9 +20,8 @@ articles:
   navbar: ~
   contents:
   - birdnetR
-  - workflow
 - title: Setup and models
-  navbar: Setup and models
+  navbar: ~
   contents:
   - installation
   - models
