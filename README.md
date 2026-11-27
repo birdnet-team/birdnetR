@@ -23,8 +23,6 @@ birdnetR helps you analyze audio from bioacoustic projects, from a few recording
 - extract embeddings (one feature vector per audio segment) for your own analyses,
 - run custom classifiers trained with [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer).
 
-To train custom classifiers, use BirdNET-Analyzer directly.
-
 
 ## Installation
 
@@ -144,10 +142,13 @@ arguments and all other changes.
 
 ## The BirdNET ecosystem
 
-`birdnetR` is part of a set of related tools:
+birdnetR is one step in the BirdNET tool chain:
 
-- **[BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer)** — the upstream desktop/CLI application for custom classifier training and advanced BirdNET features.
-- **[birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html)** — an R package for post-processing and validating BirdNET predictions: filtering, visualization, and interactive threshold setting.
+1. *(Optional)* Train a custom classifier with
+   [BirdNET-Analyzer](https://github.com/birdnet-team/BirdNET-Analyzer).
+2. Identify species in your recordings with birdnetR.
+3. Filter, visualize and validate the detections with
+   [birdnetTools](https://birdnet-team.github.io/birdnetTools/index.html).
 
 
 ## Citation
